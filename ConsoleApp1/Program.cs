@@ -23,17 +23,18 @@ namespace ConsoleApp1
             //    System.Diagnostics.Trace.WriteLine(displayname);
             //    //subkey.Dispose();
             //}
-            //var vv = uninstall.Where(x => x.GetValue<string>("DisplayName")== "Intel(R) Processor Graphics");
-            //foreach(var oo in vv)
-            //{
-
-            //}
-
-            var vv = from regt in uninstall where reg.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" select regt;
+            var vv = uninstall.Where(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" || x.GetValue<string>("DisplayName")=="");
             foreach (var oo in vv)
             {
 
             }
+
+
+            //var vv = from regt in uninstall where reg.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" select regt;
+            //foreach (var oo in vv)
+            //{
+
+            //}
         }
     }
 }

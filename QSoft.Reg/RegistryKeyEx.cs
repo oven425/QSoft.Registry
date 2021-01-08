@@ -29,6 +29,32 @@ namespace QSoft.Reg.Linq
             return ll;
         }
 
+        public static bool Any(this RegistryKey src, Func<RegistryKey, bool> func)
+        {
+            bool bb = false;
+            string[] subkeynames = src.GetSubKeyNames();
+            foreach (var subkeyname in subkeynames)
+            {
+                RegistryKey reg = src.OpenSubKey(subkeyname);
+                if (func.Invoke(reg) == true)
+                {
+                    bb = true;
+                }
+                reg.Dispose();
+                reg = null;
+                if(bb==true)
+                {
+                    break;
+                }
+            }
+            return bb;
+        }
+
+        public static int Count(this RegistryKey src)
+        {
+            return src.GetSubKeyNames().Length;
+        }
+
         public static int Count(this RegistryKey src, Func<RegistryKey, bool> func)
         {
             int count = 0;
@@ -47,6 +73,18 @@ namespace QSoft.Reg.Linq
                 }
             }
             return count;
+        }
+
+
+        public static void Select(this RegistryKey src, Func<RegistryKey, object> select)
+        {
+            string[] subkeynames = src.GetSubKeyNames();
+            foreach (var subkeyname in subkeynames)
+            {
+                RegistryKey reg = src.OpenSubKey(subkeyname);
+                object obj = select.Invoke(reg);
+                obj = null;
+            }
         }
 
         public static T GetValue<T>(this RegistryKey src, string name)

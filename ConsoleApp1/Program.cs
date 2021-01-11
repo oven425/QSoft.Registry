@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using QSoft.Reg.Linq;
+using QSoft.Registry.Linq;
 
 namespace ConsoleApp1
 {
@@ -23,15 +23,16 @@ namespace ConsoleApp1
             //    System.Diagnostics.Trace.WriteLine(displayname);
             //    //subkey.Dispose();
             //}
-
-            uninstall.Select(x => x.GetValue<string>("DisplayName"));
+            var first = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
+            var last = uninstall.LastOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
+            var count = uninstall.Count();
+            var count_1 = uninstall.Count(x => string.IsNullOrEmpty(x.GetValue<string>("DisplayName")) == false);
+            var select = uninstall.Select(x => x.GetValue<string>("DisplayName"));
             var vv = uninstall.Where(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" || x.GetValue<string>("DisplayName") == "");
-            foreach (var oo in vv)
-            {
-
-            }
-
-
+            var dic = uninstall.ToDictionary(x => x.Name);
+            
+            vv.ToLookup(x => x.Name);
+            vv.GroupBy(x => x.Name);
             //var vv = from regt in uninstall where reg.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" select regt;
             //foreach (var oo in vv)
             //{
@@ -39,6 +40,11 @@ namespace ConsoleApp1
             //}
 
         }
+
+        //public IEnumerable<int> Test()
+        //{
+        //    List<int> ll = IEnumerable<int>
+        //}
     }
 
     public class CSS

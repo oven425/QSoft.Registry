@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.1321
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QSoft.Reg", "QSoft.Reg\QSoft.Reg.csproj", "{AE9B7457-FD1E-4EA5-9B96-C6F74607E477}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QSoft.Registry", "QSoft.Reg\QSoft.Registry.csproj", "{AE9B7457-FD1E-4EA5-9B96-C6F74607E477}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{211BF704-4842-482C-8BE8-12EA858C6714}"
 EndProject

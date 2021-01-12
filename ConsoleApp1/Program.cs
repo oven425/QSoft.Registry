@@ -33,12 +33,20 @@ namespace ConsoleApp1
             
             vv.ToLookup(x => x.Name);
             vv.GroupBy(x => x.Name);
-            //var vv = from regt in uninstall where reg.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" select regt;
-            //foreach (var oo in vv)
-            //{
 
-            //}
 
+            List<CSS> tt = new List<CSS>();
+            for(int i=0; i<5; i++)
+            {
+                tt.Add(new CSS() { B=i});
+                tt.Add(new CSS() { B = i });
+                tt.Add(new CSS() { B = i });
+                tt.Add(new CSS() { B = i });
+                tt.Add(new CSS() { B = i });
+            }
+            
+            
+            var ttg = tt.GroupBy(x => x.B);
         }
 
         //public IEnumerable<int> Test()

@@ -103,6 +103,16 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
+        public static RegistryKey FirstOrDefault(this RegistryKey src)
+        {
+            RegistryKey hr = null;
+            if(src.GetSubKeyNames().Length >0)
+            {
+                hr = src.OpenSubKey(src.GetSubKeyNames()[0]);
+            }
+            return hr;
+        }
+
         public static RegistryKey LastOrDefault(this RegistryKey src, Func<RegistryKey, bool> func)
         {
             RegistryKey hr = null;
@@ -124,6 +134,16 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
+        public static RegistryKey LastOrDefault(this RegistryKey src)
+        {
+            RegistryKey hr = null;
+            if (src.GetSubKeyNames().Length > 0)
+            {
+                hr = src.OpenSubKey(src.GetSubKeyNames()[src.GetSubKeyNames().Length-1]);
+            }
+            return hr;
+        }
+
         public static Dictionary<TKey, RegistryKey> ToDictionary<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
         {
             Dictionary<TKey, RegistryKey> dic = new Dictionary<TKey, RegistryKey>();
@@ -132,23 +152,52 @@ namespace QSoft.Registry.Linq
                 RegistryKey reg = src.OpenSubKey(subkeyname);
                 TKey tt = func.Invoke(reg);
                 dic.Add(tt, reg);
-                reg.Dispose();
-                reg = null;
             }
             return dic;
         }
 
-        public static void GroupBy(this RegistryKey src)
+        public static List<RegistryKey> ToList(this RegistryKey src)
         {
+            List<RegistryKey> ll = new List<RegistryKey>();
             foreach (var subkeyname in src.GetSubKeyNames())
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);
-                //TKey tt = func.Invoke(reg);
-                //dic.Add(tt, reg);
-                reg.Dispose();
-                reg = null;
+                ll.Add(reg);
             }
+            return ll;
         }
+
+
+        //public static IEnumerable<IGrouping<TKey, RegistryKey>> GroupBy<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
+        //{
+        //    IEnumerable<IGrouping<TKey, RegistryKey>> group;
+        //    foreach (var subkeyname in src.GetSubKeyNames())
+        //    {
+        //        RegistryKey reg = src.OpenSubKey(subkeyname);
+        //        TKey key = func.Invoke(reg);
+        //        yield return key;
+        //        reg.Dispose();
+        //        reg = null;
+        //    }
+
+        //    return null;
+        //}
+        //ILookup<TKey, TSource> ToLookup<TSource, TKey>
+        public static ILookup<TKey, RegistryKey> ToLookup<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
+        {
+            //System.Linq.Lookup<TKey, RegistryKey> lookup = new Lookup<TKey, RegistryKey>();
+            //foreach (var subkeyname in src.GetSubKeyNames())
+            //{
+            //    RegistryKey reg = src.OpenSubKey(subkeyname);
+            //    TKey key = func.Invoke(reg);
+            //    eld return key;
+            //    reg.Dispose();
+            //    reg = null;
+            //}
+
+            return null;
+        }
+
 
         public static T GetValue<T>(this RegistryKey src, string name)
         {

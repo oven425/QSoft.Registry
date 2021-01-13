@@ -30,10 +30,13 @@ namespace ConsoleApp1
             var select = uninstall.Select(x => x.GetValue<string>("DisplayName"));
             var vv = uninstall.Where(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" || x.GetValue<string>("DisplayName") == "");
             var dic = uninstall.ToDictionary(x => x.Name);
-            
-            vv.ToLookup(x => x.Name);
-            vv.GroupBy(x => x.Name);
+            var group = uninstall.GroupBy(x => x.GetValue<string>("DisplayName"));
+            foreach(var key in group)
+            {
 
+            }
+            var group1 = uninstall.ToList().GroupBy(x => x.GetValue<string>("DisplayName"));
+            vv.GroupBy(x => x.Name);
 
             List<CSS> tt = new List<CSS>();
             for(int i=0; i<5; i++)

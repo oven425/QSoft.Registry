@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Win32;
@@ -168,23 +169,31 @@ namespace QSoft.Registry.Linq
         }
 
 
-        //public static IEnumerable<IGrouping<TKey, RegistryKey>> GroupBy<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
-        //{
-        //    IEnumerable<IGrouping<TKey, RegistryKey>> group;
-        //    foreach (var subkeyname in src.GetSubKeyNames())
-        //    {
-        //        RegistryKey reg = src.OpenSubKey(subkeyname);
-        //        TKey key = func.Invoke(reg);
-        //        yield return key;
-        //        reg.Dispose();
-        //        reg = null;
-        //    }
+        public static IEnumerable<IGrouping<TKey, RegistryKey>> GroupBy<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
+        {
+            Dictionary<TKey, Grouping<TKey, RegistryKey>> dic = new Dictionary<TKey, Grouping<TKey, RegistryKey>>();
+            foreach (var subkeyname in src.GetSubKeyNames())
+            {
+                RegistryKey reg = src.OpenSubKey(subkeyname);
+                TKey key = func.Invoke(reg);
+                if(dic.ContainsKey(key) == true)
+                {
+                    dic[key].Add(reg);
+                }
+                else
+                {
+                    dic.Add(key, new Grouping<TKey, RegistryKey>(key, reg));
+                    yield return dic[key];
+                }
+                
+            }
+        }
 
-        //    return null;
-        //}
-        //ILookup<TKey, TSource> ToLookup<TSource, TKey>
         public static ILookup<TKey, RegistryKey> ToLookup<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
         {
+            Lookup<TKey, RegistryKey> ll = null;
+            
+            return ll;
             //System.Linq.Lookup<TKey, RegistryKey> lookup = new Lookup<TKey, RegistryKey>();
             //foreach (var subkeyname in src.GetSubKeyNames())
             //{
@@ -217,5 +226,30 @@ namespace QSoft.Registry.Linq
             }
             return t;
         }
+    }
+
+    public class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+    {
+        readonly List<TElement> elements = new List<TElement>();
+
+        public void Add(TElement data)
+        {
+            this.elements.Add(data);
+        }
+        public Grouping(TKey key, TElement value)
+        {
+            Key = key;
+            elements.Add(value);
+        }
+
+        public TKey Key { get; private set; }
+
+        public IEnumerator<TElement> GetEnumerator()
+        {
+            return this.elements.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
+
     }
 }

@@ -36,7 +36,6 @@ namespace ConsoleApp1
 
             }
 
-
             var group1 = uninstall.ToList().GroupBy(x => x.GetValue<string>("DisplayName"));
             vv.GroupBy(x => x.Name);
 

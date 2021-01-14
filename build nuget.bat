@@ -1,0 +1,1 @@
+nuget pack QSoft.Registry.nuspec

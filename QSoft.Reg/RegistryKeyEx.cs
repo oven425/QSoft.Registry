@@ -4,9 +4,34 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Win32;
 
-namespace QSoft.Registry.Linq
+namespace QSoft.Registry
 {
     public static class RegistryKeyEx
+    {
+        public static T GetValue<T>(this RegistryKey src, string name)
+        {
+            T t = default(T);
+            if (src.GetValueNames().Any(x => x == name) == true)
+            {
+                object obj = src.GetValue(name);
+                t = (T)obj;
+            }
+            else
+            {
+                if (Type.GetTypeCode(typeof(T)) == TypeCode.String)
+                {
+                    object obj = string.Empty;
+                    t = (T)obj;
+                }
+            }
+            return t;
+        }
+    }
+}
+
+namespace QSoft.Registry.Linq
+{
+    public static class RegistryKeyLinq
     {
         public static IEnumerable<RegistryKey> Where(this RegistryKey src, Func<RegistryKey, bool> func)
         {
@@ -20,7 +45,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    reg.Dispose();
+                    reg.Close();
                     reg = null;
                 }
             }
@@ -38,7 +63,7 @@ namespace QSoft.Registry.Linq
                     bb = true;
                 }
 
-                reg.Dispose();
+                reg.Close();
                 reg = null;
                 if(bb==true)
                 {
@@ -66,7 +91,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    reg.Dispose();
+                    reg.Close();
                     reg = null;
                 }
             }
@@ -97,7 +122,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    reg.Dispose();
+                    reg.Close();
                     reg = null;
                 }
             }
@@ -128,7 +153,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    reg.Dispose();
+                    reg.Close();
                     reg = null;
                 }
             }
@@ -176,55 +201,70 @@ namespace QSoft.Registry.Linq
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);
                 TKey key = func.Invoke(reg);
-                if(dic.ContainsKey(key) == true)
+                if (dic.ContainsKey(key) == true)
                 {
                     dic[key].Add(reg);
                 }
                 else
                 {
                     dic.Add(key, new Grouping<TKey, RegistryKey>(key, reg));
-                    yield return dic[key];
+
                 }
                 
+            }
+            for(int i=0; i<dic.Count; i++)
+            {
+                yield return dic.ElementAt(i).Value;
             }
         }
 
         public static ILookup<TKey, RegistryKey> ToLookup<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
         {
-            Lookup<TKey, RegistryKey> ll = null;
-            
-            return ll;
-            //System.Linq.Lookup<TKey, RegistryKey> lookup = new Lookup<TKey, RegistryKey>();
-            //foreach (var subkeyname in src.GetSubKeyNames())
-            //{
-            //    RegistryKey reg = src.OpenSubKey(subkeyname);
-            //    TKey key = func.Invoke(reg);
-            //    eld return key;
-            //    reg.Dispose();
-            //    reg = null;
-            //}
 
-            return null;
+            Lookup<TKey, RegistryKey> ll = new Lookup<TKey, RegistryKey>();
+            
+
+            foreach (var subkeyname in src.GetSubKeyNames())
+            {
+                RegistryKey reg = src.OpenSubKey(subkeyname);
+                TKey key = func.Invoke(reg);
+                ll.Add(key, reg);
+            }
+            return ll;
         }
 
+    }
 
-        public static T GetValue<T>(this RegistryKey src, string name)
+    public class Lookup<TKey, TElement> : ILookup<TKey, TElement>
+    {
+        Dictionary<TKey, Grouping<TKey, TElement>> dic = new Dictionary<TKey, Grouping<TKey, TElement>>();
+        public IEnumerable<TElement> this[TKey key] => dic[key];
+        public void Add(TKey key, TElement value)
         {
-            T t =  default(T);
-            if(src.GetValueNames().Any(x=>x==name) == true)
+            if(this.dic.ContainsKey(key) == false)
             {
-                object obj = src.GetValue(name);
-                t = (T)obj;
+                this.dic.Add(key, new Grouping<TKey, TElement>(key, value));
             }
             else
             {
-                if(Type.GetTypeCode(typeof(T)) == TypeCode.String)
-                {
-                    object obj = string.Empty;
-                    t = (T)obj;
-                }
+                this.dic[key].Add(value);
             }
-            return t;
+        }
+        public int Count => throw new NotImplementedException();
+
+        public bool Contains(TKey key)
+        {
+            return dic.ContainsKey(key);
+        }
+
+        public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator()
+        {
+            return dic.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return dic.Values.GetEnumerator();
         }
     }
 

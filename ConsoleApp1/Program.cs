@@ -13,6 +13,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            RegistryKey reg_32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             RegistryKey reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
             RegistryKey uninstall = reg.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
             //foreach (var oo in uninstall.GetSubKeyNames())
@@ -22,7 +23,7 @@ namespace ConsoleApp1
             //    System.Diagnostics.Trace.WriteLine(displayname);
             //    //subkey.Dispose();
             //}
-            var first = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
+            var first = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics"|| x.GetValue<string>("DisplayName") == "");
             var last = uninstall.LastOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
             var count = uninstall.Count();
             var count_1 = uninstall.Count(x => string.IsNullOrEmpty(x.GetValue<string>("DisplayName")) == false);

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>QSoft.Registry</id>
-    <version>1.0.0.0</version>
+    <version>1.0.0.1</version>
     <title>Registry.NET</title>
     <authors>BEN_HSU</authors>
     <owners>BEN_HSU</owners>
@@ -11,7 +11,7 @@
     <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
     <icon>47811249682_f903175a23_o.jpg</icon>
     <projectUrl>https://github.com/oven425/QSoft.Registry</projectUrl>
-    <description>use linq read register</description>
+    <description>Use linq read RegistryKey</description>
     <copyright>Copyright © Ben Hsu 2021</copyright>
     <repository type="git" url="https://github.com/oven425/QSoft.Registry" />
   </metadata>

@@ -23,6 +23,47 @@ namespace ConsoleApp1
             //    System.Diagnostics.Trace.WriteLine(displayname);
             //    //subkey.Dispose();
             //}
+
+            List<AppData> apps = new List<AppData>();
+            apps.Add(new AppData() { Name= "WinFlash" });
+            apps.Add(new AppData() { Name = "Dropbox 25 GB" });
+            foreach(var app in apps)
+            {
+                var reg1 = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == app.Name);
+                if(reg1!=null)
+                {
+                    //app.Ver = reg1.GetValue<string>("DisplayVersion");
+                    //app.Uninstallstring = reg1.GetValue<string>("UninstallString");
+                }
+            }
+            Func<AppData, RegistryKey, AppData> f = ((a, b) => 
+            {
+                a.Name = b.GetValue<string>("DisplayName");
+                a.Uninstallstring = b.GetValue<string>("UninstallString");
+                a.Ver = b.GetValue<string>("DisplayVersion");
+                return a; });
+            //var jj = uninstall.Where(x => x.GetValue<string>("DisplayName") != "").Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => new { x, y }).Select(x => f(x.y, x.x));
+            //var jj = uninstall.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => new { x, y });
+            var jj = uninstall.Join(apps, x => x.GetValue<string>("DisplayName"), app => app.Name, (x, app) => new { x, app })
+                .Select(x => 
+                {
+                    x.app.Uninstallstring = x.x.GetValue<string>("UninstallString");
+                    x.app.Ver = x.x.GetValue<string>("DisplayVersion");
+                    return x.app ;
+                });
+
+            foreach (var oo in jj)
+            {
+
+            }
+            
+            var jjj = uninstall.Select(x => new { DisplayName=x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
+            foreach(var oo in jjj)
+            {
+                
+            }
+
+
             var first = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics"|| x.GetValue<string>("DisplayName") == "");
             var last = uninstall.LastOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
             var count = uninstall.Count();
@@ -56,5 +97,10 @@ namespace ConsoleApp1
         }
 
     }
-
+    public class AppData
+    {
+        public string Name { set; get; }
+        public string Ver { set; get; }
+        public string Uninstallstring { set; get; }
+    }
 }

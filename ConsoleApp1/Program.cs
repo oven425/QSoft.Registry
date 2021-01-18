@@ -12,23 +12,30 @@ namespace ConsoleApp1
 {
     class Program
     {
+        static T GetValue<T>(string name)
+        {
+            T t = default(T);
+            
+            return t;
+        }
         static void Main(string[] args)
         {
             RegistryKey reg_32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             RegistryKey reg_64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
             RegistryKey uninstall = reg_64.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            //foreach (var oo in uninstall.GetSubKeyNames())
-            //{
-            //    RegistryKey subkey = uninstall.OpenSubKey(oo);
-            //    string displayname = subkey.GetValue("DisplayName") as string;
-            //    System.Diagnostics.Trace.WriteLine(displayname);
-            //    //subkey.Dispose();
-            //}
+            foreach (var oo in uninstall.GetSubKeyNames())
+            {
+                RegistryKey subkey = uninstall.OpenSubKey(oo);
+                object obj = subkey.GetValue("DisplayName");
+                string displayname = subkey.GetValue("DisplayName") as string;
+                System.Diagnostics.Trace.WriteLine(displayname);
+                subkey.Dispose();
+            }
 
             List<AppData> apps = new List<AppData>();
             apps.Add(new AppData() { Name = "WinFlash" });
             apps.Add(new AppData() { Name = "Dropbox 25 GB" });
-            apps.Add(new AppData() { Name = "AnyDesk", IsOfficial = true });
+            apps.Add(new AppData() { Name = "AnyDes", IsOfficial = true });
             //var apptest = apps.Join(apps, func=> { return true; }, (x, y) => new { x, y });
             //apptest.ToList();
             foreach (var app in apps)
@@ -56,18 +63,23 @@ namespace ConsoleApp1
             //        x.app.Ver = x.x.GetValue<string>("DisplayVersion");
             //        return x.app;
             //    });
-            var jj = uninstall.Join(apps, (reg,app)=> 
+            var existapps = uninstall.Join(apps, (reg,app)=> 
                                 {
                                     bool hr = false;
                                     string dispay = reg.GetValue<string>("DisplayName");
-                                    if(app.IsOfficial == true)
+                                    if (app.IsOfficial == true)
                                     {
-                                        hr = app.Name.Contains(dispay);
+                                        hr = string.IsNullOrEmpty(dispay) == false && app.Name.Contains(dispay);
                                     }
                                     else
                                     {
                                         hr = app.Name == dispay;
                                     }
+                                    if (hr == true)
+                                    {
+                                        System.Diagnostics.Trace.WriteLine("");
+                                    }
+
                                     return hr;
                                 }, (x, app) => new { x, app })
                             .Select(x =>
@@ -76,10 +88,12 @@ namespace ConsoleApp1
                                     x.app.Ver = x.x.GetValue<string>("DisplayVersion");
                                     return x.app;
                                 });
-            foreach (var oo in jj)
+            foreach (var oo in existapps)
             {
 
             }
+
+            var nonexist = apps.Except(existapps);
 
             var jjj = uninstall.Select(x => new { DisplayName = x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             foreach (var oo in jjj)

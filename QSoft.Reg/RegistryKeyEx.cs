@@ -13,21 +13,17 @@ namespace QSoft.Registry
             T t = default(T);
             TypeCode typecode = Type.GetTypeCode(typeof(T));
             if (src.GetValueNames().Any(x => x == name) == true)
-            {
-                
+            {               
                 if(typecode == TypeCode.String)
-                {
-                    RegistryValueKind kind = src.GetValueKind(name);
-
+                {                  
                     object obj = src.GetValue(name);
-                    t = (T)obj;
+                    t = (T)Convert.ChangeType(obj, typeof(T));
                 }
                 else
                 {
                     object obj = src.GetValue(name);
                     t = (T)obj;
-                }
-                
+                }              
             }
             else
             {

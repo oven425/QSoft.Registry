@@ -46,9 +46,38 @@ namespace QSoft.Registry.Linq
 {
     public static class RegistryKeyLinq
     {
-        
-        //public static IEnumerable<TResult> Join<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector);
 
+        //public static IEnumerable<TResult> Join<TOuter, TInner, TKey, TResult>(this IEnumerable<TOuter> outer, IEnumerable<TInner> inner, Func<TOuter, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<TOuter, TInner, TResult> resultSelector);
+        public static IEnumerable<TResult> Join<TInner, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TInner, bool> check, Func<RegistryKey, TInner, TResult> resultSelector)
+        {
+            string[] subkeynames = src.GetSubKeyNames();
+            Dictionary<RegistryKey, TInner> dic = new Dictionary<RegistryKey, TInner>();
+            foreach (var subkeyname in subkeynames)
+            {
+
+                RegistryKey reg = src.OpenSubKey(subkeyname);
+
+                // TKey key_reg = outerKeySelector.Invoke(reg);
+                foreach (var oo in inner)
+                {
+                    if (check.Invoke(reg, oo) == true)
+                    {
+                        yield return resultSelector.Invoke(reg, oo);
+                    }
+                    //TKey key = innerKeySelector.Invoke(oo);
+                    //if (key.Equals(key_reg) == true)
+                    //{
+                    //    dic.Add(reg, oo);
+
+                    //    yield return resultSelector.Invoke(reg, oo);
+                    //    //yield break;
+                    //}
+                }
+
+                //bool has = inner.Any(x=> innerKeySelector.Invoke(x))
+                //yield return reg;
+            }
+        }
         public static IEnumerable<TResult> Join<TInner, TKey, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<RegistryKey, TInner, TResult> resultSelector)
         {
             string[] subkeynames = src.GetSubKeyNames();
@@ -61,7 +90,7 @@ namespace QSoft.Registry.Linq
                 foreach (var oo in inner)
                 {
                     TKey key = innerKeySelector.Invoke(oo);
-                    if(key.Equals(key_reg) == true)
+                    if (key.Equals(key_reg) == true)
                     {
                         dic.Add(reg, oo);
 
@@ -69,7 +98,7 @@ namespace QSoft.Registry.Linq
                         //yield break;
                     }
                 }
-                
+
                 //bool has = inner.Any(x=> innerKeySelector.Invoke(x))
                 //yield return reg;
             }

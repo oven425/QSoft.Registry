@@ -12,27 +12,63 @@ namespace QSoft.Registry
         {
             T t = default(T);
             TypeCode typecode = Type.GetTypeCode(typeof(T));
-            if (src.GetValueNames().Any(x => x == name) == true)
-            {               
-                if(typecode == TypeCode.String)
-                {                  
-                    object obj = src.GetValue(name);
-                    t = (T)Convert.ChangeType(obj, typeof(T));
-                }
-                else
+
+            if (typecode == TypeCode.String)
+            {
+                object obj = src.GetValue(name);
+                t = (T)Convert.ChangeType(obj, typeof(T));
+                if(t==null)
                 {
-                    object obj = src.GetValue(name);
-                    t = (T)obj;
-                }              
+                    object str_empty = string.Empty;
+                    t = (T)str_empty;
+                }
             }
             else
             {
-                if (Type.GetTypeCode(typeof(T)) == TypeCode.String)
-                {
-                    object obj = string.Empty;
-                    t = (T)obj;
-                }
+                object obj = src.GetValue(name);
+                t = (T)obj;
             }
+            return t;
+        }
+
+        public static T GetValueSafe<T>(this RegistryKey src, string name)
+        {
+            T t = default(T);
+            TypeCode typecode = Type.GetTypeCode(typeof(T));
+            string[] sss = src.GetValueNames();
+
+            //bool vv = false;
+            //for(int i=0; i<sss.Length; i++)
+            //{
+            //    if(sss[i] == name)
+            //    {
+            //        vv = true;
+            //        break;
+            //    }
+            //}
+            ////if (src.GetValueNames().Count(x => x == name) >0)
+            ////if (src.GetValueNames().FirstOrDefault(x => x == name) != null)
+            //if(vv == true)
+            //{
+            //    if (typecode == TypeCode.String)
+            //    {
+            //        object obj = src.GetValue(name);
+            //        t = (T)Convert.ChangeType(obj, typeof(T));
+            //    }
+            //    else
+            //    {
+            //        object obj = src.GetValue(name);
+            //        t = (T)obj;
+            //    }
+            //}
+            //else
+            //{
+            //    //if (Type.GetTypeCode(typeof(T)) == TypeCode.String)
+            //    //{
+            //    //    object obj = string.Empty;
+            //    //    t = (T)obj;
+            //    //}
+            //}
             return t;
         }
     }

@@ -23,14 +23,14 @@ namespace ConsoleApp1
             RegistryKey reg_32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             RegistryKey reg_64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
             RegistryKey uninstall = reg_64.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            foreach (var oo in uninstall.GetSubKeyNames())
-            {
-                RegistryKey subkey = uninstall.OpenSubKey(oo);
-                object obj = subkey.GetValue("DisplayName");
-                string displayname = subkey.GetValue("DisplayName") as string;
-                System.Diagnostics.Trace.WriteLine(displayname);
-                subkey.Dispose();
-            }
+            //foreach (var oo in uninstall.GetSubKeyNames())
+            //{
+            //    RegistryKey subkey = uninstall.OpenSubKey(oo);
+            //    object obj = subkey.GetValue("DisplayName");
+            //    string displayname = subkey.GetValue("DisplayName") as string;
+            //    System.Diagnostics.Trace.WriteLine(displayname);
+            //    subkey.Dispose();
+            //}
 
             List<AppData> apps = new List<AppData>();
             apps.Add(new AppData() { Name = "WinFlash" });
@@ -63,37 +63,55 @@ namespace ConsoleApp1
             //        x.app.Ver = x.x.GetValue<string>("DisplayVersion");
             //        return x.app;
             //    });
-            var existapps = uninstall.Join(apps, (reg,app)=> 
-                                {
-                                    bool hr = false;
-                                    string dispay = reg.GetValue<string>("DisplayName");
-                                    if (app.IsOfficial == true)
-                                    {
-                                        hr = string.IsNullOrEmpty(dispay) == false && app.Name.Contains(dispay);
-                                    }
-                                    else
-                                    {
-                                        hr = app.Name == dispay;
-                                    }
-                                    if (hr == true)
-                                    {
-                                        System.Diagnostics.Trace.WriteLine("");
-                                    }
-
-                                    return hr;
-                                }, (x, app) => new { x, app })
-                            .Select(x =>
-                                {
-                                    x.app.Uninstallstring = x.x.GetValue<string>("UninstallString");
-                                    x.app.Ver = x.x.GetValue<string>("DisplayVersion");
-                                    return x.app;
-                                });
-            foreach (var oo in existapps)
+            var existapps = uninstall.Join(apps, (reg, app) =>
             {
+                bool hr = false;
+                //object obj = reg.GetValue("DisplayName");
+                //string str = obj as string;
+                string dispay = reg.GetValue<string>("DisplayName");
+                if (app.IsOfficial == true)
+                {
+                    hr = string.IsNullOrEmpty(dispay) == false && app.Name.Contains(dispay);
+                }
+                else
+                {
+                    hr = app.Name == dispay;
+                }
 
+                return hr;
+            }, (x, app) => new { x, app })
+                .Select(x =>
+                {
+                    x.app.Uninstallstring = x.x.GetValue<string>("UninstallString");
+                    x.app.Ver = x.x.GetValue<string>("DisplayVersion");
+                    return x.app;
+                });
+            int runcount = 50;
+            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+            for(int i=0; i< runcount; i++)
+            {
+                foreach (var oo in uninstall.GetSubKeyNames())
+                {
+                    RegistryKey subkey = uninstall.OpenSubKey(oo);
+                    object obj = subkey.GetValue("DisplayName");
+                    //object obj1 = subkey.GetValue("UninstallString");
+                    //object obj2 = subkey.GetValue("DisplayVersion");
+                    //string displayname = subkey.GetValue("DisplayName") as string;
+                    //System.Diagnostics.Trace.WriteLine(displayname);
+                    subkey.Dispose();
+                }
+
+
+                //existapps.ToList();
             }
+            sw.Stop();
+            System.Diagnostics.Trace.WriteLine($"{sw.ElapsedMilliseconds/ runcount}");
+            //foreach (var oo in existapps)
+            //{
 
-            var nonexist = apps.Except(existapps);
+            //}
+
+            //var nonexist = apps.Except(existapps);
 
             var jjj = uninstall.Select(x => new { DisplayName = x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             foreach (var oo in jjj)

@@ -112,11 +112,10 @@ namespace ConsoleApp1
             //}
 
             //var nonexist = apps.Except(existapps);
-
             var jjj = uninstall.Select(x => new { DisplayName = x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             foreach (var oo in jjj)
             {
-
+                
             }
 
 
@@ -146,7 +145,7 @@ namespace ConsoleApp1
                     //System.Diagnostics.Trace.WriteLine($"DisplayName:{oo.GetValue<string>("DisplayName")}");
                 }
             }
-
+            var takes = uninstall.Take(3);
 
 
 

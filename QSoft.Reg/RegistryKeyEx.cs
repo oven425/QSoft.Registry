@@ -201,13 +201,13 @@ namespace QSoft.Registry.Linq
             return count;
         }
 
-        public static IEnumerable<object> Select(this RegistryKey src, Func<RegistryKey, object> select)
+        public static IEnumerable<TResult> Select<TResult>(this RegistryKey src, Func<RegistryKey, TResult> select)
         {
             string[] subkeynames = src.GetSubKeyNames();
             foreach (var subkeyname in subkeynames)
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);
-                object obj = select.Invoke(reg);
+                TResult obj = select.Invoke(reg);
                 yield return obj;
             }
         }
@@ -336,10 +336,19 @@ namespace QSoft.Registry.Linq
             return ll;
         }
 
+        public static IEnumerable<RegistryKey> Take(this RegistryKey src, int count)
+        {
+            var takes = src.GetSubKeyNames().Take(count);
+            foreach(var take in takes)
+            {
+                RegistryKey reg = src.OpenSubKey(take);
+                yield return reg;
+            }
+        }
     }
 
 
-    public class Lookup<TKey, TElement> : ILookup<TKey, TElement>
+    internal class Lookup<TKey, TElement> : ILookup<TKey, TElement>
     {
         Dictionary<TKey, Grouping<TKey, TElement>> dic = new Dictionary<TKey, Grouping<TKey, TElement>>();
         public IEnumerable<TElement> this[TKey key] => dic[key];
@@ -372,7 +381,7 @@ namespace QSoft.Registry.Linq
         }
     }
 
-    public class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+    internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
         readonly List<TElement> elements = new List<TElement>();
 

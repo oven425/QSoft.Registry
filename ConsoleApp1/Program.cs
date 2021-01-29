@@ -12,16 +12,13 @@ namespace ConsoleApp1
 {
     class Program
     {
-        static T GetValue<T>(string name)
-        {
-            T t = default(T);
-            
-            return t;
-        }
         static void Main(string[] args)
         {
             RegistryKey reg_32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             RegistryKey reg_64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            RegistryKey win_info = reg_64.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            string ReleaseId =  win_info.GetValue<string>("ReleaseId");
+            //SOFTWARE\Microsoft\Windows NT\CurrentVersion
             RegistryKey uninstall = reg_64.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
             //foreach (var oo in uninstall.GetSubKeyNames())
             //{
@@ -33,6 +30,7 @@ namespace ConsoleApp1
             //}
 
             List<AppData> apps = new List<AppData>();
+            apps.Join(apps, x => x.Name, y => y.Name, (x,y)=> new {x, y }, StringComparer.OrdinalIgnoreCase);
             apps.Add(new AppData() { Name = "WinFlash" });
             apps.Add(new AppData() { Name = "Dropbox 25 GB" });
             apps.Add(new AppData() { Name = "AnyDes", IsOfficial = true });
@@ -56,18 +54,16 @@ namespace ConsoleApp1
             });
             //var jj = uninstall.Where(x => x.GetValue<string>("DisplayName") != "").Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => new { x, y }).Select(x => f(x.y, x.x));
             //var jj = uninstall.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => new { x, y });
-            //var jj = uninstall.Join(apps, x => x.GetValue<string>("DisplayName"), app => app.Name, (x, app) => new { x, app })
-            //    .Select(x =>
-            //    {
-            //        x.app.Uninstallstring = x.x.GetValue<string>("UninstallString");
-            //        x.app.Ver = x.x.GetValue<string>("DisplayVersion");
-            //        return x.app;
-            //    });
+            var jj = uninstall.Join(apps, reg => reg.GetValue<string>("DisplayName"), app => app.Name, (reg, app) => new { reg, app })
+                .Select(so =>
+                {
+                    so.app.Uninstallstring = so.reg.GetValue<string>("UninstallString");
+                    so.app.Ver = so.reg.GetValue<string>("DisplayVersion");
+                    return so.app;
+                });
             var existapps = uninstall.Join(apps, (reg, app) =>
             {
                 bool hr = false;
-                //object obj = reg.GetValue("DisplayName");
-                //string str = obj as string;
                 string dispay = reg.GetValue<string>("DisplayName");
                 if (app.IsOfficial == true)
                 {
@@ -79,12 +75,12 @@ namespace ConsoleApp1
                 }
 
                 return hr;
-            }, (x, app) => new { x, app })
-                .Select(x =>
+            }, (reg, app) => new { reg, app })
+                .Select(so =>
                 {
-                    x.app.Uninstallstring = x.x.GetValue<string>("UninstallString");
-                    x.app.Ver = x.x.GetValue<string>("DisplayVersion");
-                    return x.app;
+                    so.app.Uninstallstring = so.reg.GetValue<string>("UninstallString");
+                    so.app.Ver = so.reg.GetValue<string>("DisplayVersion");
+                    return so.app;
                 });
             int runcount = 50;
             System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
@@ -115,7 +111,7 @@ namespace ConsoleApp1
             var jjj = uninstall.Select(x => new { DisplayName = x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             foreach (var oo in jjj)
             {
-                
+                //oo.DisplayName;
             }
 
 
@@ -153,22 +149,22 @@ namespace ConsoleApp1
 
     }
 
-    public class CEqualityComparer<T> : IEqualityComparer<T>
+    public class AppDataComparer : IEqualityComparer<string>
     {
-        public bool Equals(T x, T y)
+        public bool Equals(string x, string y)
         {
             throw new NotImplementedException();
         }
 
-        public int GetHashCode(T obj)
+        public int GetHashCode(string obj)
         {
-            if(obj != null)
-            {
-                return ((object)obj).GetHashCode();
-            }
-            return 1;
+            if (Object.ReferenceEquals(obj, null)) return 0;
+
+            return obj.GetHashCode();
+
         }
     }
+
     public class AppData
     {
         public string Name { set; get; }

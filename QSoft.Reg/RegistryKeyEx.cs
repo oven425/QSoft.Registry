@@ -100,7 +100,7 @@ namespace QSoft.Registry.Linq
         public static IEnumerable<TResult> Join<TInner, TKey, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<RegistryKey, TInner, TResult> resultSelector)
         {
             string[] subkeynames = src.GetSubKeyNames();
-            Dictionary<RegistryKey, TInner> dic = new Dictionary<RegistryKey, TInner>();
+            //Dictionary<RegistryKey, List<TInner>> dic = new Dictionary<RegistryKey, List<TInner>>();
             foreach (var subkeyname in subkeynames)
             {
 
@@ -111,7 +111,15 @@ namespace QSoft.Registry.Linq
                     TKey key = innerKeySelector.Invoke(oo);
                     if (key.Equals(key_reg) == true)
                     {
-                        dic.Add(reg, oo);
+                        //if(dic.ContainsKey(reg) == true)
+                        //{
+                        //    dic[reg].Add(oo);
+                        //}
+                        //else
+                        //{
+                        //    dic.Add(reg, new List<TInner>() { oo});
+                        //}
+                        
 
                         yield return resultSelector.Invoke(reg, oo);
                         //yield break;

@@ -10,10 +10,34 @@ using QSoft.Registry.Linq;
 
 namespace ConsoleApp1
 {
+    public class CTabble1
+    {
+        
+        public string Key1 { set; get; }
+        public string Name1 { set; get; }
+    }
+    public class CTable2
+    {
+        public string Key2 { set; get; }
+        public string Name2 { set; get; }
+    }
     class Program
     {
         static void Main(string[] args)
         {
+            List<CTabble1> table1s = new List<CTabble1>();
+            table1s.Add(new CTabble1() { Key1 = "1", Name1 = "table1_1" });
+            table1s.Add(new CTabble1() { Key1 = "2", Name1 = "table1_2" });
+            table1s.Add(new CTabble1() { Key1 = "3", Name1 = "table1_3" });
+
+            List<CTable2> table2s = new List<CTable2>();
+            table2s.Add(new CTable2() { Key2 = "1", Name2 = "table2_1" });
+            table2s.Add(new CTable2() { Key2 = "1", Name2 = "table2_1" });
+            table2s.Add(new CTable2() { Key2 = "2", Name2 = "table2_2" });
+            table2s.Add(new CTable2() { Key2 = "3", Name2 = "table2_3" });
+
+            var table = table1s.Join(table2s, x => x.Key1, y => y.Key2, (x, y) => new { x, y });
+
             RegistryKey reg_32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
             RegistryKey reg_64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
             RegistryKey win_info = reg_64.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
@@ -31,6 +55,7 @@ namespace ConsoleApp1
 
             List<AppData> apps = new List<AppData>();
             apps.Join(apps, x => x.Name, y => y.Name, (x,y)=> new {x, y }, StringComparer.OrdinalIgnoreCase);
+            apps.Add(new AppData() { Name = "WinFlash" });
             apps.Add(new AppData() { Name = "WinFlash" });
             apps.Add(new AppData() { Name = "Dropbox 25 GB" });
             apps.Add(new AppData() { Name = "AnyDes", IsOfficial = true });
@@ -65,6 +90,8 @@ namespace ConsoleApp1
             {
                 bool hr = false;
                 string dispay = reg.GetValue<string>("DisplayName");
+                string uninstall_ = reg.GetValue<string>("Uninstall");
+                string version = reg.GetValue<string>("Version");
                 if (app.IsOfficial == true)
                 {
                     hr = string.IsNullOrEmpty(dispay) == false && app.Name.Contains(dispay);
@@ -86,19 +113,19 @@ namespace ConsoleApp1
             System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
             for(int i=0; i< runcount; i++)
             {
-                foreach (var oo in uninstall.GetSubKeyNames())
-                {
-                    RegistryKey subkey = uninstall.OpenSubKey(oo);
-                    object obj = subkey.GetValue("DisplayName");
-                    //object obj1 = subkey.GetValue("UninstallString");
-                    //object obj2 = subkey.GetValue("DisplayVersion");
-                    //string displayname = subkey.GetValue("DisplayName") as string;
-                    //System.Diagnostics.Trace.WriteLine(displayname);
-                    subkey.Dispose();
-                }
+                //foreach (var oo in uninstall.GetSubKeyNames())
+                //{
+                //    RegistryKey subkey = uninstall.OpenSubKey(oo);
+                //    object obj = subkey.GetValue("DisplayName");
+                //    //object obj1 = subkey.GetValue("UninstallString");
+                //    //object obj2 = subkey.GetValue("DisplayVersion");
+                //    //string displayname = subkey.GetValue("DisplayName") as string;
+                //    //System.Diagnostics.Trace.WriteLine(displayname);
+                //    subkey.Dispose();
+                //}
 
 
-                //existapps.ToList();
+                existapps.ToList();
             }
             sw.Stop();
             System.Diagnostics.Trace.WriteLine($"{sw.ElapsedMilliseconds/ runcount}");

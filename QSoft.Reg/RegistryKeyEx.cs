@@ -87,12 +87,18 @@ namespace QSoft.Registry.Linq
             foreach (var subkeyname in subkeynames)
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);
+                bool hastrue = false;
                 foreach (var oo in inner)
                 {
                     if (check.Invoke(reg, oo) == true)
                     {
+                        hastrue = true;
                         yield return resultSelector.Invoke(reg, oo);
                     }
+                }
+                if(hastrue == false)
+                {
+                    reg.Dispose();
                 }
             }
         }
@@ -100,30 +106,24 @@ namespace QSoft.Registry.Linq
         public static IEnumerable<TResult> Join<TInner, TKey, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<RegistryKey, TInner, TResult> resultSelector)
         {
             string[] subkeynames = src.GetSubKeyNames();
-            //Dictionary<RegistryKey, List<TInner>> dic = new Dictionary<RegistryKey, List<TInner>>();
             foreach (var subkeyname in subkeynames)
             {
 
                 RegistryKey reg = src.OpenSubKey(subkeyname);
                 TKey key_reg = outerKeySelector.Invoke(reg);
+                bool hastrue = false;
                 foreach (var oo in inner)
                 {
                     TKey key = innerKeySelector.Invoke(oo);
                     if (key.Equals(key_reg) == true)
                     {
-                        //if(dic.ContainsKey(reg) == true)
-                        //{
-                        //    dic[reg].Add(oo);
-                        //}
-                        //else
-                        //{
-                        //    dic.Add(reg, new List<TInner>() { oo});
-                        //}
-                        
-
+                        hastrue = true;
                         yield return resultSelector.Invoke(reg, oo);
-                        //yield break;
                     }
+                }
+                if (hastrue == false)
+                {
+                    reg.Dispose();
                 }
             }
         }

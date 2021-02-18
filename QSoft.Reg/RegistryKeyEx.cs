@@ -195,8 +195,8 @@ namespace QSoft.Registry.Linq
 
         public static IEnumerable<TResult> Select<TResult>(this RegistryKey src, Func<RegistryKey, TResult> select)
         {
-            string[] subkeynames = src.GetSubKeyNames();
-            foreach (var subkeyname in subkeynames)
+            //string[] subkeynames = src.GetSubKeyNames();
+            foreach (var subkeyname in src.GetSubKeyNames())
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);
                 TResult obj = select.Invoke(reg);

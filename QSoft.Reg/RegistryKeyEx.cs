@@ -33,46 +33,46 @@ namespace QSoft.Registry
 
         
 
-        public static T GetValueSafe<T>(this RegistryKey src, string name)
-        {
-            T t = default(T);
-            TypeCode typecode = Type.GetTypeCode(typeof(T));
-            string[] sss = src.GetValueNames();
+        //public static T GetValueSafe<T>(this RegistryKey src, string name)
+        //{
+        //    T t = default(T);
+        //    TypeCode typecode = Type.GetTypeCode(typeof(T));
+        //    string[] sss = src.GetValueNames();
 
-            //bool vv = false;
-            //for(int i=0; i<sss.Length; i++)
-            //{
-            //    if(sss[i] == name)
-            //    {
-            //        vv = true;
-            //        break;
-            //    }
-            //}
-            ////if (src.GetValueNames().Count(x => x == name) >0)
-            ////if (src.GetValueNames().FirstOrDefault(x => x == name) != null)
-            //if(vv == true)
-            //{
-            //    if (typecode == TypeCode.String)
-            //    {
-            //        object obj = src.GetValue(name);
-            //        t = (T)Convert.ChangeType(obj, typeof(T));
-            //    }
-            //    else
-            //    {
-            //        object obj = src.GetValue(name);
-            //        t = (T)obj;
-            //    }
-            //}
-            //else
-            //{
-            //    //if (Type.GetTypeCode(typeof(T)) == TypeCode.String)
-            //    //{
-            //    //    object obj = string.Empty;
-            //    //    t = (T)obj;
-            //    //}
-            //}
-            return t;
-        }
+        //    //bool vv = false;
+        //    //for(int i=0; i<sss.Length; i++)
+        //    //{
+        //    //    if(sss[i] == name)
+        //    //    {
+        //    //        vv = true;
+        //    //        break;
+        //    //    }
+        //    //}
+        //    ////if (src.GetValueNames().Count(x => x == name) >0)
+        //    ////if (src.GetValueNames().FirstOrDefault(x => x == name) != null)
+        //    //if(vv == true)
+        //    //{
+        //    //    if (typecode == TypeCode.String)
+        //    //    {
+        //    //        object obj = src.GetValue(name);
+        //    //        t = (T)Convert.ChangeType(obj, typeof(T));
+        //    //    }
+        //    //    else
+        //    //    {
+        //    //        object obj = src.GetValue(name);
+        //    //        t = (T)obj;
+        //    //    }
+        //    //}
+        //    //else
+        //    //{
+        //    //    //if (Type.GetTypeCode(typeof(T)) == TypeCode.String)
+        //    //    //{
+        //    //    //    object obj = string.Empty;
+        //    //    //    t = (T)obj;
+        //    //    //}
+        //    //}
+        //    return t;
+        //}
     }
 }
 
@@ -80,14 +80,42 @@ namespace QSoft.Registry.Linq
 {
     public static class RegistryKeyLinq
     {
+        public static IEnumerable<RegistryKey> OpenView(this RegistryHive src, string subkey, bool view32 = true, bool view64=true)
+        {
+            if (view64 == true)
+            {
+                yield return src.OpenView64(subkey);
+            }
+            if (view32 == true)
+            {
+                yield return src.OpenView32(subkey);
+            }
+        }
+
         public static RegistryKey OpenView64(this RegistryHive src, string subkey)
         {
-            return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64).OpenSubKey(subkey);
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            if(string.IsNullOrEmpty(subkey) == false)
+            {
+                RegistryKey reg = reg_base.OpenSubKey(subkey);
+                reg_base.Dispose();
+                return reg;
+            }
+            return reg_base;
         }
+
         public static RegistryKey OpenView32(this RegistryHive src, string subkey)
         {
-            return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(subkey);
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+            if (string.IsNullOrEmpty(subkey) == false)
+            {
+                RegistryKey reg = reg_base.OpenSubKey(subkey);
+                reg_base.Dispose();
+                return reg;
+            }
+            return reg_base;
         }
+
         public static IEnumerable<TResult> Join<TInner, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TInner, bool> check, Func<RegistryKey, TInner, TResult> resultSelector)
         {
             string[] subkeynames = src.GetSubKeyNames();

@@ -80,6 +80,10 @@ namespace QSoft.Registry.Linq
 {
     public static class RegistryKeyLinq
     {
+        public static RegistryKey OpenView64(this RegistryHive src, string subkey)
+        {
+            return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64).OpenSubKey(subkey);
+        }
         public static RegistryKey OpenView32(this RegistryHive src, string subkey)
         {
             return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(subkey);

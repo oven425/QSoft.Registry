@@ -80,6 +80,10 @@ namespace QSoft.Registry.Linq
 {
     public static class RegistryKeyLinq
     {
+        public static RegistryKey OpenView32(this RegistryHive src, string subkey)
+        {
+            return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey(subkey);
+        }
         public static IEnumerable<TResult> Join<TInner, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TInner, bool> check, Func<RegistryKey, TInner, TResult> resultSelector)
         {
             string[] subkeynames = src.GetSubKeyNames();

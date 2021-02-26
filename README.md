@@ -8,6 +8,16 @@ RegistryKey reg = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryVie
 RegistryKey uninstall = reg.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
 var where = uninstall.Where(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
 ```
+### Open RegistryKey
+```csharp
+var regs = RegistryHive.LocalMachine.OpenView(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+foreach(var reg in regs)
+{
+
+}
+RegistryKey reg_32 = RegistryHive.LocalMachine.OpenView32(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+RegistryKey reg_64 = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+```
 ## Current provide
 ### FirstOrDefault, LastOrDefault
 ```csharp

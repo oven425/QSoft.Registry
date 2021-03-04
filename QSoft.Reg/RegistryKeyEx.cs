@@ -94,7 +94,7 @@ namespace QSoft.Registry.Linq
 
         public static RegistryKey OpenView64(this RegistryHive src, string subkey)
         {
-            RegistryKey reg_base = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry64);
             if(string.IsNullOrEmpty(subkey) == false)
             {
                 RegistryKey reg = reg_base.OpenSubKey(subkey);
@@ -106,7 +106,7 @@ namespace QSoft.Registry.Linq
 
         public static RegistryKey OpenView32(this RegistryHive src, string subkey)
         {
-            RegistryKey reg_base = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry32);
             if (string.IsNullOrEmpty(subkey) == false)
             {
                 RegistryKey reg = reg_base.OpenSubKey(subkey);

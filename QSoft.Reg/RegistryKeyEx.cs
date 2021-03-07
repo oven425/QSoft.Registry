@@ -30,8 +30,80 @@ namespace QSoft.Registry
             }
             return t;
         }
+        public static T GetValue<T>(this RegistryKey src, params string[] keys_name)
+        {
+            T t = default(T);
+            TypeCode typecode = Type.GetTypeCode(typeof(T));
+            RegistryKey reg = src;
+            string name = keys_name.LastOrDefault();
 
-        
+            for (int i = 0; i < keys_name.Length-1; i++)
+            {
+
+            }
+            if (typecode == TypeCode.String)
+            {
+                object obj = src.GetValue(name);
+                t = (T)Convert.ChangeType(obj, typeof(T));
+                if (t == null)
+                {
+                    object str_empty = string.Empty;
+                    t = (T)str_empty;
+                }
+            }
+            else
+            {
+                object obj = src.GetValue(name);
+                t = (T)obj;
+            }
+            return t;
+        }
+
+
+        public static T GetValue<T>(this RegistryKey src, string subkey , string name)
+        {
+            T t = default(T);
+            RegistryKey reg = null;
+            if (string.IsNullOrEmpty(subkey) == false)
+            {
+                reg = src.OpenSubKey(subkey);
+            }
+            else
+            {
+                reg = src;
+            }
+            TypeCode typecode = Type.GetTypeCode(typeof(T));
+            if(reg == null)
+            {
+                if (typecode == TypeCode.String)
+                {
+                    object str_empty = string.Empty;
+                    t = (T)str_empty;
+                }
+            }
+            else
+            {
+                if (typecode == TypeCode.String)
+                {
+                    object obj = reg.GetValue(name);
+                    t = (T)Convert.ChangeType(obj, typeof(T));
+                    if (t == null)
+                    {
+                        object str_empty = string.Empty;
+                        t = (T)str_empty;
+                    }
+                }
+                else
+                {
+                    object obj = reg.GetValue(name);
+                    t = (T)obj;
+                }
+            }
+            
+            return t;
+        }
+
+
 
         //public static T GetValueSafe<T>(this RegistryKey src, string name)
         //{
@@ -80,36 +152,36 @@ namespace QSoft.Registry.Linq
 {
     public static class RegistryKeyLinq
     {
-        public static IEnumerable<RegistryKey> OpenView(this RegistryHive src, string subkey, bool view32 = true, bool view64=true)
+        public static IEnumerable<RegistryKey> OpenView(this RegistryHive src, string subkey, bool view32 = true, bool view64=true, bool writable = false)
         {
             if (view64 == true)
             {
-                yield return src.OpenView64(subkey);
+                yield return src.OpenView64(subkey, writable);
             }
             if (view32 == true)
             {
-                yield return src.OpenView32(subkey);
+                yield return src.OpenView32(subkey, writable);
             }
         }
 
-        public static RegistryKey OpenView64(this RegistryHive src, string subkey)
+        public static RegistryKey OpenView64(this RegistryHive src, string subkey, bool writable=false)
         {
             RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry64);
             if(string.IsNullOrEmpty(subkey) == false)
             {
-                RegistryKey reg = reg_base.OpenSubKey(subkey);
+                RegistryKey reg = reg_base.OpenSubKey(subkey, writable);
                 reg_base.Dispose();
                 return reg;
             }
             return reg_base;
         }
 
-        public static RegistryKey OpenView32(this RegistryHive src, string subkey)
+        public static RegistryKey OpenView32(this RegistryHive src, string subkey, bool writable = false)
         {
             RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry32);
             if (string.IsNullOrEmpty(subkey) == false)
             {
-                RegistryKey reg = reg_base.OpenSubKey(subkey);
+                RegistryKey reg = reg_base.OpenSubKey(subkey, writable);
                 reg_base.Dispose();
                 return reg;
             }
@@ -170,7 +242,7 @@ namespace QSoft.Registry.Linq
             foreach(var subkeyname in subkeynames)
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);
-                if(func.Invoke(reg) == true)
+                if (func.Invoke(reg) == true)
                 {
                     yield return reg;
                 }

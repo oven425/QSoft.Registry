@@ -49,8 +49,8 @@ namespace ConsoleApp1
 
             //RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
             //string ReleaseId =  win_info.GetValue<string>("ReleaseId");
-            RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\Windows NT");
-            string ReleaseId = win_info.GetValue<string>();
+            RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\");
+            string ReleaseId = win_info.GetValue<string>(@"Windows NT\CurrentVersion","ReleaseId");
             //SOFTWARE\Microsoft\Windows NT\CurrentVersion
             RegistryKey uninstall = reg_64.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
             //foreach (var oo in uninstall.GetSubKeyNames())

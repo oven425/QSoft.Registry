@@ -30,37 +30,8 @@ namespace QSoft.Registry
             }
             return t;
         }
-        public static T GetValue<T>(this RegistryKey src, params string[] keys_name)
-        {
-            T t = default(T);
-            TypeCode typecode = Type.GetTypeCode(typeof(T));
-            RegistryKey reg = src;
-            string name = keys_name.LastOrDefault();
 
-            for (int i = 0; i < keys_name.Length-1; i++)
-            {
-
-            }
-            if (typecode == TypeCode.String)
-            {
-                object obj = src.GetValue(name);
-                t = (T)Convert.ChangeType(obj, typeof(T));
-                if (t == null)
-                {
-                    object str_empty = string.Empty;
-                    t = (T)str_empty;
-                }
-            }
-            else
-            {
-                object obj = src.GetValue(name);
-                t = (T)obj;
-            }
-            return t;
-        }
-
-
-        public static T GetValue<T>(this RegistryKey src, string subkey , string name)
+        public static T GetValue<T>(this RegistryKey src, string subkey, string name)
         {
             T t = default(T);
             RegistryKey reg = null;
@@ -73,7 +44,7 @@ namespace QSoft.Registry
                 reg = src;
             }
             TypeCode typecode = Type.GetTypeCode(typeof(T));
-            if(reg == null)
+            if (reg == null)
             {
                 if (typecode == TypeCode.String)
                 {
@@ -99,11 +70,48 @@ namespace QSoft.Registry
                     t = (T)obj;
                 }
             }
-            
+            if (reg != src)
+            {
+                reg.Dispose();
+            }
             return t;
         }
 
+        public static IEnumerable<RegistryKey> OpenView(this RegistryHive src, string subkey, bool view32 = true, bool view64 = true, bool writable = false)
+        {
+            if (view64 == true)
+            {
+                yield return src.OpenView64(subkey, writable);
+            }
+            if (view32 == true)
+            {
+                yield return src.OpenView32(subkey, writable);
+            }
+        }
 
+        public static RegistryKey OpenView64(this RegistryHive src, string subkey, bool writable = false)
+        {
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry64);
+            if (string.IsNullOrEmpty(subkey) == false)
+            {
+                RegistryKey reg = reg_base.OpenSubKey(subkey, writable);
+                reg_base.Dispose();
+                return reg;
+            }
+            return reg_base;
+        }
+
+        public static RegistryKey OpenView32(this RegistryHive src, string subkey, bool writable = false)
+        {
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry32);
+            if (string.IsNullOrEmpty(subkey) == false)
+            {
+                RegistryKey reg = reg_base.OpenSubKey(subkey, writable);
+                reg_base.Dispose();
+                return reg;
+            }
+            return reg_base;
+        }
 
         //public static T GetValueSafe<T>(this RegistryKey src, string name)
         //{
@@ -152,42 +160,6 @@ namespace QSoft.Registry.Linq
 {
     public static class RegistryKeyLinq
     {
-        public static IEnumerable<RegistryKey> OpenView(this RegistryHive src, string subkey, bool view32 = true, bool view64=true, bool writable = false)
-        {
-            if (view64 == true)
-            {
-                yield return src.OpenView64(subkey, writable);
-            }
-            if (view32 == true)
-            {
-                yield return src.OpenView32(subkey, writable);
-            }
-        }
-
-        public static RegistryKey OpenView64(this RegistryHive src, string subkey, bool writable=false)
-        {
-            RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry64);
-            if(string.IsNullOrEmpty(subkey) == false)
-            {
-                RegistryKey reg = reg_base.OpenSubKey(subkey, writable);
-                reg_base.Dispose();
-                return reg;
-            }
-            return reg_base;
-        }
-
-        public static RegistryKey OpenView32(this RegistryHive src, string subkey, bool writable = false)
-        {
-            RegistryKey reg_base = RegistryKey.OpenBaseKey(src, RegistryView.Registry32);
-            if (string.IsNullOrEmpty(subkey) == false)
-            {
-                RegistryKey reg = reg_base.OpenSubKey(subkey, writable);
-                reg_base.Dispose();
-                return reg;
-            }
-            return reg_base;
-        }
-
         public static IEnumerable<TResult> Join<TInner, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TInner, bool> check, Func<RegistryKey, TInner, TResult> resultSelector)
         {
             string[] subkeynames = src.GetSubKeyNames();
@@ -303,7 +275,6 @@ namespace QSoft.Registry.Linq
 
         public static IEnumerable<TResult> Select<TResult>(this RegistryKey src, Func<RegistryKey, TResult> select)
         {
-            //string[] subkeynames = src.GetSubKeyNames();
             foreach (var subkeyname in src.GetSubKeyNames())
             {
                 RegistryKey reg = src.OpenSubKey(subkeyname);

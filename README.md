@@ -1,4 +1,4 @@
-# Use Linq style read registry
+# Use Linq style read registry(Linq to Registry)
 ## Use extension linq function like below code
 ```csharp
 using QSoft.Registry;

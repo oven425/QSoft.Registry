@@ -25,6 +25,14 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
+            var ll = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", true);
+            var uus = ll.Take(x=>x!= "Properties", writable: true).Where(y=>y.GetValue<string>("AdapterModel") == "Intel(R) Dual Band Wireless-AC 7265");
+            foreach(var uu in uus)
+            {
+                uu.SetValue("Is6GhzBandSupported", 1);
+            }
+            System.Diagnostics.Trace.WriteLine(ll.GetValue<string>("AdapterModel"));
             List<CTabble1> table1s = new List<CTabble1>();
             table1s.Add(new CTabble1() { Key1 = "1", Name1 = "table1_1" });
             table1s.Add(new CTabble1() { Key1 = "2", Name1 = "table1_2" });

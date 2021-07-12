@@ -183,13 +183,13 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static IEnumerable<TResult> Join<TInner, TKey, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<RegistryKey, TInner, TResult> resultSelector)
+        public static IEnumerable<TResult> Join<TInner, TKey, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TKey> outerKeySelector, Func<TInner, TKey> innerKeySelector, Func<RegistryKey, TInner, TResult> resultSelector, bool writable = false)
         {
             string[] subkeynames = src.GetSubKeyNames();
             foreach (var subkeyname in subkeynames)
             {
 
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 TKey key_reg = outerKeySelector.Invoke(reg);
                 bool hastrue = false;
                 foreach (var oo in inner)
@@ -208,12 +208,12 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static IEnumerable<RegistryKey> Where(this RegistryKey src, Func<RegistryKey, bool> func)
+        public static IEnumerable<RegistryKey> Where(this RegistryKey src, Func<RegistryKey, bool> func, bool writable=false)
         {
             string[] subkeynames = src.GetSubKeyNames();
             foreach(var subkeyname in subkeynames)
             {
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 if (func.Invoke(reg) == true)
                 {
                     yield return reg;
@@ -264,11 +264,8 @@ namespace QSoft.Registry.Linq
                 {
                     count++;
                 }
-                else
-                {
-                    reg.Close();
-                    reg = null;
-                }
+                reg.Close();
+                reg = null;
             }
             return count;
         }
@@ -283,12 +280,12 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static RegistryKey FirstOrDefault(this RegistryKey src, Func<RegistryKey, bool> func)
+        public static RegistryKey FirstOrDefault(this RegistryKey src, Func<RegistryKey, bool> func, bool writable = false)
         {
             RegistryKey hr = null;
             foreach(var subkeyname in src.GetSubKeyNames())
             {
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 if (func.Invoke(reg) == true)
                 {
                     hr = reg;
@@ -303,23 +300,23 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
-        public static RegistryKey FirstOrDefault(this RegistryKey src)
+        public static RegistryKey FirstOrDefault(this RegistryKey src, bool writable = false)
         {
             RegistryKey hr = null;
             if(src.GetSubKeyNames().Length >0)
             {
-                hr = src.OpenSubKey(src.GetSubKeyNames()[0]);
+                hr = src.OpenSubKey(src.GetSubKeyNames()[0], writable);
             }
             return hr;
         }
 
-        public static RegistryKey LastOrDefault(this RegistryKey src, Func<RegistryKey, bool> func)
+        public static RegistryKey LastOrDefault(this RegistryKey src, Func<RegistryKey, bool> func, bool writable = false)
         {
             RegistryKey hr = null;
             string[] subkeynames = src.GetSubKeyNames();
             for(int i= subkeynames.Length-1; i>=0; i--)
             {
-                RegistryKey reg = src.OpenSubKey(subkeynames[i]);
+                RegistryKey reg = src.OpenSubKey(subkeynames[i], writable);
                 if (func.Invoke(reg) == true)
                 {
                     hr = reg;
@@ -334,46 +331,46 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
-        public static RegistryKey LastOrDefault(this RegistryKey src)
+        public static RegistryKey LastOrDefault(this RegistryKey src, bool writable = false)
         {
             RegistryKey hr = null;
             if (src.GetSubKeyNames().Length > 0)
             {
-                hr = src.OpenSubKey(src.GetSubKeyNames()[src.GetSubKeyNames().Length-1]);
+                hr = src.OpenSubKey(src.GetSubKeyNames()[src.GetSubKeyNames().Length-1], writable);
             }
             return hr;
         }
 
-        public static Dictionary<TKey, RegistryKey> ToDictionary<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
+        public static Dictionary<TKey, RegistryKey> ToDictionary<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func, bool writable = false)
         {
             Dictionary<TKey, RegistryKey> dic = new Dictionary<TKey, RegistryKey>();
             foreach (var subkeyname in src.GetSubKeyNames())
             {
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 TKey tt = func.Invoke(reg);
                 dic.Add(tt, reg);
             }
             return dic;
         }
 
-        public static List<RegistryKey> ToList(this RegistryKey src)
+        public static List<RegistryKey> ToList(this RegistryKey src, bool writable = false)
         {
             List<RegistryKey> ll = new List<RegistryKey>();
             foreach (var subkeyname in src.GetSubKeyNames())
             {
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 ll.Add(reg);
             }
             return ll;
         }
 
 
-        public static IEnumerable<IGrouping<TKey, RegistryKey>> GroupBy<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
+        public static IEnumerable<IGrouping<TKey, RegistryKey>> GroupBy<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func, bool writable = false)
         {
             Dictionary<TKey, Grouping<TKey, RegistryKey>> dic = new Dictionary<TKey, Grouping<TKey, RegistryKey>>();
             foreach (var subkeyname in src.GetSubKeyNames())
             {
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 TKey key = func.Invoke(reg);
                 if (dic.ContainsKey(key) == true)
                 {
@@ -392,7 +389,7 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static ILookup<TKey, RegistryKey> ToLookup<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func)
+        public static ILookup<TKey, RegistryKey> ToLookup<TKey>(this RegistryKey src, Func<RegistryKey, TKey> func, bool writable = false)
         {
 
             Lookup<TKey, RegistryKey> ll = new Lookup<TKey, RegistryKey>();
@@ -400,19 +397,30 @@ namespace QSoft.Registry.Linq
 
             foreach (var subkeyname in src.GetSubKeyNames())
             {
-                RegistryKey reg = src.OpenSubKey(subkeyname);
+                RegistryKey reg = src.OpenSubKey(subkeyname, writable);
                 TKey key = func.Invoke(reg);
                 ll.Add(key, reg);
             }
             return ll;
         }
 
-        public static IEnumerable<RegistryKey> Take(this RegistryKey src, int count)
+        public static IEnumerable<RegistryKey> Take(this RegistryKey src, int count, bool writable = false)
         {
+            
             var takes = src.GetSubKeyNames().Take(count);
             foreach(var take in takes)
             {
-                RegistryKey reg = src.OpenSubKey(take);
+                RegistryKey reg = src.OpenSubKey(take, writable);
+                yield return reg;
+            }
+        }
+
+        public static IEnumerable<RegistryKey> Take(this RegistryKey src, Func<string, bool> func, bool writable = false)
+        {
+            var takes = src.GetSubKeyNames().Where(x => func(x));
+            foreach (var take in takes)
+            {
+                RegistryKey reg = src.OpenSubKey(take, writable);
                 yield return reg;
             }
         }

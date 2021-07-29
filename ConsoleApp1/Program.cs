@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -14,7 +12,7 @@ namespace ConsoleApp1
 {
     public class CTabble1
     {
-
+        
         public string Key1 { set; get; }
         public string Name1 { set; get; }
     }
@@ -23,57 +21,18 @@ namespace ConsoleApp1
         public string Key2 { set; get; }
         public string Name2 { set; get; }
     }
-
-    public class Reg
-    {
-        public bool Any<T>(Func<string, T, bool> func)
-        {
-            return true;
-        }
-
-        public static RegistryKey operator +(Reg a, RegistryHive hive)
-        {
-            return RegistryKey.OpenBaseKey(hive, RegistryView.Registry64);
-        }
-
-
-    }
-
-
-
-
-    public interface IQueryContext
-    {
-        object Execute(Expression expression, bool isEnumerable);
-    }
-
-    public class CustomContext : IQueryContext
-    {
-        public object Execute(Expression expression, bool isEnumerable)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-
     class Program
     {
         static void Main(string[] args)
         {
-            
-            var ctx = new Queryable<string>(new CustomContext());
-            var query = ctx.Where(x => x == "1").Where(x => x == "2");
-
-            //var query = from s in ctx where s.StartsWith("T") orderby s select s;
-            var v1v = query.GetEnumerator();
-            
-
-            //select * from LocalMachine.xxxxx
-            //select * from LocalMachine.xxxxx where aa="BB"
-            //update LocalMachine.xxxxx set test="1" where aa="BB"
-            //var ll = Enumerable.Repeat<int>(1, 10);
-            //var cmd = ll.Where(x => x > 0).OrderBy(x => x);
-
+            //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
+            var ll = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", true);
+            var uus = ll.Take(x=>x!= "Properties", writable: true).Where(y=>y.GetValue<string>("AdapterModel") == "Intel(R) Dual Band Wireless-AC 7265");
+            foreach(var uu in uus)
+            {
+                uu.SetValue("Is6GhzBandSupported", 1);
+            }
+            System.Diagnostics.Trace.WriteLine(ll.GetValue<string>("AdapterModel"));
             List<CTabble1> table1s = new List<CTabble1>();
             table1s.Add(new CTabble1() { Key1 = "1", Name1 = "table1_1" });
             table1s.Add(new CTabble1() { Key1 = "2", Name1 = "table1_2" });
@@ -95,7 +54,7 @@ namespace ConsoleApp1
             //RegistryKey reg_64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
             RegistryKey reg_32 = RegistryHive.LocalMachine.OpenView32(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
             RegistryKey reg_64 = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            
+
             //RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
             //string ReleaseId =  win_info.GetValue<string>("ReleaseId");
             RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\");

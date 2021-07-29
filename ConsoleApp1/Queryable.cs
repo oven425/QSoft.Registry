@@ -56,4 +56,17 @@ namespace ConsoleApp1
         public IQueryProvider Provider { get; private set; }
     }
 
+    public interface IQueryContext
+    {
+        object Execute(Expression expression, bool isEnumerable);
+    }
+
+    public class CustomContext : IQueryContext
+    {
+        public object Execute(Expression expression, bool isEnumerable)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

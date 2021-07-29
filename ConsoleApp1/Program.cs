@@ -23,8 +23,17 @@ namespace ConsoleApp1
     }
     class Program
     {
+        
         static void Main(string[] args)
         {
+            var ctx = new Queryable<string>(new CustomContext());
+            var query = from s in ctx where s.StartsWith("T") select s;
+
+            foreach (var q in query)
+            {
+                Console.WriteLine(q);
+            }
+
             //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
             var ll = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", true);
             var uus = ll.Take(x=>x!= "Properties", writable: true).Where(y=>y.GetValue<string>("AdapterModel") == "Intel(R) Dual Band Wireless-AC 7265");

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -21,11 +22,56 @@ namespace ConsoleApp1
         public string Key2 { set; get; }
         public string Name2 { set; get; }
     }
+
+    public class RegQuery : IQueryable
+    {
+        public Expression Expression => throw new NotImplementedException();
+
+        public Type ElementType => throw new NotImplementedException();
+
+        public IQueryProvider Provider => throw new NotImplementedException();
+
+        public IEnumerator GetEnumerator()
+        {
+            //return (Provider.Execute<IEnumerable<T>>(Expression)).GetEnumerator();
+            Provider.Execute(Expression)
+        }
+    }
+
+    public class RegProvider : IQueryProvider
+    {
+        public IQueryable CreateQuery(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object Execute(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TResult Execute<TResult>(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
     class Program
     {
         
         static void Main(string[] args)
         {
+            var query_reg = new RegQuery();
+            foreach(var oo in query_reg)
+            {
+
+            }
             var ctx = new Queryable<string>(new CustomContext());
             var query = from s in ctx where s.StartsWith("T") select s;
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using LinqFileSystemProvider;
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
@@ -23,18 +24,48 @@ namespace ConsoleApp1
         public string Name2 { set; get; }
     }
 
-    public class RegQuery : IQueryable
+    public class RegQuery : IQueryable<int>
     {
-        public Expression Expression => throw new NotImplementedException();
-
-        public Type ElementType => throw new NotImplementedException();
-
-        public IQueryProvider Provider => throw new NotImplementedException();
-
-        public IEnumerator GetEnumerator()
+        RegProvider m_Provider;
+        public Expression Expression { get; set; } 
+        public RegQuery()
         {
-            //return (Provider.Execute<IEnumerable<T>>(Expression)).GetEnumerator();
-            Provider.Execute(Expression)
+            this.Expression = Expression.Constant(this);
+            m_Provider = new RegProvider();
+        }
+        public RegQuery(RegProvider provider,
+        Expression expression)
+        {
+            if (provider == null)
+            {
+                throw new ArgumentNullException("provider");
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException("expression");
+            }
+
+            if (!typeof(IQueryable<int>).IsAssignableFrom(expression.Type))
+            {
+                throw new ArgumentOutOfRangeException("expression");
+            }
+
+            m_Provider = provider;
+            Expression = expression;
+        }
+        public Type ElementType => typeof(int);
+
+        public IQueryProvider Provider => this.m_Provider;
+
+        public IEnumerator<int> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -62,22 +93,27 @@ namespace ConsoleApp1
     }
 
 
+
+
+
+
     class Program
     {
         
         static void Main(string[] args)
         {
-            var query_reg = new RegQuery();
-            foreach(var oo in query_reg)
-            {
+            
+            var query = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+                        where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
+                        orderby element.Path ascending
+                        select element;
 
-            }
-            var ctx = new Queryable<string>(new CustomContext());
-            var query = from s in ctx where s.StartsWith("T") select s;
-
-            foreach (var q in query)
+            int index = 0;
+            foreach (var result in query)
             {
-                Console.WriteLine(q);
+                StringBuilder s = new StringBuilder();
+                s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
+                System.Console.WriteLine(s.ToString());
             }
 
             //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}

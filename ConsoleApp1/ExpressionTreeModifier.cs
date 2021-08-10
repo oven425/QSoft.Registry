@@ -13,7 +13,7 @@ namespace LinqFileSystemProvider
 
         internal ExpressionTreeModifier(IQueryable<FileSystemElement> elements)
         {
-            //System.Console.WriteLine("ExpressionTreeModifier()");
+            System.Diagnostics.Trace.WriteLine("ExpressionTreeModifier()");
             this.fileSystemElements = elements;
         }
         
@@ -28,15 +28,15 @@ namespace LinqFileSystemProvider
             //StringBuilder s = new StringBuilder ();
             //s.AppendFormat("CopyAndModify.VisitConstant expression type {0}", c.Type.ToString());
             //System.Console.WriteLine(s.ToString ());
-           // if (c.Type == typeof(IQueryable<LinqFileSystemProvider.FileSystemContext>))
-                if (c.Type == typeof(LinqFileSystemProvider.FileSystemContext))
-                {
-                //System.Console.WriteLine("CopyAndModify.VisitConstant(IQueryable<FileSystemContext)");
+            // if (c.Type == typeof(IQueryable<LinqFileSystemProvider.FileSystemContext>))
+            if (c.Type == typeof(LinqFileSystemProvider.FileSystemContext))
+            {
+                System.Diagnostics.Trace.WriteLine("CopyAndModify.VisitConstant(IQueryable<FileSystemContext)");
                 return Expression.Constant(this.fileSystemElements);
             }
             else
             {
-                //System.Console.WriteLine("CopyAndModify.VisitConstant(uninteresting type)");
+                System.Diagnostics.Trace.WriteLine("CopyAndModify.VisitConstant(uninteresting type)");
                 return c;
             }
         }

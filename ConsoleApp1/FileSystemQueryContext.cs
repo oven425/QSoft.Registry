@@ -12,7 +12,7 @@ namespace LinqFileSystemProvider
     {
         internal static object Execute(Expression expression, bool isEnumerable, string root)
         {
-            //System.Console.WriteLine("FileSystemQueryContext.Execute()");
+            System.Diagnostics.Trace.WriteLine("FileSystemQueryContext.Execute()");
             var queryableElements = GetAllFilesAndFolders(root);
 
             // Copy the expression tree that was passed in, changing only the first
@@ -23,18 +23,19 @@ namespace LinqFileSystemProvider
             // This step creates an IQueryable that executes by replacing Queryable methods with Enumerable methods.
             if (isEnumerable)
             {
-                //System.Console.WriteLine("FileSystemQueryContext.Execute(isEnumerable=True)");
+                System.Diagnostics.Trace.WriteLine("FileSystemQueryContext.Execute(isEnumerable=True)");
                 return queryableElements.Provider.CreateQuery(newExpressionTree);
             }
             else
             {
-                //System.Console.WriteLine("FileSystemQueryContext.Execute(isEnumerable=False)");
+                System.Diagnostics.Trace.WriteLine("FileSystemQueryContext.Execute(isEnumerable=False)");
                 return queryableElements.Provider.Execute(newExpressionTree);
             }
         }
 
         public static IQueryable<FileSystemElement> GetAllFilesAndFolders(string root)
         {
+            System.Diagnostics.Trace.WriteLine("GetAllFilesAndFolders(string root)");
             var list = new List<FileSystemElement>();
             foreach (var directory in Directory.GetDirectories(root))
             {

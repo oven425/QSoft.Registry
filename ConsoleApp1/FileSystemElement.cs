@@ -20,6 +20,7 @@ namespace LinqFileSystemProvider
 
         protected FileSystemElement(string path)
         {
+            //System.Diagnostics.Trace.WriteLine($"FileSystemElement(string path)");
             Path = path;
         }
 
@@ -31,6 +32,7 @@ namespace LinqFileSystemProvider
         public FolderElement(string path)
             : base(path)
         {
+            //System.Diagnostics.Trace.WriteLine($"FolderElement(string path)");
         }
         public override ElementType ElementType { get { return ElementType.Folder; } }
 
@@ -47,6 +49,7 @@ namespace LinqFileSystemProvider
         public FileElement(string path)
             : base(path)
         {
+            //System.Diagnostics.Trace.WriteLine($"FileElement(string path)");
         }
         public override ElementType ElementType { get { return ElementType.File; } }
         public override string ToString()

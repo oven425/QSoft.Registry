@@ -12,7 +12,7 @@ namespace LinqFileSystemProvider
     {
         public FileSystemContext(string root)
         {
-            //System.Console.WriteLine("FileSystemContext()");
+            System.Diagnostics.Trace.WriteLine($"FileSystemContext(string root)");
             Provider = new FileSystemProvider(root);
             Expression = Expression.Constant(this);
         }
@@ -29,23 +29,27 @@ namespace LinqFileSystemProvider
         /// <returns>IEnumerator</returns>
         public IEnumerator<FileSystemElement> GetEnumerator()
         {
-            //System.Console.WriteLine("GetEnumerator(1)");
+            System.Diagnostics.Trace.WriteLine("GetEnumerator(1)");
             return Provider.Execute<IEnumerable<FileSystemElement>>(Expression).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            //System.Console.WriteLine("GetEnumerator(2)");
+            System.Diagnostics.Trace.WriteLine("GetEnumerator(2)");
             // call the generic version of the method
             return this.GetEnumerator();
         }
 
         public Type ElementType
         {
-            get { return typeof(FileSystemElement); }
+            get {
+                System.Diagnostics.Trace.WriteLine("ElementType");
+                return typeof(FileSystemElement); }
         }
 
         public Expression Expression { get; private set; }
         public IQueryProvider Provider { get; private set; }
+
+        
     }
 }

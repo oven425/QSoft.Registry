@@ -24,41 +24,34 @@ namespace ConsoleApp1
         public string Name2 { set; get; }
     }
 
-    public class RegQuery : IQueryable<int>
+    public class RegQuery<T> : IQueryable<T>
     {
-        RegProvider m_Provider;
-        public Expression Expression { get; set; } 
-        public RegQuery()
+        public RegQuery(T data, RegistryHive hive, string path)
         {
+            this.Provider = new RegProvider();
             this.Expression = Expression.Constant(this);
-            m_Provider = new RegProvider();
         }
-        public RegQuery(RegProvider provider,
-        Expression expression)
+
+        public RegQuery(IQueryProvider provider, IQueryable<T> innerSource)
         {
-            if (provider == null)
-            {
-                throw new ArgumentNullException("provider");
-            }
-
-            if (expression == null)
-            {
-                throw new ArgumentNullException("expression");
-            }
-
-            if (!typeof(IQueryable<int>).IsAssignableFrom(expression.Type))
-            {
-                throw new ArgumentOutOfRangeException("expression");
-            }
-
-            m_Provider = provider;
-            Expression = expression;
+            this.Provider = provider;
+            this.Expression = Expression.Constant(innerSource);
         }
-        public Type ElementType => typeof(int);
 
-        public IQueryProvider Provider => this.m_Provider;
+        public RegQuery(RegProvider provider, Expression expression)
+        {
+            this.Provider = provider;
+            this.Expression = expression;
+        }
 
-        public IEnumerator<int> GetEnumerator()
+
+        public Expression Expression { private set; get; }
+
+        public Type ElementType => typeof(T);
+
+        public IQueryProvider Provider { private set; get; }
+
+        public IEnumerator<T> GetEnumerator()
         {
             throw new NotImplementedException();
         }
@@ -78,6 +71,18 @@ namespace ConsoleApp1
 
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
+            
+            var type = expression.GetType();
+            MethodCallExpression mm = expression as MethodCallExpression;
+            var unarys = mm.Arguments.Where(x => x is UnaryExpression);
+            foreach (var unary in unarys)
+            {
+                var uu = unary as UnaryExpression;
+                var la = uu.Operand as LambdaExpression;
+                var body = la.Body as BinaryExpression;
+                //body.Left
+                type = la.Body.GetType();
+            }
             throw new NotImplementedException();
         }
 
@@ -92,21 +97,33 @@ namespace ConsoleApp1
         }
     }
 
-
-
-
-
+    public class Test
+    {
+        public string DisplayName { set; get; }
+    }
 
     class Program
     {
         
         static void Main(string[] args)
         {
-            
-            var query = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-                        where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
-                        orderby element.Path ascending
-                        select element;
+
+            var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
+                .Where(x => string.IsNullOrEmpty(x.DisplayName) == true)
+                .Where(x => x.DisplayName == "");
+            foreach(var oo in regt)
+            {
+
+            }
+            //var query = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+            //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
+            //            orderby element.Path ascending
+            //            select element;
+
+            var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+            .Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))
+            .OrderBy(x => x.Path)
+            .Select(x => x);
 
             int index = 0;
             foreach (var result in query)
@@ -115,6 +132,11 @@ namespace ConsoleApp1
                 s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
                 System.Console.WriteLine(s.ToString());
             }
+
+            //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+            //.Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))
+            //.OrderBy(x => x.Path)
+            //.First();
 
             //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
             var ll = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", true);

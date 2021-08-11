@@ -73,6 +73,7 @@ namespace ConsoleApp1
         {
             
             var type = expression.GetType();
+
             MethodCallExpression mm = expression as MethodCallExpression;
             var unarys = mm.Arguments.Where(x => x is UnaryExpression);
             foreach (var unary in unarys)
@@ -80,11 +81,21 @@ namespace ConsoleApp1
                 var uu = unary as UnaryExpression;
                 var la = uu.Operand as LambdaExpression;
                 var body = la.Body as BinaryExpression;
-                //body.Left
-                type = la.Body.GetType();
+                type = body.Left.GetType();
+                var left1 = body.Left as BinaryExpression;
+                var left = body.Left as MethodCallExpression;
+                var pp = left.Arguments[0] as MemberExpression;
+                var constant = body.Right as ConstantExpression;
             }
             throw new NotImplementedException();
         }
+
+        void A(MethodCallExpression expression)
+        {
+
+        }
+
+        
 
         public object Execute(Expression expression)
         {
@@ -95,6 +106,7 @@ namespace ConsoleApp1
         {
             throw new NotImplementedException();
         }
+
     }
 
     public class Test
@@ -102,14 +114,23 @@ namespace ConsoleApp1
         public string DisplayName { set; get; }
     }
 
+    public class Test1:Test
+    {
+        public string AA { set; get; }
+    }
+
     class Program
     {
-        
-        static void Main(string[] args)
+        static void TT(Test1 data)
         {
 
+        }
+        static void Main(string[] args)
+        {
+            Test test = new Test1();
+            TT(test);
             var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-                .Where(x => string.IsNullOrEmpty(x.DisplayName) == true)
+                .Where(x => string.IsNullOrEmpty(x.DisplayName) == true&& x.DisplayName == "")
                 .Where(x => x.DisplayName == "");
             foreach(var oo in regt)
             {

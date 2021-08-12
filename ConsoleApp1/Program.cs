@@ -127,32 +127,38 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
-            Test test = new Test1();
-            TT(test);
-            var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-                .Where(x => string.IsNullOrEmpty(x.DisplayName) == true&& x.DisplayName == "")
-                .Where(x => x.DisplayName == "");
-            foreach(var oo in regt)
-            {
+            //Test test = new Test1();
+            //TT(test);
+            //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
+            //    .Where(x => string.IsNullOrEmpty(x.DisplayName) == true&& x.DisplayName == "")
+            //    .Where(x => x.DisplayName == "");
+            //foreach(var oo in regt)
+            //{
 
-            }
+            //}
             //var query = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
             //            orderby element.Path ascending
             //            select element;
 
+            var param = Expression.Parameter(typeof(FileSystemElement), "x");
+            var property = Expression.MakeMemberAccess(param, typeof(FileSystemElement).GetProperty("ElementType"));
+            var left = Expression.MakeUnary(ExpressionType.Convert, property, typeof(int));
+            ConstantExpression right = Expression.Constant(0);
+            var binary = Expression.MakeBinary(ExpressionType.Equal, left, right);
+            var lambda = Expression.Lambda(binary, param);
+            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(bool));
+            //var method = Expression.Call()
             var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-            .Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))
-            .OrderBy(x => x.Path)
-            .Select(x => x);
+                .Count();
 
-            int index = 0;
-            foreach (var result in query)
-            {
-                StringBuilder s = new StringBuilder();
-                s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
-                System.Console.WriteLine(s.ToString());
-            }
+            //int index = 0;
+            //foreach (var result in query)
+            //{
+            //    StringBuilder s = new StringBuilder();
+            //    s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
+            //    System.Console.WriteLine(s.ToString());
+            //}
 
             //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //.Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))

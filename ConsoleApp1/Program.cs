@@ -24,11 +24,12 @@ namespace ConsoleApp1
         public string Name2 { set; get; }
     }
 
-    public class RegQuery<T> : IQueryable<T>
+    public class RegQuery<T> : IOrderedQueryable<T>
     {
         public RegQuery(T data, RegistryHive hive, string path)
         {
-            this.Provider = new RegProvider();
+            
+            this.Provider = new RegProvider(hive, path);
             this.Expression = Expression.Constant(this);
         }
 
@@ -53,7 +54,7 @@ namespace ConsoleApp1
 
         public IEnumerator<T> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -64,6 +65,18 @@ namespace ConsoleApp1
 
     public class RegProvider : IQueryProvider
     {
+        RegistryKey m_Reg;
+        IQueryable<string> m_Datas;
+        public RegProvider(RegistryHive hive, string path)
+        {
+            List<string> dds = new List<string>();
+            for(int i=0; i<200; i++)
+            {
+                dds.Add(i.ToString());
+            }
+            m_Datas = dds.AsQueryable();
+            this.m_Reg = hive.OpenView64(path);
+        }
         public IQueryable CreateQuery(Expression expression)
         {
             throw new NotImplementedException();
@@ -72,38 +85,48 @@ namespace ConsoleApp1
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             
-            var type = expression.GetType();
+            //var type = expression.GetType();
 
-            MethodCallExpression mm = expression as MethodCallExpression;
-            var unarys = mm.Arguments.Where(x => x is UnaryExpression);
-            foreach (var unary in unarys)
-            {
-                var uu = unary as UnaryExpression;
-                var la = uu.Operand as LambdaExpression;
-                var body = la.Body as BinaryExpression;
-                type = body.Left.GetType();
-                var left1 = body.Left as BinaryExpression;
-                var left = body.Left as MethodCallExpression;
-                var pp = left.Arguments[0] as MemberExpression;
-                var constant = body.Right as ConstantExpression;
-            }
-            throw new NotImplementedException();
+            //MethodCallExpression mm = expression as MethodCallExpression;
+            //var unarys = mm.Arguments.Where(x => x is UnaryExpression);
+            //foreach (var unary in unarys)
+            //{
+            //    var uu = unary as UnaryExpression;
+            //    var la = uu.Operand as LambdaExpression;
+            //    var body = la.Body as BinaryExpression;
+            //    type = body.Left.GetType();
+            //    var left1 = body.Left as BinaryExpression;
+            //    var left = body.Left as MethodCallExpression;
+            //    var feild = left.Arguments[0] as MemberExpression;
+            //    var reg = feild.Expression.GetType();
+            //    var pp = left.Arguments[1] as MemberExpression;
+            //    var constant = body.Right as ConstantExpression;
+            //}
+            return new RegQuery<TElement>(this, expression);
         }
-
-        void A(MethodCallExpression expression)
-        {
-
-        }
-
         
 
         public object Execute(Expression expression)
         {
             throw new NotImplementedException();
         }
-
+        
+        
         public TResult Execute<TResult>(Expression expression)
         {
+
+            //var type = expression.GetType();
+            //var subkeynames = m_Reg.GetSubKeyNames();
+            //foreach(var subkeyname in subkeynames)
+            //{
+            //    RegistryKey reg = m_Reg.OpenSubKey(subkeyname);
+            //    //expression.
+
+            //    reg.Close();
+            //    reg.Dispose();
+            //}
+            //this.m_Datas.w
+            //return Expression.Constant(this.m_Datas);
             throw new NotImplementedException();
         }
 
@@ -114,25 +137,16 @@ namespace ConsoleApp1
         public string DisplayName { set; get; }
     }
 
-    public class Test1:Test
-    {
-        public string AA { set; get; }
-    }
 
     class Program
     {
-        static void TT(Test1 data)
-        {
-
-        }
         static void Main(string[] args)
         {
-            //Test test = new Test1();
-            //TT(test);
-            //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-            //    .Where(x => string.IsNullOrEmpty(x.DisplayName) == true&& x.DisplayName == "")
-            //    .Where(x => x.DisplayName == "");
-            //foreach(var oo in regt)
+            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", false);
+            var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
+                //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
+                .Where(x => queryreg.GetValue<string>(x.DisplayName) == "");
+            //foreach (var oo in regt)
             //{
 
             //}
@@ -150,15 +164,15 @@ namespace ConsoleApp1
             var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(bool));
             //var method = Expression.Call()
             var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-                .Count();
+                .Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"));
 
-            //int index = 0;
-            //foreach (var result in query)
-            //{
-            //    StringBuilder s = new StringBuilder();
-            //    s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
-            //    System.Console.WriteLine(s.ToString());
-            //}
+            int index = 0;
+            foreach (var result in query)
+            {
+                StringBuilder s = new StringBuilder();
+                s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
+                System.Console.WriteLine(s.ToString());
+            }
 
             //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //.Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))

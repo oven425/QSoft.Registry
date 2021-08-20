@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using LinqFileSystemProvider;
@@ -156,9 +157,37 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
+            Assembly thisAssembly = typeof(Program).Assembly;
+            var types = thisAssembly.GetTypes();
+            foreach (Type t in thisAssembly.GetTypes())
+            {
+                if (t.IsDefined(typeof(ExtensionAttribute), false))
+                {
+                    foreach (MethodInfo mi in t.GetMethods())
+                    {
+                        if (mi.IsDefined(typeof(ExtensionAttribute), false))
+                        {
+                            //if (mi.GetParameters()[0].ParameterType == extendedType)
+                            //    extension_methods.Add(mi);
+                        }
+                    }
+                }
+            }
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
             var queryable = queryreg.ToList().AsQueryable();
-            var rr = queryable.Where(x => x.GetValue<string>("DisplayName") == "");
+            var rr = queryable.Where(x => x.GetValue<string>("DisplayName") != "");
+            //var rr = queryable.Select(x => x.GetValue<string>("DisplayName"));
+
+            var methsos = typeof(RegistryKey).GetMethods(BindingFlags.Public | BindingFlags.Static);
+            var ttype = rr.Expression.GetType();
+            MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            var unary = methodcall.Arguments[1] as UnaryExpression;
+            var lambda = unary.Operand as LambdaExpression;
+            var param = lambda.Parameters[0] as ParameterExpression;
+            var binary = lambda.Body as BinaryExpression;
+            ttype = lambda.Body.GetType();
+
+            
             var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
                 //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
                 .Where(x => x.DisplayName == "1");
@@ -172,13 +201,13 @@ namespace ConsoleApp1
             //            orderby element.Path ascending
             //            select element;
 
-            var param = Expression.Parameter(typeof(FileSystemElement), "x");
-            var property = Expression.MakeMemberAccess(param, typeof(FileSystemElement).GetProperty("ElementType"));
-            var left = Expression.MakeUnary(ExpressionType.Convert, property, typeof(int));
-            ConstantExpression right = Expression.Constant(0);
-            var binary = Expression.MakeBinary(ExpressionType.Equal, left, right);
-            var lambda = Expression.Lambda(binary, param);
-            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(bool));
+            //var param = Expression.Parameter(typeof(FileSystemElement), "x");
+            //var property = Expression.MakeMemberAccess(param, typeof(FileSystemElement).GetProperty("ElementType"));
+            //var left = Expression.MakeUnary(ExpressionType.Convert, property, typeof(int));
+            //ConstantExpression right = Expression.Constant(0);
+            //var binary = Expression.MakeBinary(ExpressionType.Equal, left, right);
+            //var lambda = Expression.Lambda(binary, param);
+            //var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(bool));
             //var method = Expression.Call()
             var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
                 .Where(x => x.ElementType == ElementType.File);

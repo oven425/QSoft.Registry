@@ -149,6 +149,44 @@ namespace ConsoleApp1
         public string DisplayName { set; get; }
     }
 
+    public class cc:ExpressionVisitor
+    {
+        protected override Expression VisitBinary(BinaryExpression node)
+        {
+            return base.VisitBinary(node);
+        }
+
+        protected override Expression VisitConstant(ConstantExpression node)
+        {
+            return base.VisitConstant(node);
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            return base.VisitMethodCall(node);
+        }
+
+        protected override Expression VisitParameter(ParameterExpression node)
+        {
+            return base.VisitParameter(node);
+        }
+
+        protected override Expression VisitUnary(UnaryExpression node)
+        {
+            return base.VisitUnary(node);
+        }
+
+        protected override Expression VisitLambda<T>(Expression<T> node)
+        {
+            return base.VisitLambda(node);
+        }
+    }
+
+    public class SomeClass
+    {
+        public Version Version { get; set; }
+    }
+
     class Program
     {
         static bool Process(object data)
@@ -157,37 +195,127 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
-            Assembly thisAssembly = typeof(Program).Assembly;
-            var types = thisAssembly.GetTypes();
-            foreach (Type t in thisAssembly.GetTypes())
-            {
-                if (t.IsDefined(typeof(ExtensionAttribute), false))
-                {
-                    foreach (MethodInfo mi in t.GetMethods())
-                    {
-                        if (mi.IsDefined(typeof(ExtensionAttribute), false))
-                        {
-                            //if (mi.GetParameters()[0].ParameterType == extendedType)
-                            //    extension_methods.Add(mi);
-                        }
-                    }
-                }
-            }
+            var filterValue = new Version(12, 6, 4, 3);
+
+            var modelType = typeof(SomeClass);
+            var propertyType = typeof(Version);
+            var arg = Expression.Parameter(modelType, "x");
+            var property = Expression.Property(arg, "Version");
+
+            // Changes from here onward
+            var value = Expression.Constant(filterValue);
+            //var versionEqualsMethod = typeof(Version).GetMethod("Equals", new[] { typeof(Version) });
+            var versionEqualsMethod = typeof(Version).GetMethods().Where(x=>x.Name== "Equals");
+            var expr = Expression.Call(property, versionEqualsMethod.ElementAt(0), value);
+
+            //var method = typeof(Queryable).GetMethods();
+
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
             var queryable = queryreg.ToList().AsQueryable();
             var rr = queryable.Where(x => x.GetValue<string>("DisplayName") != "");
-            //var rr = queryable.Select(x => x.GetValue<string>("DisplayName"));
+            
 
-            var methsos = typeof(RegistryKey).GetMethods(BindingFlags.Public | BindingFlags.Static);
+            var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
+
+
             var ttype = rr.Expression.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var unary = methodcall.Arguments[1] as UnaryExpression;
+            var methodcall_param_0 = methodcall.Arguments[0];
+            var methodcall_param_1 = methodcall.Arguments[1];
+            var unary = methodcall_param_1 as UnaryExpression;
             var lambda = unary.Operand as LambdaExpression;
             var param = lambda.Parameters[0] as ParameterExpression;
             var binary = lambda.Body as BinaryExpression;
-            ttype = lambda.Body.GetType();
+            var right = binary.Right as ConstantExpression;
+            var left = binary.Left as MethodCallExpression;
+            var left_args_0 = left.Arguments[0] as ParameterExpression;
+            var left_args_1 = left.Arguments[1] as ConstantExpression;
 
-            
+            ttype = methodcall_param_0.GetType();
+
+            left_args_1 = Expression.Constant("DisplayName");
+            left_args_0 = Expression.Parameter(typeof(RegistryKey), "x");
+            left = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), left_args_0, left_args_1);
+            var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
+            arg1 = left_args_0;
+
+            right = Expression.Constant("");
+            binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
+            param = Expression.Parameter(typeof(RegistryKey), "x");
+            param = arg1;
+            lambda = Expression.Lambda(binary, param);
+            unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            var tte = queryreg.ToList().AsQueryable();
+            methodcall_param_0 = Expression.Constant(tte);
+            var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
+            var excute = tte.Provider.CreateQuery(methodcall1);
+            foreach (var oo in excute)
+            {
+
+            }
+
+            //var regexs = typeof(RegistryKey).GetMethods().Where(x => x.Name == "GetValue");
+            //var rr = queryable.Where(x => x.GetValue("DisplayName") != null);
+            //var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
+            //var regexs = typeof(RegistryKey).GetMethods().Where(x => x.Name == "GetValue");
+            //var ttype = rr.Expression.GetType();
+            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            //var methodcall_param_0 = methodcall.Arguments[0];
+            //var methodcall_param_1 = methodcall.Arguments[1];
+            //var unary = methodcall_param_1 as UnaryExpression;
+            //var lambda = unary.Operand as LambdaExpression;
+            //var param = lambda.Parameters[0] as ParameterExpression;
+            //var binary = lambda.Body as BinaryExpression;
+            //var right = binary.Right as ConstantExpression;
+            //var left = binary.Left as MethodCallExpression;
+            //var left_args_0 = left.Arguments[0] as ConstantExpression;
+            ////var left_args_1 = left.Arguments[1] as ConstantExpression;
+
+            //ttype = methodcall_param_0.GetType();
+
+            ////left_args_1 = Expression.Constant("DisplayName");
+            //left_args_0 = Expression.Constant("DisplayName");
+            ////left = Expression.Call(regexs.ElementAt(0), left_args_0);
+            //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
+            //left = Expression.Call(arg1, regexs.ElementAt(0), left_args_0);
+
+            //right = Expression.Constant(null);
+            //binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
+            //param = Expression.Parameter(typeof(RegistryKey), "x");
+            //param = arg1;
+            //lambda = Expression.Lambda(binary, param);
+            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            //var tte = queryreg.ToList().AsQueryable();
+            //methodcall_param_0 = Expression.Constant(tte);
+            //var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
+            //var excute = tte.Provider.CreateQuery(methodcall1);
+            //foreach (var oo in excute)
+            //{
+
+            //}
+
+            //var tte = queryreg.ToList().AsQueryable();
+            //var rr = queryable.Select(x => x);
+            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            //var methodcall_param_0 = methodcall.Arguments[0];
+            //var methodcall_param_1 = methodcall.Arguments[1];
+            //var unary = methodcall_param_1 as UnaryExpression;
+            //var lambda = unary.Operand as LambdaExpression;
+            //var param = lambda.Parameters[0] as ParameterExpression;
+            //var body = lambda.Body as ParameterExpression;
+            //var ttype = lambda.Body.GetType();
+
+            //body = Expression.Parameter(typeof(RegistryKey),"x");
+            //param = Expression.Parameter(typeof(RegistryKey),"x");
+            ////param = body;
+            //lambda = Expression.Lambda(body, param);
+            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            //var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
+            //methodcall = Expression.Call(selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), typeof(RegistryKey)), methodcall_param_0, unary);
+
+            //var excute = tte.Provider.CreateQuery(methodcall);
+
             var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
                 //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
                 .Where(x => x.DisplayName == "1");

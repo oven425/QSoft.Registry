@@ -26,103 +26,7 @@ namespace ConsoleApp1
         public string Name2 { set; get; }
     }
 
-    public class RegQuery<T> : IOrderedQueryable<T>
-    {
-        public RegQuery(T data, RegistryHive hive, string path)
-        {
-            
-            this.Provider = new RegProvider(hive, path);
-            this.Expression = Expression.Constant(this);
-        }
 
-        //public RegQuery(IQueryProvider provider, IQueryable<T> innerSource)
-        //{
-        //    this.Provider = provider;
-        //    this.Expression = Expression.Constant(innerSource);
-        //}
-
-        public RegQuery(RegProvider provider, Expression expression)
-        {
-            this.Provider = provider;
-            this.Expression = expression;
-        }
-
-
-        public Expression Expression { private set; get; }
-
-        public Type ElementType => typeof(T);
-
-        public IQueryProvider Provider { private set; get; }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class RegProvider : IQueryProvider
-    {
-        RegistryKey m_Reg;
-        IQueryable<Test> m_Datas;
-        public RegProvider(RegistryHive hive, string path)
-        {
-            
-            this.m_Reg = hive.OpenView64(path);
-        }
-        public IQueryable CreateQuery(Expression expression)
-        {
-            
-            throw new NotImplementedException();
-        }
-
-        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-        {
-            Type tt = this.GetType();
-            var methods = tt.GetMethods(BindingFlags.Instance | BindingFlags.NonPublic);
-
-
-            return new RegQuery<TElement>(this, expression);
-        }
-
-        bool Process (object data)
-        {
-            return true;
-        }
-        
-
-        public object Execute(Expression expression)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public TResult Execute<TResult>(Expression expression)
-        {
-            List<Test> dds = new List<Test>();
-            for (int i = 0; i < 200; i++)
-            {
-                dds.Add(new Test() { DisplayName = i.ToString() });
-            }
-            m_Datas = dds.AsQueryable();
-            ExpressionVisitorA aa = new ExpressionVisitorA(this.m_Datas);
-            Expression expr = aa.Visit(expression);
-            
-            return (TResult)this.m_Datas.Provider.CreateQuery(expr);
-
-            List<RegistryKey> regs = new List<RegistryKey>();
-            var subkeynames = this.m_Reg.GetSubKeyNames();
-            
-            foreach(var subkeyname in subkeynames)
-            {
-                regs.Add(this.m_Reg.OpenSubKey(subkeyname));
-            }
-        }
-
-    }
 
     public class ExpressionVisitorA : ExpressionVisitor
     {
@@ -182,11 +86,6 @@ namespace ConsoleApp1
         }
     }
 
-    public class SomeClass
-    {
-        public Version Version { get; set; }
-    }
-
     class Program
     {
         static bool Process(object data)
@@ -195,31 +94,21 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
-            var filterValue = new Version(12, 6, 4, 3);
 
-            var modelType = typeof(SomeClass);
-            var propertyType = typeof(Version);
-            var arg = Expression.Parameter(modelType, "x");
-            var property = Expression.Property(arg, "Version");
-
-            // Changes from here onward
-            var value = Expression.Constant(filterValue);
-            //var versionEqualsMethod = typeof(Version).GetMethod("Equals", new[] { typeof(Version) });
-            var versionEqualsMethod = typeof(Version).GetMethods().Where(x=>x.Name== "Equals");
-            var expr = Expression.Call(property, versionEqualsMethod.ElementAt(0), value);
-
-            //var method = typeof(Queryable).GetMethods();
 
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
             var queryable = queryreg.ToList().AsQueryable();
+
+            //var rr = queryable.Select(x=>x).Count(x => x.GetValue<string>("DisplayName") != "");
+
+
+
             var rr = queryable.Where(x => x.GetValue<string>("DisplayName") != "");
-            
 
             var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
 
-
-            var ttype = rr.Expression.GetType();
+            var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
             var methodcall_param_0 = methodcall.Arguments[0];
             var methodcall_param_1 = methodcall.Arguments[1];
@@ -234,26 +123,26 @@ namespace ConsoleApp1
 
             ttype = methodcall_param_0.GetType();
 
-            left_args_1 = Expression.Constant("DisplayName");
-            left_args_0 = Expression.Parameter(typeof(RegistryKey), "x");
-            left = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), left_args_0, left_args_1);
-            var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
-            arg1 = left_args_0;
+            //left_args_1 = Expression.Constant("DisplayName");
+            //left_args_0 = Expression.Parameter(typeof(RegistryKey), "x");
+            //left = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), left_args_0, left_args_1);
+            //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
+            //arg1 = left_args_0;
 
-            right = Expression.Constant("");
-            binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
-            param = Expression.Parameter(typeof(RegistryKey), "x");
-            param = arg1;
-            lambda = Expression.Lambda(binary, param);
-            unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            var tte = queryreg.ToList().AsQueryable();
-            methodcall_param_0 = Expression.Constant(tte);
-            var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
-            var excute = tte.Provider.CreateQuery(methodcall1);
-            foreach (var oo in excute)
-            {
+            //right = Expression.Constant("");
+            //binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
+            //param = Expression.Parameter(typeof(RegistryKey), "x");
+            //param = arg1;
+            //lambda = Expression.Lambda(binary, param);
+            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            //var tte = queryreg.ToList().AsQueryable();
+            //methodcall_param_0 = Expression.Constant(tte);
+            //var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
+            //var excute = tte.Provider.CreateQuery(methodcall1);
+            //foreach (var oo in excute)
+            //{
 
-            }
+            //}
 
             //var regexs = typeof(RegistryKey).GetMethods().Where(x => x.Name == "GetValue");
             //var rr = queryable.Where(x => x.GetValue("DisplayName") != null);
@@ -317,14 +206,17 @@ namespace ConsoleApp1
             //var excute = tte.Provider.CreateQuery(methodcall);
 
             var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-                //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
-                .Where(x => x.DisplayName == "1");
-                //.Where(x => Process(x));
-            foreach (var oo in regt)
-            {
+                .Where(x => x.DisplayName != "");
+                //.FirstOrDefault(x => x.DisplayName != "");
+            //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
+            //    //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
+            //    .Where(x => x.DisplayName == "1");
+            //    //.Where(x => Process(x));
+            //foreach (var oo in regt)
+            //{
 
-            }
-            //var query = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+            //}
+            //var query1 = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
             //            orderby element.Path ascending
             //            select element;
@@ -337,16 +229,20 @@ namespace ConsoleApp1
             //var lambda = Expression.Lambda(binary, param);
             //var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(bool));
             //var method = Expression.Call()
-            var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-                .Where(x => x.ElementType == ElementType.File);
+            //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
+            //.Where(x => x.ElementType == ElementType.File)
+            //.FirstOrDefault();
+            //.Where(x => x.ElementType == ElementType.File)
+            //.Where(x => x.Path != "")
+            //.Select(x => x);
 
-            int index = 0;
-            foreach (var result in query)
-            {
-                StringBuilder s = new StringBuilder();
-                s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
-                System.Console.WriteLine(s.ToString());
-            }
+            //int index = 0;
+            //foreach (var result in query)
+            //{
+            //    StringBuilder s = new StringBuilder();
+            //    s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
+            //    System.Console.WriteLine(s.ToString());
+            //}
 
             //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //.Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))

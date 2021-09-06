@@ -92,9 +92,16 @@ namespace ConsoleApp1
         {
             return true;
         }
+
+        static int iii = 0;
+        static void VV(Action<int> data)
+        {
+            int oo = 0;
+            data(oo);
+        }
         static void Main(string[] args)
         {
-
+            VV(x =>  { x = 100; });
 
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
             var queryable = queryreg.ToList().AsQueryable();
@@ -204,18 +211,21 @@ namespace ConsoleApp1
             //methodcall = Expression.Call(selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), typeof(RegistryKey)), methodcall_param_0, unary);
 
             //var excute = tte.Provider.CreateQuery(methodcall);
-
+            //Test
             var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-                .Where(x => x.DisplayName != "");
-                //.FirstOrDefault(x => x.DisplayName != "");
+                .HIV(x=> {
+                    x = RegistryHive.LocalMachine;
+                }).Where(x => x.DisplayName != "");
+                //.Where(x => Test(x.DisplayName, ""));
+            //.FirstOrDefault(x => x.DisplayName != "");
             //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
             //    //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
             //    .Where(x => x.DisplayName == "1");
             //    //.Where(x => Process(x));
-            //foreach (var oo in regt)
-            //{
+            foreach (var oo in regt)
+            {
 
-            //}
+            }
             //var query1 = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
             //            orderby element.Path ascending
@@ -413,6 +423,11 @@ namespace ConsoleApp1
 
 
 
+        }
+
+        static bool Test(string left, string right)
+        {
+            return left == right;
         }
 
     }

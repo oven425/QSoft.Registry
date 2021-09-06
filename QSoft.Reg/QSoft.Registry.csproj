@@ -40,6 +40,9 @@
     <Compile Include="RegProvider.cs" />
     <Compile Include="RegQuery.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>setlocal ENABLEDELAYEDEXPANSION

@@ -17,7 +17,12 @@ namespace QSoft.Registry
             this.Expression = Expression.Constant(this);
         }
 
-
+        RegistryHive m_HIV = RegistryHive.ClassesRoot;
+        public RegQuery<T> HIV(Action<RegistryHive> hiv)
+        {
+            hiv(this.m_HIV);
+            return this;
+        }
 
         public RegQuery(T data)
         {

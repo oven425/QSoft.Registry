@@ -15,9 +15,9 @@ namespace QSoft.Registry
         //IQueryable<Test> m_Datas;
         public RegProvider(RegistryHive hive, string path)
         {
-
             this.m_Reg = hive.OpenView64(path);
         }
+
         public IQueryable CreateQuery(Expression expression)
         {
 
@@ -42,8 +42,8 @@ namespace QSoft.Registry
                 var query = this.Build(left.Member.Name, right.Value, binary);
                 CreateQuertys.Enqueue(query);
             }
-            RegExpressionVisitor vv = new RegExpressionVisitor();
-            vv.Visit(expression);
+            //RegExpressionVisitor vv = new RegExpressionVisitor();
+            //vv.Visit(expression);
 
             return new RegQuery<TElement>(this, expression);
         }
@@ -77,6 +77,20 @@ namespace QSoft.Registry
             throw new NotImplementedException();
         }
 
+        public IEnumerable<T> Enumerable<T>(IQueryable<RegistryKey> query)
+        {
+            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
+            foreach (var oo in query)
+            {
+                var inst = Activator.CreateInstance(typeof(T));
+                foreach (var pp in pps)
+                {
+                    pp.SetValue(inst, oo.GetValue(pp.Name));
+                }
+                yield return (T)inst;
+            }
+        }
+
         public TResult Execute<TResult>(Expression expression)
         {
             RegExpressionVisitor regvisitor = new RegExpressionVisitor();
@@ -93,31 +107,27 @@ namespace QSoft.Registry
             var tte = regs.AsQueryable();
             var methodcall_param_0 = Expression.Constant(tte);
             var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
-            var excute = tte.Provider.CreateQuery(methodcall1);
+            var excute = tte.Provider.CreateQuery<RegistryKey>(methodcall1);
+            
             var type = typeof(TResult);
-            if(type.Name == "IEnumerable`1")
+            Type[] tt = type.GetGenericArguments();
+            var pps = tt[0].GetProperties().Where(x=>x.CanWrite==true);
+
+            
+            if (type.Name == "IEnumerable`1")
             {
-                
+                var mi = typeof(RegProvider).GetMethod("Enumerable");
+                var fooRef = mi.MakeGenericMethod(tt[0]);
+                return (TResult)fooRef.Invoke(this, new object[]{ excute, tt[0]});
+                //return (TResult)Enumerable<Test>(excute, tt[0]);
             }
             else
             {
                 
             }
-            throw new NotImplementedException();
-            //List<Test> dds = new List<Test>();
-            //for (int i = 0; i < 200; i++)
-            //{
-            //    dds.Add(new Test() { DisplayName = i.ToString() });
-            //}
-            //m_Datas = dds.AsQueryable();
-            //ExpressionVisitorA aa = new ExpressionVisitorA(this.m_Datas);
-            //Expression expr = aa.Visit(expression);
-
-            //return (TResult)this.m_Datas.Provider.CreateQuery(expr);
-
-            
+            throw new NotImplementedException();            
         }
-
     }
 
+    
 }

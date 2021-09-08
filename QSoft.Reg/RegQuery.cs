@@ -10,17 +10,17 @@ namespace QSoft.Registry
 {
     public class RegQuery<T> : IOrderedQueryable<T>
     {
-        public RegQuery(T data, RegistryHive hive, string path)
+        public RegQuery()
         {
-
-            this.Provider = new RegProvider(hive, path);
             this.Expression = Expression.Constant(this);
         }
 
-        RegistryHive m_HIV = RegistryHive.ClassesRoot;
-        public RegQuery<T> HIV(Action<RegistryHive> hiv)
+        Setting m_Setting = null;
+        public RegQuery<T> useSetting(Action<Setting> data)
         {
-            hiv(this.m_HIV);
+            this.m_Setting = new Setting();
+            data(this.m_Setting);
+            this.Provider = new RegProvider(this.m_Setting.Hive, this.m_Setting.SubKey);
             return this;
         }
 
@@ -53,6 +53,12 @@ namespace QSoft.Registry
         {
             throw new NotImplementedException();
         }
+    }
+
+    public class Setting
+    {
+        public string SubKey { set; get; }
+        public RegistryHive Hive { set; get; }
     }
 
 }

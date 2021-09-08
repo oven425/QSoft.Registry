@@ -48,10 +48,7 @@ namespace ConsoleApp1
         }
     }
 
-    public class Test
-    {
-        public string DisplayName { set; get; }
-    }
+    
 
     public class cc:ExpressionVisitor
     {
@@ -86,22 +83,17 @@ namespace ConsoleApp1
         }
     }
 
+    public class Test
+    {
+        public string DisplayName { set; get; }
+        public string DisplayVersion { set; get; }
+        public int EstimatedSize { set; get; }
+    }
+
     class Program
     {
-        static bool Process(object data)
-        {
-            return true;
-        }
-
-        static int iii = 0;
-        static void VV(Action<int> data)
-        {
-            int oo = 0;
-            data(oo);
-        }
         static void Main(string[] args)
         {
-            VV(x =>  { x = 100; });
 
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
             var queryable = queryreg.ToList().AsQueryable();
@@ -111,6 +103,10 @@ namespace ConsoleApp1
 
 
             var rr = queryable.Where(x => x.GetValue<string>("DisplayName") != "");
+            foreach(var oo in rr)
+            {
+
+            }
 
             var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
@@ -130,26 +126,26 @@ namespace ConsoleApp1
 
             ttype = methodcall_param_0.GetType();
 
-            //left_args_1 = Expression.Constant("DisplayName");
-            //left_args_0 = Expression.Parameter(typeof(RegistryKey), "x");
-            //left = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), left_args_0, left_args_1);
-            //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
-            //arg1 = left_args_0;
+            left_args_1 = Expression.Constant("DisplayName");
+            left_args_0 = Expression.Parameter(typeof(RegistryKey), "x");
+            left = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), left_args_0, left_args_1);
+            var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
+            arg1 = left_args_0;
 
-            //right = Expression.Constant("");
-            //binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
-            //param = Expression.Parameter(typeof(RegistryKey), "x");
-            //param = arg1;
-            //lambda = Expression.Lambda(binary, param);
-            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            //var tte = queryreg.ToList().AsQueryable();
-            //methodcall_param_0 = Expression.Constant(tte);
-            //var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
-            //var excute = tte.Provider.CreateQuery(methodcall1);
-            //foreach (var oo in excute)
-            //{
-
-            //}
+            right = Expression.Constant("");
+            binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
+            param = Expression.Parameter(typeof(RegistryKey), "x");
+            param = arg1;
+            lambda = Expression.Lambda(binary, param);
+            unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            var tte = queryreg.ToList().AsQueryable();
+            methodcall_param_0 = Expression.Constant(tte);
+            var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
+            var excute = tte.Provider.CreateQuery<RegistryKey>(methodcall1);
+            foreach (var oo in excute)
+            {
+                
+            }
 
             //var regexs = typeof(RegistryKey).GetMethods().Where(x => x.Name == "GetValue");
             //var rr = queryable.Where(x => x.GetValue("DisplayName") != null);
@@ -212,16 +208,19 @@ namespace ConsoleApp1
 
             //var excute = tte.Provider.CreateQuery(methodcall);
             //Test
-            var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-                .HIV(x=> {
-                    x = RegistryHive.LocalMachine;
-                }).Where(x => x.DisplayName != "");
-                //.Where(x => Test(x.DisplayName, ""));
+            var regt = new RegQuery<Test>()
+                .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.LocalMachine;
+                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+                    }
+                ).Where(x => x.DisplayName != "");
+            //.Where(x => Test(x.DisplayName, ""));
             //.FirstOrDefault(x => x.DisplayName != "");
             //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
             //    //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
             //    .Where(x => x.DisplayName == "1");
-            //    //.Where(x => Process(x));
+            ////.Where(x => Process(x));
             foreach (var oo in regt)
             {
 

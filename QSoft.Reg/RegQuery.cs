@@ -20,7 +20,7 @@ namespace QSoft.Registry
         {
             this.m_Setting = new Setting();
             data(this.m_Setting);
-            this.Provider = new RegProvider(this.m_Setting.Hive, this.m_Setting.SubKey);
+            this.Provider = new RegProvider(this.m_Setting.Hive, this.m_Setting.SubKey, typeof(T));
             return this;
         }
 

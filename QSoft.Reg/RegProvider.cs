@@ -12,9 +12,10 @@ namespace QSoft.Registry
     public class RegProvider : IQueryProvider
     {
         RegistryKey m_Reg;
-        //IQueryable<Test> m_Datas;
-        public RegProvider(RegistryHive hive, string path)
+        Type m_DataType;
+        public RegProvider(RegistryHive hive, string path, Type datatype)
         {
+            this.m_DataType = datatype;
             this.m_Reg = hive.OpenView64(path);
         }
 
@@ -24,7 +25,7 @@ namespace QSoft.Registry
             throw new NotImplementedException();
         }
 
-        Queue<Expression> CreateQuertys = new Queue<Expression>(); 
+        Queue<(MethodInfo method, Expression expression)> CreateQuertys = new Queue<(MethodInfo method, Expression expression)>();
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             var type = expression.GetType();
@@ -40,7 +41,8 @@ namespace QSoft.Registry
                 var right = binary.Right as ConstantExpression;
                 type = binary.Right.GetType();
                 var query = this.Build(left.Member.Name, right.Value, binary);
-                CreateQuertys.Enqueue(query);
+                
+                CreateQuertys.Enqueue((method.Method, query));
             }
             //RegExpressionVisitor vv = new RegExpressionVisitor();
             //vv.Visit(expression);
@@ -62,15 +64,10 @@ namespace QSoft.Registry
             var param = Expression.Parameter(typeof(RegistryKey), "x");
             param = arg1;
             var lambda = Expression.Lambda(binary, param);
+            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
 
-            return lambda;
+            return unary;
         }
-
-        bool Process(object data)
-        {
-            return true;
-        }
-
 
         public object Execute(Expression expression)
         {
@@ -93,8 +90,11 @@ namespace QSoft.Registry
 
         public TResult Execute<TResult>(Expression expression)
         {
+            var type = typeof(TResult);
+            Type[] tts = type.GetGenericArguments();
             RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-            var expr = regvisitor.Visit(expression);
+            
+            var expr = regvisitor.Visit(expression, this.m_DataType);
             List<RegistryKey> regs = new List<RegistryKey>();
             var subkeynames = this.m_Reg.GetSubKeyNames();
 
@@ -102,30 +102,39 @@ namespace QSoft.Registry
             {
                 regs.Add(this.m_Reg.OpenSubKey(subkeyname));
             }
-            var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-            var unary = Expression.MakeUnary(ExpressionType.Quote, CreateQuertys.ElementAt(0), typeof(RegistryKey));
+            
             var tte = regs.AsQueryable();
             var methodcall_param_0 = Expression.Constant(tte);
-            var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
-            var excute = tte.Provider.CreateQuery<RegistryKey>(methodcall1);
             
-            var type = typeof(TResult);
-            Type[] tt = type.GetGenericArguments();
-            var pps = tt[0].GetProperties().Where(x=>x.CanWrite==true);
-
             
             if (type.Name == "IEnumerable`1")
             {
+
+                var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
+                var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, CreateQuertys.ElementAt(0).expression);
+                var excute = tte.Provider.CreateQuery<RegistryKey>(methodcall1);
+
                 var mi = typeof(RegProvider).GetMethod("Enumerable");
-                var fooRef = mi.MakeGenericMethod(tt[0]);
-                return (TResult)fooRef.Invoke(this, new object[]{ excute, tt[0]});
-                //return (TResult)Enumerable<Test>(excute, tt[0]);
+                var fooRef = mi.MakeGenericMethod(tts[0]);
+                return (TResult)fooRef.Invoke(this, new object[]{ excute, tts[0]});
+
             }
             else
             {
-                
+                var method = expression as MethodCallExpression;
+
+                var methods = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == method.Method.Name);
+                var methodcall1 = Expression.Call(methods.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0);
+                var excute = tte.Provider.Execute<RegistryKey>(methodcall1);
+
+                var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true);
+                var inst = Activator.CreateInstance(typeof(TResult));
+                foreach (var pp in pps)
+                {
+                    pp.SetValue(inst, excute.GetValue(pp.Name));
+                }
+                return (TResult)inst;
             }
-            throw new NotImplementedException();            
         }
     }
 

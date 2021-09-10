@@ -213,18 +213,18 @@ namespace ConsoleApp1
                     {
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                    }
-                ).Where(x => x.DisplayName != "");
+                    })
+                //.Where(x => x.DisplayName != "");
             //.Where(x => Test(x.DisplayName, ""));
-            //.FirstOrDefault(x => x.DisplayName != "");
+            .FirstOrDefault(x => x.DisplayName != "");
             //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
             //    //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
             //    .Where(x => x.DisplayName == "1");
             ////.Where(x => Process(x));
-            foreach (var oo in regt)
-            {
+            //foreach (var oo in regt)
+            //{
 
-            }
+            //}
             //var query1 = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
             //            orderby element.Path ascending

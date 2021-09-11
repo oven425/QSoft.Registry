@@ -87,7 +87,7 @@ namespace ConsoleApp1
     {
         public string DisplayName { set; get; }
         public string DisplayVersion { set; get; }
-        public int EstimatedSize { set; get; }
+        public int? EstimatedSize { set; get; }
     }
 
     class Program
@@ -109,7 +109,7 @@ namespace ConsoleApp1
             }
 
             var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
@@ -214,17 +214,14 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                     })
+                    .Where(x => x.EstimatedSize==null);
                 //.Where(x => x.DisplayName != "");
             //.Where(x => Test(x.DisplayName, ""));
-            .FirstOrDefault(x => x.DisplayName != "");
-            //var regt = new RegQuery<Test>(new Test(), RegistryHive.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
-            //    //.Where(x => string.IsNullOrEmpty(x.DisplayName) == true && x.DisplayName == "")
-            //    .Where(x => x.DisplayName == "1");
-            ////.Where(x => Process(x));
-            //foreach (var oo in regt)
-            //{
+            //.FirstOrDefault(x => x.DisplayName != ""&& x.DisplayVersion !=""&& x.DisplayName !="");
+            foreach (var oo in regt)
+            {
 
-            //}
+            }
             //var query1 = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
             //            orderby element.Path ascending

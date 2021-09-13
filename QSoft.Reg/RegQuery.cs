@@ -24,12 +24,12 @@ namespace QSoft.Registry
             return this;
         }
 
-        public RegQuery(T data)
-        {
+        //public RegQuery(T data)
+        //{
 
-            //this.Provider = new RegProvider(hive, path);
-            //this.Expression = Expression.Constant(this);
-        }
+        //    //this.Provider = new RegProvider(hive, path);
+        //    //this.Expression = Expression.Constant(this);
+        //}
 
         public RegQuery(RegProvider provider, Expression expression)
         {

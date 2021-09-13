@@ -28,26 +28,26 @@ namespace QSoft.Registry
         Queue<(MethodInfo method, Expression expression)> CreateQuertys = new Queue<(MethodInfo method, Expression expression)>();
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            var type = expression.GetType();
-            var method = expression as MethodCallExpression;
-            type = method.Arguments[0].GetType();
-            if (method.Arguments.Count > 1)
-            {
-                //var unary = method.Arguments[1] as UnaryExpression;
-                //var lambda = unary.Operand as LambdaExpression;
-                //var binary = lambda.Body as BinaryExpression;
-                //var left = binary.Left as MemberExpression;
-                //var param = left.Expression as ParameterExpression;
-                //var right = binary.Right as ConstantExpression;
-                //type = binary.Right.GetType();
-                //var query = this.Build(left.Member.Name, right.Value, binary);
+            //var type = expression.GetType();
+            //var method = expression as MethodCallExpression;
+            //type = method.Arguments[0].GetType();
+            //if (method.Arguments.Count > 1)
+            //{
+            //    //var unary = method.Arguments[1] as UnaryExpression;
+            //    //var lambda = unary.Operand as LambdaExpression;
+            //    //var binary = lambda.Body as BinaryExpression;
+            //    //var left = binary.Left as MemberExpression;
+            //    //var param = left.Expression as ParameterExpression;
+            //    //var right = binary.Right as ConstantExpression;
+            //    //type = binary.Right.GetType();
+            //    //var query = this.Build(left.Member.Name, right.Value, binary);
 
-                //CreateQuertys.Enqueue((method.Method, query));
+            //    //CreateQuertys.Enqueue((method.Method, query));
 
-                RegExpressionVisitor vv = new RegExpressionVisitor();
-                //var expr = vv.Visit(expression, );
-                //CreateQuertys.Enqueue((method.Method, expr));
-            }
+            //    RegExpressionVisitor vv = new RegExpressionVisitor();
+            //    //var expr = vv.Visit(expression, );
+            //    //CreateQuertys.Enqueue((method.Method, expr));
+            //}
            
             return new RegQuery<TElement>(this, expression);
         }
@@ -113,24 +113,25 @@ namespace QSoft.Registry
 
             if (type.Name == "IEnumerable`1")
             {
-
-                //var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-                //var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, CreateQuertys.ElementAt(0).expression);
-                var excute = tte.Provider.CreateQuery<RegistryKey>(expr);
-
-                var mi = typeof(RegProvider).GetMethod("Enumerable");
-                var fooRef = mi.MakeGenericMethod(tts[0]);
-                return (TResult)fooRef.Invoke(this, new object[]{ excute});
+                var creatquerys = typeof(IQueryProvider).GetMethods().Where(x=>x.Name== "CreateQuery" && x.IsGenericMethod==true);
+                var creatquery = creatquerys.First().MakeGenericMethod(tts[0]);
+                var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
+                //var excute = tte.Provider.CreateQuery<RegistryKey>(expr);
+                if(tts[0] == this.m_DataType)
+                {
+                    var mi = typeof(RegProvider).GetMethod("Enumerable");
+                    var fooRef = mi.MakeGenericMethod(tts[0]);
+                    return (TResult)fooRef.Invoke(this, new object[] { excute });
+                }
+                return (TResult)excute;
 
             }
             else
             {
-                //var method = expression as MethodCallExpression;
 
-                //var methods = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == method.Method.Name);
-                //var methodcall1 = Expression.Call(methods.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0);
-                
                 var excute = tte.Provider.Execute<RegistryKey>(expr);
+
+
 
                 var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true);
                 var inst = Activator.CreateInstance(typeof(TResult));

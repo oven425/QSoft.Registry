@@ -114,7 +114,19 @@ namespace QSoft.Registry
             if (type.Name == "IEnumerable`1")
             {
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x=>x.Name== "CreateQuery" && x.IsGenericMethod==true);
-                var creatquery = creatquerys.First().MakeGenericMethod(tts[0]);
+                var tts1 = new Type[tts.Length];
+                for(int i=0; i<tts.Length; i++)
+                {
+                    if(tts[i]==this.m_DataType)
+                    {
+                        tts1[i] = typeof(RegistryKey);
+                    }
+                    else
+                    {
+                        tts1[i] = tts[i];
+                    }
+                }
+                var creatquery = creatquerys.First().MakeGenericMethod(tts1[0]);
                 var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
                 //var excute = tte.Provider.CreateQuery<RegistryKey>(expr);
                 if(tts[0] == this.m_DataType)
@@ -128,17 +140,21 @@ namespace QSoft.Registry
             }
             else
             {
-
-                var excute = tte.Provider.Execute<RegistryKey>(expr);
-
-
-
-                var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true);
-                var inst = Activator.CreateInstance(typeof(TResult));
-                foreach (var pp in pps)
+                object inst = null;
+                var excute = tte.Provider.Execute<TResult>(expr);
+                var excute_reg = excute as RegistryKey;
+                if (excute_reg !=null)
                 {
-                    pp.SetValue(inst, excute.GetValue(pp.Name));
+                    var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true);
+                    inst = Activator.CreateInstance(typeof(TResult));
+                    foreach (var pp in pps)
+                    {
+                        pp.SetValue(inst, excute_reg.GetValue(pp.Name));
+                    }
                 }
+                inst = excute;
+
+
                 return (TResult)inst;
             }
         }

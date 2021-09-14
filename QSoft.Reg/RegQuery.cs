@@ -8,6 +8,7 @@ using System.Text;
 
 namespace QSoft.Registry
 {
+    
     public class RegQuery<T> : IOrderedQueryable<T>
     {
         public RegQuery()
@@ -24,13 +25,6 @@ namespace QSoft.Registry
             return this;
         }
 
-        //public RegQuery(T data)
-        //{
-
-        //    //this.Provider = new RegProvider(hive, path);
-        //    //this.Expression = Expression.Constant(this);
-        //}
-
         public RegQuery(RegProvider provider, Expression expression)
         {
             this.Provider = provider;
@@ -39,11 +33,8 @@ namespace QSoft.Registry
 
 
         public Expression Expression { private set; get; }
-
         public Type ElementType => typeof(T);
-
         public IQueryProvider Provider { private set; get; }
-
         public IEnumerator<T> GetEnumerator()
         {
             return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
@@ -59,6 +50,20 @@ namespace QSoft.Registry
     {
         public string SubKey { set; get; }
         public RegistryHive Hive { set; get; }
+    }
+
+    public static class RegQueryEx
+    {
+        public static IQueryable<T> Update<T>(this IQueryable<T> source, Expression<Func<T, T>> update)
+        {
+            return source.Select(update);
+        }
+
+        public static IQueryable<TSource> Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+        {
+            return source.Where(predicate);
+        }
+
     }
 
 }

@@ -98,7 +98,11 @@ namespace ConsoleApp1
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
             var queryable = queryreg.ToList().AsQueryable();
 
-            var rr = queryable.Select(x => x.GetValue<string>("DisplayName"));
+            var rr = queryable.Select(x => new
+            {
+                DisplayName = x.GetValue<string>("DisplayName"),
+                EstimatedSize = x.GetValue<int?>("EstimatedSize")
+            });
             foreach (var oo in rr)
             {
 
@@ -114,33 +118,35 @@ namespace ConsoleApp1
             var unary = methodcall_param_1 as UnaryExpression;
             var lambda = unary.Operand as LambdaExpression;
             var param = lambda.Parameters[0] as ParameterExpression;
-            var select_methodcall = lambda.Body as MethodCallExpression;
-            var select_methodcall_0 = select_methodcall.Arguments[0] as ParameterExpression;
+            var select_methodcall = lambda.Body as NewExpression;
+            ttype = select_methodcall.Arguments[0].GetType();
+            var select_methodcall_0 = select_methodcall.Arguments[0] as MethodCallExpression;
+            
             var select_methodcall_1 = select_methodcall.Arguments[1] as ConstantExpression;
 
             ttype = methodcall_param_0.GetType();
 
-            select_methodcall_1 = Expression.Constant("DisplayName");
-            select_methodcall_0 = Expression.Parameter(typeof(RegistryKey), "x");
-            select_methodcall = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), select_methodcall_0, select_methodcall_1);
-            var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
-            arg1 = select_methodcall_0;
+            //select_methodcall_1 = Expression.Constant("DisplayName");
+            //select_methodcall_0 = Expression.Parameter(typeof(RegistryKey), "x");
+            //select_methodcall = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), select_methodcall_0, select_methodcall_1);
+            //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
+            //arg1 = select_methodcall_0;
 
-            param = Expression.Parameter(typeof(RegistryKey), "x");
-            param = arg1;
-            lambda = Expression.Lambda(select_methodcall, param);
-            unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            var tte = queryreg.ToList().AsQueryable();
-            methodcall_param_0 = Expression.Constant(tte);
-            var selects = methodcall.Method.ReflectedType.GetMethods().Where(x => x.Name == methodcall.Method.Name);
-            var select1 = selects.First().MakeGenericMethod(typeof(RegistryKey), typeof(string));
-            var methodcall1 = Expression.Call(select1, methodcall_param_0, unary);
-            
-            var excute = tte.Provider.CreateQuery<string>(methodcall1);
-            foreach (var oo in excute)
-            {
+            //param = Expression.Parameter(typeof(RegistryKey), "x");
+            //param = arg1;
+            //lambda = Expression.Lambda(select_methodcall, param);
+            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            //var tte = queryreg.ToList().AsQueryable();
+            //methodcall_param_0 = Expression.Constant(tte);
+            //var selects = methodcall.Method.ReflectedType.GetMethods().Where(x => x.Name == methodcall.Method.Name);
+            //var select1 = selects.First().MakeGenericMethod(typeof(RegistryKey), typeof(string));
+            //var methodcall1 = Expression.Call(select1, methodcall_param_0, unary);
 
-            }
+            //var excute = tte.Provider.CreateQuery<string>(methodcall1);
+            //foreach (var oo in excute)
+            //{
+
+            //}
 
 
 
@@ -264,14 +270,28 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                     })
-                    //.Where(x => x.EstimatedSize==null);
-                .Where(x=>x.DisplayName!="").Select(x=>x.DisplayName).Where(x=>x.Contains("CamON"));
+                    .Update(x => new ConsoleApp1.Test()
+                    {
+                        DisplayName = x.DisplayName + "AA"
+                    });
+
+
+
+
+            //.Select(x => new
+            //{
+            //    A=x.DisplayName,
+            //    B=x.EstimatedSize
+            //});
+            //.Where(x => x.EstimatedSize==null).Count();
+            //.Where(x => x.DisplayName == "CamON");
             //.Where(x => Test(x.DisplayName, ""));
             //.FirstOrDefault(x => x.DisplayName != ""&& x.DisplayVersion !=""&& x.DisplayName !="");
-            foreach (var oo in regt)
-            {
+            //foreach (var oo in regt)
+            //{
+            //    oo.DisplayName = oo.DisplayName + "AA";
+            //}
 
-            }
 
             foreach (var oo in regt)
             {

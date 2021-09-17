@@ -32,8 +32,6 @@ namespace QSoft.Registry
             Type right = node.Right.GetType();
             System.Diagnostics.Trace.WriteLine($"VisitBinary");
             
-            //return base.VisitBinary(node);
-
 
             var expr = base.VisitBinary(node);
 
@@ -61,7 +59,7 @@ namespace QSoft.Registry
         NewExpression m_NewExpression = null;
         protected override Expression VisitNew(NewExpression node)
         {
-            Type type = node.Arguments[0].GetType();
+            System.Diagnostics.Trace.WriteLine($"VisitNew");
             var expr = base.VisitNew(node);
             if (this.m_Member2Regs.Count > 0)
             {
@@ -74,8 +72,21 @@ namespace QSoft.Registry
 
             return expr;
         }
-        
-        
+
+
+        protected override Expression VisitMemberInit(MemberInitExpression node)
+        {
+            var expr = base.VisitMemberInit(node);
+            var type = node.Bindings[0].GetType();
+            return expr;
+        }
+
+        protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
+        {
+            var regexs = typeof(RegistryKey).GetMethods().Where(x => "SetValue" == x.Name);
+            
+            return base.VisitMemberAssignment(node);
+        }
 
         LambdaExpression m_Lambda = null;
         protected override Expression VisitLambda<T>(Expression<T> node)
@@ -83,6 +94,7 @@ namespace QSoft.Registry
             System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
 
             var expr = base.VisitLambda(node);
+
             var lambda = expr as LambdaExpression;
             Type type = lambda.Body.GetType();
 
@@ -167,8 +179,6 @@ namespace QSoft.Registry
                 this.m_Lambda = null;
             }
             
-
-
             return expr;
         }
 
@@ -183,8 +193,8 @@ namespace QSoft.Registry
                 Expression methodcall_param_0 = null;
                 if (this.m_IsRegQuery == true)
                 {
-                    //this.m_IsRegQuery = false;
-                    methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    this.m_ConstantExpression_Source = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    methodcall_param_0 = this.m_ConstantExpression_Source;
                 }
                 else
                 {
@@ -270,15 +280,18 @@ namespace QSoft.Registry
 
 
         bool m_IsRegQuery = false;
+        ConstantExpression m_ConstantExpression_Source = null;
         protected override Expression VisitConstant(ConstantExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitConstant");
+            var expr = base.VisitConstant(node);
             if (node.Type.Name == "RegQuery`1")
             {
                 m_IsRegQuery = true;
                 this.m_DataType = node.Type.GetGenericArguments().FirstOrDefault();
                 if (this.m_RegKeys == null)
                 {
+                    m_ConstantExpression_Source = null;
                     //List<RegistryKey> regs = new List<RegistryKey>();
                     //var subkeynames = this.m_RegKey.GetSubKeyNames();
 
@@ -291,7 +304,7 @@ namespace QSoft.Registry
                 }
 
             }
-            return base.VisitConstant(node);
+            return expr;
         }
 
     }

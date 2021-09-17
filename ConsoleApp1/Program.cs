@@ -48,41 +48,6 @@ namespace ConsoleApp1
         }
     }
 
-    
-
-    public class cc:ExpressionVisitor
-    {
-        protected override Expression VisitBinary(BinaryExpression node)
-        {
-            return base.VisitBinary(node);
-        }
-
-        protected override Expression VisitConstant(ConstantExpression node)
-        {
-            return base.VisitConstant(node);
-        }
-
-        protected override Expression VisitMethodCall(MethodCallExpression node)
-        {
-            return base.VisitMethodCall(node);
-        }
-
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return base.VisitParameter(node);
-        }
-
-        protected override Expression VisitUnary(UnaryExpression node)
-        {
-            return base.VisitUnary(node);
-        }
-
-        protected override Expression VisitLambda<T>(Expression<T> node)
-        {
-            return base.VisitLambda(node);
-        }
-    }
-
     public class Test
     {
         public string DisplayName { set; get; }
@@ -92,39 +57,77 @@ namespace ConsoleApp1
 
     class Program
     {
+        private static Expression<Func<T, bool>> FuncToExpression<T>(Func<T, bool> f)
+        {
+            return x => f(x);
+        }
+
+        static public void Set(RegistryKey reg)
+        {
+            //reg.SetValue("a", "a");
+            //reg.SetValue("b", "b");
+            //return true;
+        }
+
         static void Main(string[] args)
         {
 
+
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
+            Func<int, bool> func = a => a == 1;
+            bool b1 = func(1);
+
+            
+
+            
+
             var queryable = queryreg.ToList().AsQueryable();
 
-            var rr = queryable.Select(x => new
+            Action<RegistryKey> action = reg =>
             {
-                DisplayName = x.GetValue<string>("DisplayName"),
-                EstimatedSize = x.GetValue<int?>("EstimatedSize")
-            });
-            foreach (var oo in rr)
-            {
+                reg.SetValue("a", "a");
+                reg.SetValue("b", "b");
+            };
+            var method_set = typeof(Program).GetMethod("Set");
+            var pp = Expression.Parameter(typeof(RegistryKey), "x");
+            var methid_expression = Expression.Call(method_set, pp);
+            var lambda = Expression.Lambda(methid_expression, pp);
+            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            var methodcall_param_0 = Expression.Constant(queryable);
+            var update = typeof(RegQueryEx).GetMethods().Where(x=>x.Name == "Update1");
+            var update1 = update.FirstOrDefault().MakeGenericMethod(typeof(RegistryKey));
 
-            }
 
-            var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+            var methodcall1 = Expression.Call(update1, methodcall_param_0);
 
-            var ttype = rr.GetType();
-            MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var methodcall_param_0 = methodcall.Arguments[0];
-            var methodcall_param_1 = methodcall.Arguments[1];
-            var unary = methodcall_param_1 as UnaryExpression;
-            var lambda = unary.Operand as LambdaExpression;
-            var param = lambda.Parameters[0] as ParameterExpression;
-            var select_methodcall = lambda.Body as NewExpression;
-            ttype = select_methodcall.Arguments[0].GetType();
-            var select_methodcall_0 = select_methodcall.Arguments[0] as MethodCallExpression;
-            
-            var select_methodcall_1 = select_methodcall.Arguments[1] as ConstantExpression;
 
-            ttype = methodcall_param_0.GetType();
+
+            int aa = queryable.Provider.Execute<int>(methodcall1);
+
+            //var rr = queryable.Update1(lambda);
+
+            //foreach (var oo in rr)
+            //{
+
+            //}
+
+            //var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
+            //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+
+            //var ttype = rr.GetType();
+            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            //var methodcall_param_0 = methodcall.Arguments[0];
+            //var methodcall_param_1 = methodcall.Arguments[1];
+            //var unary = methodcall_param_1 as UnaryExpression;
+            //var lambda = unary.Operand as LambdaExpression;
+            //var param = lambda.Parameters[0] as ParameterExpression;
+            //var select_methodcall = lambda.Body as NewExpression;
+            //ttype = select_methodcall.Arguments[0].GetType();
+            //var select_methodcall_0 = select_methodcall.Arguments[0] as MethodCallExpression;
+
+            //var select_methodcall_1 = select_methodcall.Arguments[1] as ConstantExpression;
+
+            //ttype = methodcall_param_0.GetType();
 
             //select_methodcall_1 = Expression.Constant("DisplayName");
             //select_methodcall_0 = Expression.Parameter(typeof(RegistryKey), "x");
@@ -269,19 +272,15 @@ namespace ConsoleApp1
                     {
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                    })
-                    .Update(x => new ConsoleApp1.Test()
-                    {
-                        DisplayName = x.DisplayName + "AA"
-                    });
+                    }).Count();
 
 
 
 
             //.Select(x => new
             //{
-            //    A=x.DisplayName,
-            //    B=x.EstimatedSize
+            //    A = x.DisplayName,
+            //    B = x.EstimatedSize
             //});
             //.Where(x => x.EstimatedSize==null).Count();
             //.Where(x => x.DisplayName == "CamON");
@@ -293,10 +292,10 @@ namespace ConsoleApp1
             //}
 
 
-            foreach (var oo in regt)
-            {
+            //foreach (var oo in regt)
+            //{
 
-            }
+            //}
             //var query1 = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
             //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
             //            orderby element.Path ascending

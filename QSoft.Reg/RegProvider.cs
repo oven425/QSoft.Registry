@@ -107,7 +107,7 @@ namespace QSoft.Registry
             RegExpressionVisitor regvisitor = new RegExpressionVisitor();
 
             var expr = regvisitor.Visit(expression, this.m_DataType, tte);
-            
+
             var methodcall_param_0 = Expression.Constant(tte);
 
 
@@ -136,7 +136,6 @@ namespace QSoft.Registry
                     return (TResult)fooRef.Invoke(this, new object[] { excute });
                 }
                 return (TResult)excute;
-
             }
             else
             {

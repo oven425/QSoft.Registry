@@ -27,27 +27,6 @@ namespace ConsoleApp1
     }
 
 
-
-    public class ExpressionVisitorA : ExpressionVisitor
-    {
-        IQueryable<Test> m_Datas;
-        public ExpressionVisitorA(IQueryable<Test> data)
-        {
-            this.m_Datas = data;
-        }
-        protected override Expression VisitConstant(ConstantExpression node)
-        {
-            if(node.Type == typeof(RegQuery<Test>))
-            {
-                return Expression.Constant(this.m_Datas);
-            }
-            else
-            {
-                return node;
-            }
-        }
-    }
-
     public class Test
     {
         public string DisplayName { set; get; }
@@ -62,7 +41,14 @@ namespace ConsoleApp1
             return x => f(x);
         }
 
-        static public void Set(RegistryKey reg)
+        static public bool  Set(RegistryKey reg)
+        {
+            reg.SetValue("a", "a");
+            //reg.SetValue("b", "b");
+            return true;
+        }
+
+        static public void Set(int reg)
         {
             //reg.SetValue("a", "a");
             //reg.SetValue("b", "b");
@@ -74,35 +60,32 @@ namespace ConsoleApp1
 
 
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
-            Func<int, bool> func = a => a == 1;
-            bool b1 = func(1);
 
-            
 
-            
+            //var result = Enumerable.Repeat<int>(0, 100).AsQueryable().Update();
+            //var result1 = Enumerable.Repeat<int>(0, 100).AsQueryable().Update(x=>Set(x));
+            //Enumerable.Repeat<int>(0, 100).Update(x =>
+            //{
+
+            //});
 
             var queryable = queryreg.ToList().AsQueryable();
 
-            Action<RegistryKey> action = reg =>
-            {
-                reg.SetValue("a", "a");
-                reg.SetValue("b", "b");
-            };
-            var method_set = typeof(Program).GetMethod("Set");
-            var pp = Expression.Parameter(typeof(RegistryKey), "x");
-            var methid_expression = Expression.Call(method_set, pp);
-            var lambda = Expression.Lambda(methid_expression, pp);
-            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            var methodcall_param_0 = Expression.Constant(queryable);
-            var update = typeof(RegQueryEx).GetMethods().Where(x=>x.Name == "Update1");
-            var update1 = update.FirstOrDefault().MakeGenericMethod(typeof(RegistryKey));
+            var first_method = typeof(Queryable).GetMethods().Where(x => x.Name == "FirstOrDefault");
+            var first1 = first_method.ElementAt(0).MakeGenericMethod(typeof(RegistryKey));
+            var expresion_sirst = Expression.Call(first1, Expression.Constant(queryable));
+            var first_hr = queryable.Provider.Execute(expresion_sirst);
+
+            //Action<RegistryKey> action_reg = reg =>
+            //{
+            //    reg.SetValue("a", "a");
+            //    reg.SetValue("b", "b");
+            //};
+            ////queryable.Update(x => action_reg(x));
+            //var result3 = queryable.Change(x => x.SetValue("a", "a"))
+            //    .Change(x=>x.SetValue("b","b")).SaveChanges();
 
 
-            var methodcall1 = Expression.Call(update1, methodcall_param_0);
-
-
-
-            int aa = queryable.Provider.Execute<int>(methodcall1);
 
             //var rr = queryable.Update1(lambda);
 
@@ -267,14 +250,23 @@ namespace ConsoleApp1
             //object popo = new RegQuery<Test>();
             //var pppi = popo;
 
+
+
+            Action<Test> action_reg = reg =>
+            {
+                //reg.SetValue("a", "a");
+                //reg.SetValue("b", "b");
+                reg.DisplayName = "123";
+            };
             var regt = new RegQuery<Test>()
                 .useSetting(x =>
                     {
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                    }).Count();
-
-
+                    }).FirstOrDefault(x => x.DisplayName == "CamON");
+            //.Where(x => x.DisplayName == "CamON");
+            regt.DisplayName = "";
+            //regt.SaveChanges();
 
 
             //.Select(x => new

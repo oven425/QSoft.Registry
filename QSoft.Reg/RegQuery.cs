@@ -53,78 +53,160 @@ namespace QSoft.Registry
         public RegistryHive Hive { set; get; }
     }
 
-    public static class RegQueryEx
+    public static class TestEx
     {
-
-        private static MethodInfo GetMethodInfo<T1, T2>(Func<T1, T2> f, T1 unused1)
+        public static int Update<TSource>(this IQueryable<TSource> source)
         {
-            return f.Method;
+            var first = typeof(TestEx).GetMethods().Where(x=>x.Name == "Update");
+            var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression);
+            return source.Provider.Execute<int>(methdodcall);
         }
 
-        private static MethodInfo GetMethodInfo<T1, T2, T3>(Func<T1, T2, T3> f, T1 unused1, T2 unused2)
+        public static int Update<TSource>(this IEnumerable<TSource> src)
         {
-            return f.Method;
+            return src.Count();
         }
 
-        private static MethodInfo GetMethodInfo<T1, T2, T3, T4>(Func<T1, T2, T3, T4> f, T1 unused1, T2 unused2, T3 unused3)
+        public static int Update<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> expression)
         {
-            return f.Method;
+            var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Update");
+            var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
+            return source.Provider.Execute<int>(methdodcall);
         }
 
-        private static MethodInfo GetMethodInfo<T1, T2, T3, T4, T5>(Func<T1, T2, T3, T4, T5> f, T1 unused1, T2 unused2, T3 unused3, T4 unused4)
+        public static int Update<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
         {
-            return f.Method;
+            foreach(var oo in src)
+            {
+                action(oo);
+            }
+            return src.Count();
         }
 
-        private static MethodInfo GetMethodInfo<T1, T2, T3, T4, T5, T6>(Func<T1, T2, T3, T4, T5, T6> f, T1 unused1, T2 unused2, T3 unused3, T4 unused4, T5 unused5)
+        public static IQueryable<TSource> Change<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> expression)
         {
-            return f.Method;
+            var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Change");
+            var methdodcall = Expression.Call(null, first.First().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
+            return source.Provider.CreateQuery<TSource>(methdodcall);
         }
 
-        private static MethodInfo GetMethodInfo<T1, T2, T3, T4, T5, T6, T7>(Func<T1, T2, T3, T4, T5, T6, T7> f, T1 unused1, T2 unused2, T3 unused3, T4 unused4, T5 unused5, T6 unused6)
+        public static IEnumerable<TSource> Change<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
         {
-            return f.Method;
+            foreach (var oo in src)
+            {
+                action(oo);
+                yield return oo;
+            }
+            //return default(TSource);
         }
 
-        public static IQueryable<T> Update<T>(this IQueryable<T> source, Expression<Func<T, T>> selector)
+        public static int SaveChanges<TSource>(this IQueryable<TSource> source)
         {
-            return source.Provider.CreateQuery<T>(
-                Expression.Call(
-                    null,
-                    GetMethodInfo(RegQueryEx.Update, source, selector),
-                    new Expression[] { source.Expression, Expression.Quote(selector) }
-                    ));
-
+            var first = typeof(TestEx).GetMethods().Where(x => x.Name == "SaveChanges");
+            var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression);
+            return source.Provider.Execute<int>(methdodcall);
         }
 
-        public static int Update1<TSource>(this IQueryable<TSource> source)
+        public static int SaveChanges<TSource>(this IEnumerable<TSource> src)
         {
-            return source.Provider.Execute<int>(
-                Expression.Call(
-                    null,
-                    GetMethodInfo(Queryable.Count, source),
-                    new Expression[] { source.Expression }
-                    ));
+            return src.Count();
         }
 
-        public static int Update1<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        {
-            return source.Provider.Execute<int>(
-                Expression.Call(
-                    null,
-                    GetMethodInfo(Queryable.Count, source, predicate),
-                    new Expression[] { source.Expression, Expression.Quote(predicate) }
-                    ));
-        }
-
-        //public static int Update1<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> predicate)
-        //{
-        //    return source.Provider.Execute<int>(
-        //        Expression.Call(
-        //            null,
-        //            GetMethodInfo(RegQueryEx.Update1, source, predicate),
-        //            new Expression[] { source.Expression, Expression.Quote(predicate) }
-        //            ));
-        //}
     }
+
+    //public static class RegQueryEx
+    //{
+
+    //    private static MethodInfo GetMethodInfo<T1, T2>(Func<T1, T2> f, T1 unused1)
+    //    {
+    //        return f.Method;
+    //    }
+
+    //    private static MethodInfo GetMethodInfo<T1, T2, T3>(Func<T1, T2, T3> f, T1 unused1, T2 unused2)
+    //    {
+    //        return f.Method;
+    //    }
+
+    //    private static MethodInfo GetMethodInfo<T1, T2, T3, T4>(Func<T1, T2, T3, T4> f, T1 unused1, T2 unused2, T3 unused3)
+    //    {
+    //        return f.Method;
+    //    }
+
+    //    private static MethodInfo GetMethodInfo<T1, T2, T3, T4, T5>(Func<T1, T2, T3, T4, T5> f, T1 unused1, T2 unused2, T3 unused3, T4 unused4)
+    //    {
+    //        return f.Method;
+    //    }
+
+    //    private static MethodInfo GetMethodInfo<T1, T2, T3, T4, T5, T6>(Func<T1, T2, T3, T4, T5, T6> f, T1 unused1, T2 unused2, T3 unused3, T4 unused4, T5 unused5)
+    //    {
+    //        return f.Method;
+    //    }
+
+    //    private static MethodInfo GetMethodInfo<T1, T2, T3, T4, T5, T6, T7>(Func<T1, T2, T3, T4, T5, T6, T7> f, T1 unused1, T2 unused2, T3 unused3, T4 unused4, T5 unused5, T6 unused6)
+    //    {
+    //        return f.Method;
+    //    }
+
+    //    //public static TSource Update<TSource>(this IQueryable<TSource> source)
+    //    //{
+    //    //    var first = typeof(RegQueryEx).GetMethod("Update");
+    //    //    var methdodcall = Expression.Call(first.MakeGenericMethod(typeof(TSource)), source.Expression);
+            
+    //    //    return source.Provider.Execute<TSource>(methdodcall);
+
+
+    //    //    //return source.Provider.Execute<TSource>(
+    //    //    //    Expression.Call(
+    //    //    //        null,
+    //    //    //        GetMethodInfo(RegQueryEx.FirstOrDefault1, source),
+    //    //    //        new Expression[] { source.Expression }
+    //    //    //        ));
+    //    //}
+
+    //    public static TSource FirstOrDefault11<TSource>(IQueryable<TSource> source)
+    //    {
+    //        return default(TSource);
+    //    }
+
+    //    public static IQueryable<T> Update<T>(this IQueryable<T> source, Expression<Func<T, T>> selector)
+    //    {
+    //        return source.Provider.CreateQuery<T>(
+    //            Expression.Call(
+    //                null,
+    //                GetMethodInfo(RegQueryEx.Update, source, selector),
+    //                new Expression[] { source.Expression, Expression.Quote(selector) }
+    //                ));
+
+    //    }
+
+    //    public static int Update1<TSource>(this IQueryable<TSource> source)
+    //    {
+    //        return source.Provider.Execute<int>(
+    //            Expression.Call(
+    //                null,
+    //                GetMethodInfo(Queryable.Count, source),
+    //                new Expression[] { source.Expression }
+    //                ));
+    //    }
+
+    //    public static int Update1<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+    //    {
+    //        return source.Provider.Execute<int>(
+    //            Expression.Call(
+    //                null,
+    //                GetMethodInfo(Queryable.Count, source, predicate),
+    //                new Expression[] { source.Expression, Expression.Quote(predicate) }
+    //                ));
+    //    }
+
+    //    //public static int Update1<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> predicate)
+    //    //{
+    //    //    return source.Provider.Execute<int>(
+    //    //        Expression.Call(
+    //    //            null,
+    //    //            GetMethodInfo(RegQueryEx.Update1, source, predicate),
+    //    //            new Expression[] { source.Expression, Expression.Quote(predicate) }
+    //    //            ));
+    //    //}
+    //}
 }

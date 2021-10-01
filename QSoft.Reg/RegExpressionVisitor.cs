@@ -270,6 +270,7 @@ namespace QSoft.Registry
 
                 //if (this.m_IsRegQuery)
                 {
+                    var aaa = methods.ElementAt(0).MakeGenericMethod(tts1);
                     this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), methodcall_param_0);
                 }
                 this.m_New = this.m_MethodCall;

@@ -140,7 +140,12 @@ namespace QSoft.Registry
             else
             {
                 object inst = null;
-                var excute = tte.Provider.Execute<TResult>(expr);
+                //var first_method = typeof(Queryable).GetMethods().Where(x => x.Name == "FirstOrDefault");
+                //var first1 = first_method.ElementAt(0).MakeGenericMethod(typeof(RegistryKey));
+                //var expresion_sirst = Expression.Call(first1, Expression.Constant(regs.AsQueryable()));
+
+                
+                var excute = tte.Provider.Execute(expr);
                 var excute_reg = excute as RegistryKey;
                 if (excute_reg !=null)
                 {
@@ -150,8 +155,13 @@ namespace QSoft.Registry
                     {
                         pp.SetValue(inst, excute_reg.GetValue(pp.Name));
                     }
+
                 }
-                inst = excute;
+                else
+                {
+                    inst = excute;
+                }
+                
 
 
                 return (TResult)inst;

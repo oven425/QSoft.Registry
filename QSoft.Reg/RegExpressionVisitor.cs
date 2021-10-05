@@ -5,7 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace QSoft.Registry
+namespace QSoft.Registry.Linq
 {
     class RegExpressionVisitor: ExpressionVisitor
     {
@@ -268,11 +268,17 @@ namespace QSoft.Registry
                     }
                 }
 
-                //if (this.m_IsRegQuery)
+                var aaa = methods.ElementAt(0).MakeGenericMethod(tts1);
+                if (this.m_ConstantExpression_Value != null)
                 {
-                    var aaa = methods.ElementAt(0).MakeGenericMethod(tts1);
+                    this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), methodcall_param_0, this.m_ConstantExpression_Value);
+                }
+                else
+                {
                     this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), methodcall_param_0);
                 }
+                this.m_ConstantExpression_Value = null;
+
                 this.m_New = this.m_MethodCall;
             }
 
@@ -282,6 +288,7 @@ namespace QSoft.Registry
 
         bool m_IsRegQuery = false;
         ConstantExpression m_ConstantExpression_Source = null;
+        Expression m_ConstantExpression_Value = null;
         protected override Expression VisitConstant(ConstantExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitConstant");
@@ -304,6 +311,10 @@ namespace QSoft.Registry
                     //m_Regs = regs.AsQueryable();
                 }
 
+            }
+            else
+            {
+                m_ConstantExpression_Value = expr;
             }
             return expr;
         }

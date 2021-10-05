@@ -1,4 +1,5 @@
-﻿using System;
+﻿#define Queryable
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,111 +59,32 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
 
+#if Queryable
+            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
 
-            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", false);
-
-
-            //var result = Enumerable.Repeat<int>(0, 100).AsQueryable().Update();
-            //var result1 = Enumerable.Repeat<int>(0, 100).AsQueryable().Update(x=>Set(x));
-            //Enumerable.Repeat<int>(0, 100).Update(x =>
-            //{
-
-            //});
 
             var queryable = queryreg.ToList().AsQueryable();
 
-            var first_method = typeof(Queryable).GetMethods().Where(x => x.Name == "FirstOrDefault");
-            var first1 = first_method.ElementAt(0).MakeGenericMethod(typeof(RegistryKey));
-            var expresion_sirst = Expression.Call(first1, Expression.Constant(queryable));
-            var first_hr = queryable.Provider.Execute(expresion_sirst);
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"));
+            var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
 
-            //Action<RegistryKey> action_reg = reg =>
-            //{
-            //    reg.SetValue("a", "a");
-            //    reg.SetValue("b", "b");
-            //};
-            ////queryable.Update(x => action_reg(x));
-            //var result3 = queryable.Change(x => x.SetValue("a", "a"))
-            //    .Change(x=>x.SetValue("b","b")).SaveChanges();
+            var ttype = rr.GetType();
+            MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            var methodcall_param_0 = methodcall.Arguments[0];
+            var methodcall_param_1 = methodcall.Arguments[1];
+            var unary = methodcall_param_1 as UnaryExpression;
+            var lambda = unary.Operand as LambdaExpression;
+            var param = lambda.Parameters[0] as ParameterExpression;
+            var body = lambda.Body as MethodCallExpression;
+            var body_param_0 = body.Arguments[0];
+            var body_param_1 = body.Arguments[1];
 
+            ttype = methodcall_param_0.GetType();
 
-
-            //var rr = queryable.Update1(lambda);
-
-            //foreach (var oo in rr)
-            //{
-
-            //}
-
-            //var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-            //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-
-            //var ttype = rr.GetType();
-            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            //var methodcall_param_0 = methodcall.Arguments[0];
-            //var methodcall_param_1 = methodcall.Arguments[1];
-            //var unary = methodcall_param_1 as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
-            //var param = lambda.Parameters[0] as ParameterExpression;
-            //var select_methodcall = lambda.Body as NewExpression;
-            //ttype = select_methodcall.Arguments[0].GetType();
-            //var select_methodcall_0 = select_methodcall.Arguments[0] as MethodCallExpression;
-
-            //var select_methodcall_1 = select_methodcall.Arguments[1] as ConstantExpression;
-
-            //ttype = methodcall_param_0.GetType();
-
-            //select_methodcall_1 = Expression.Constant("DisplayName");
-            //select_methodcall_0 = Expression.Parameter(typeof(RegistryKey), "x");
-            //select_methodcall = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), select_methodcall_0, select_methodcall_1);
-            //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
-            //arg1 = select_methodcall_0;
-
-            //param = Expression.Parameter(typeof(RegistryKey), "x");
-            //param = arg1;
-            //lambda = Expression.Lambda(select_methodcall, param);
-            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            //var tte = queryreg.ToList().AsQueryable();
-            //methodcall_param_0 = Expression.Constant(tte);
-            //var selects = methodcall.Method.ReflectedType.GetMethods().Where(x => x.Name == methodcall.Method.Name);
-            //var select1 = selects.First().MakeGenericMethod(typeof(RegistryKey), typeof(string));
-            //var methodcall1 = Expression.Call(select1, methodcall_param_0, unary);
-
-            //var excute = tte.Provider.CreateQuery<string>(methodcall1);
-            //foreach (var oo in excute)
-            //{
-
-            //}
-
-
-
-            //var rr = queryable.Where(x => x.GetValue<string>("DisplayName") != "").Select(x=>x.GetValue<string>("DisplayName"));
-            //foreach(var oo in rr)
-            //{
-
-            //}
-
-            //var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-            //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-
-            //var ttype = rr.GetType();
-            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            //var methodcall_param_0 = methodcall.Arguments[0];
-            //var methodcall_param_1 = methodcall.Arguments[1];
-            //var unary = methodcall_param_1 as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
-            //var param = lambda.Parameters[0] as ParameterExpression;
-            //var binary = lambda.Body as BinaryExpression;
-            //var right = binary.Right as ConstantExpression;
-            //var left = binary.Left as MethodCallExpression;
-            //var left_args_0 = left.Arguments[0] as ParameterExpression;
-            //var left_args_1 = left.Arguments[1] as ConstantExpression;
-
-            //ttype = methodcall_param_0.GetType();
-
-            //left_args_1 = Expression.Constant("DisplayName");
-            //left_args_0 = Expression.Parameter(typeof(RegistryKey), "x");
-            //left = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), left_args_0, left_args_1);
+            body_param_1 = Expression.Constant("DisplayName");
+            body_param_0 = Expression.Parameter(typeof(RegistryKey), "x");
+            body = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), body_param_0, body_param_1);
             //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
             //arg1 = left_args_0;
 
@@ -181,99 +103,21 @@ namespace ConsoleApp1
 
             //}
 
-            //var regexs = typeof(RegistryKey).GetMethods().Where(x => x.Name == "GetValue");
-            //var rr = queryable.Where(x => x.GetValue("DisplayName") != null);
-            //var wheres = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "Where" && x.GetParameters().Length == 2);
-            //var regexs = typeof(RegistryKey).GetMethods().Where(x => x.Name == "GetValue");
-            //var ttype = rr.Expression.GetType();
-            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            //var methodcall_param_0 = methodcall.Arguments[0];
-            //var methodcall_param_1 = methodcall.Arguments[1];
-            //var unary = methodcall_param_1 as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
-            //var param = lambda.Parameters[0] as ParameterExpression;
-            //var binary = lambda.Body as BinaryExpression;
-            //var right = binary.Right as ConstantExpression;
-            //var left = binary.Left as MethodCallExpression;
-            //var left_args_0 = left.Arguments[0] as ConstantExpression;
-            ////var left_args_1 = left.Arguments[1] as ConstantExpression;
 
-            //ttype = methodcall_param_0.GetType();
-
-            ////left_args_1 = Expression.Constant("DisplayName");
-            //left_args_0 = Expression.Constant("DisplayName");
-            ////left = Expression.Call(regexs.ElementAt(0), left_args_0);
-            //var arg1 = Expression.Parameter(typeof(RegistryKey), "x");
-            //left = Expression.Call(arg1, regexs.ElementAt(0), left_args_0);
-
-            //right = Expression.Constant(null);
-            //binary = Expression.MakeBinary(ExpressionType.NotEqual, left, right);
-            //param = Expression.Parameter(typeof(RegistryKey), "x");
-            //param = arg1;
-            //lambda = Expression.Lambda(binary, param);
-            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            //var tte = queryreg.ToList().AsQueryable();
-            //methodcall_param_0 = Expression.Constant(tte);
-            //var methodcall1 = Expression.Call(wheres.ElementAt(0).MakeGenericMethod(typeof(RegistryKey)), methodcall_param_0, unary);
-            //var excute = tte.Provider.CreateQuery(methodcall1);
-            //foreach (var oo in excute)
-            //{
-
-            //}
-
-            //var tte = queryreg.ToList().AsQueryable();
-            //var rr = queryable.Select(x => x);
-            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            //var methodcall_param_0 = methodcall.Arguments[0];
-            //var methodcall_param_1 = methodcall.Arguments[1];
-            //var unary = methodcall_param_1 as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
-            //var param = lambda.Parameters[0] as ParameterExpression;
-            //var body = lambda.Body as ParameterExpression;
-            //var ttype = lambda.Body.GetType();
-
-            //body = Expression.Parameter(typeof(RegistryKey),"x");
-            //param = Expression.Parameter(typeof(RegistryKey),"x");
-            ////param = body;
-            //lambda = Expression.Lambda(body, param);
-            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
-            //var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
-            //methodcall = Expression.Call(selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), typeof(RegistryKey)), methodcall_param_0, unary);
-
-            //var excute = tte.Provider.CreateQuery(methodcall);
-
-            //Type ppf = typeof(RegQuery<Test>).GetGenericTypeDefinition();
-            //Type[] typeArgs = { typeof(Test) };
-            //Type d1 = typeof(RegQuery<>);
-            //Type constructed = d1.MakeGenericType(typeArgs);
-            //object o = Activator.CreateInstance(constructed);
-            //object popo = new RegQuery<Test>();
-            //var pppi = popo;
-
-
-
-            Action<Test> action_reg = reg =>
-            {
-                //reg.SetValue("a", "a");
-                //reg.SetValue("b", "b");
-                reg.DisplayName = "123";
-            };
             var regt = new RegQuery<Test>()
                 .useSetting(x =>
                     {
                         x.Hive = RegistryHive.LocalMachine;
-                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                    }).FirstOrDefault(x => x.DisplayName == "CamON");
+                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                    })
+            .GroupBy(x => x.DisplayName);
             //.Where(x => x.DisplayName == "CamON");
-            regt.DisplayName = "";
+            //regt.DisplayName = "";
             //regt.SaveChanges();
 
 
-            //.Select(x => new
-            //{
-            //    A = x.DisplayName,
-            //    B = x.EstimatedSize
-            //});
+            //.GroupBy(x => x.DisplayName);
+            //.Take(4);
             //.Where(x => x.EstimatedSize==null).Count();
             //.Where(x => x.DisplayName == "CamON");
             //.Where(x => Test(x.DisplayName, ""));
@@ -284,42 +128,12 @@ namespace ConsoleApp1
             //}
 
 
-            //foreach (var oo in regt)
-            //{
+            foreach (var oo in regt)
+            {
 
-            //}
-            //var query1 = from element in new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-            //            where element.ElementType == ElementType.File && element.Path.EndsWith(".zip")
-            //            orderby element.Path ascending
-            //            select element;
+            }
 
-            //var param = Expression.Parameter(typeof(FileSystemElement), "x");
-            //var property = Expression.MakeMemberAccess(param, typeof(FileSystemElement).GetProperty("ElementType"));
-            //var left = Expression.MakeUnary(ExpressionType.Convert, property, typeof(int));
-            //ConstantExpression right = Expression.Constant(0);
-            //var binary = Expression.MakeBinary(ExpressionType.Equal, left, right);
-            //var lambda = Expression.Lambda(binary, param);
-            //var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(bool));
-            //var method = Expression.Call()
-            //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-            //.Where(x => x.ElementType == ElementType.File)
-            //.FirstOrDefault();
-            //.Where(x => x.ElementType == ElementType.File)
-            //.Where(x => x.Path != "")
-            //.Select(x => x);
-
-            //int index = 0;
-            //foreach (var result in query)
-            //{
-            //    StringBuilder s = new StringBuilder();
-            //    s.AppendFormat("Result {0} '{1}'", ++index, result.ToString());
-            //    System.Console.WriteLine(s.ToString());
-            //}
-
-            //var query = new FileSystemContext(System.Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory))
-            //.Where(x => x.ElementType == ElementType.File && x.Path.EndsWith(".zip"))
-            //.OrderBy(x => x.Path)
-            //.First();
+#else
 
             //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
             var ll = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", true);
@@ -483,7 +297,7 @@ namespace ConsoleApp1
             }
             var takes = uninstall.Take(3);
 
-
+#endif
 
         }
 

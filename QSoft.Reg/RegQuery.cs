@@ -7,9 +7,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace QSoft.Registry
+namespace QSoft.Registry.Linq
 {
-
     public class RegQuery<T> : IOrderedQueryable<T>
     {
         public RegQuery()
@@ -53,66 +52,100 @@ namespace QSoft.Registry
         public RegistryHive Hive { set; get; }
     }
 
-    public static class TestEx
-    {
-        public static int Update<TSource>(this IQueryable<TSource> source)
-        {
-            var first = typeof(TestEx).GetMethods().Where(x=>x.Name == "Update");
-            var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression);
-            return source.Provider.Execute<int>(methdodcall);
-        }
+    //public static class TestEx
+    //{
+    //    public static int RemoveAll<TSource>(this IQueryable<TSource> source)
+    //    {
+    //        var first = typeof(TestEx).GetMethods().Where(x => x.Name == "RemoveAll");
+    //        var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression);
+    //        return source.Provider.Execute<int>(methdodcall);
+    //    }
 
-        public static int Update<TSource>(this IEnumerable<TSource> src)
-        {
-            return src.Count();
-        }
+    //    public static int RemoveAll<TSource>(this IEnumerable<RegistryKey> src)
+    //    {
+    //        foreach(var oo in src)
+    //        {
+    //            var name = oo.Name;
+    //            int index = name.LastIndexOf("\\");
+                
+    //            Uri uri = new Uri(name);
+    //            //Uri uri = new Uri(oo.)
+    //        }
+            
+    //        return src.Count();
+    //    }
 
-        public static int Update<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> expression)
-        {
-            var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Update");
-            var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
-            return source.Provider.Execute<int>(methdodcall);
-        }
 
-        public static int Update<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
-        {
-            foreach(var oo in src)
-            {
-                action(oo);
-            }
-            return src.Count();
-        }
+    //    public static bool Update<TSource>(this TSource src, string value)
+    //    {
+    //        return true;
+    //    }
 
-        public static IQueryable<TSource> Change<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> expression)
-        {
-            var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Change");
-            var methdodcall = Expression.Call(null, first.First().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
-            return source.Provider.CreateQuery<TSource>(methdodcall);
-        }
+    //    public static int Update<TSource>(this IQueryable<TSource> source)
+    //    {
+    //        var first = typeof(TestEx).GetMethods().Where(x=>x.Name == "Update");
+    //        var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression);
+    //        return source.Provider.Execute<int>(methdodcall);
+    //    }
 
-        public static IEnumerable<TSource> Change<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
-        {
-            foreach (var oo in src)
-            {
-                action(oo);
-                yield return oo;
-            }
-            //return default(TSource);
-        }
+    //    public static int Update<TSource>(this IEnumerable<TSource> src)
+    //    {
+    //        return src.Count();
+    //    }
 
-        public static int SaveChanges<TSource>(this IQueryable<TSource> source)
-        {
-            var first = typeof(TestEx).GetMethods().Where(x => x.Name == "SaveChanges");
-            var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression);
-            return source.Provider.Execute<int>(methdodcall);
-        }
+    //    public static int Update<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> expression)
+    //    {
+    //        var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Update");
+    //        var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
+    //        return source.Provider.Execute<int>(methdodcall);
+    //    }
 
-        public static int SaveChanges<TSource>(this IEnumerable<TSource> src)
-        {
-            return src.Count();
-        }
+    //    public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<string>> expression)
+    //    {
+    //        var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Update");
+    //        var methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
+    //        return source.Provider.Execute<int>(methdodcall);
+    //    }
 
-    }
+    //    public static int Update<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
+    //    {
+    //        foreach(var oo in src)
+    //        {
+    //            action(oo);
+    //        }
+    //        return src.Count();
+    //    }
+
+    //    public static IQueryable<TSource> Change<TSource>(this IQueryable<TSource> source, Expression<Action<TSource>> expression)
+    //    {
+    //        var first = typeof(TestEx).GetMethods().Where(x => x.Name == "Change");
+    //        var methdodcall = Expression.Call(null, first.First().MakeGenericMethod(typeof(TSource)), source.Expression, expression);
+    //        return source.Provider.CreateQuery<TSource>(methdodcall);
+    //    }
+
+    //    public static IEnumerable<TSource> Change<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
+    //    {
+    //        foreach (var oo in src)
+    //        {
+    //            action(oo);
+    //            yield return oo;
+    //        }
+    //        //return default(TSource);
+    //    }
+
+    //    public static int SaveChanges<TSource>(this IQueryable<TSource> source)
+    //    {
+    //        var first = typeof(TestEx).GetMethods().Where(x => x.Name == "SaveChanges");
+    //        var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression);
+    //        return source.Provider.Execute<int>(methdodcall);
+    //    }
+
+    //    public static int SaveChanges<TSource>(this IEnumerable<TSource> src)
+    //    {
+    //        return src.Count();
+    //    }
+
+    //}
 
     //public static class RegQueryEx
     //{

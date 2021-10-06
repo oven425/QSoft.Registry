@@ -1,13 +1,17 @@
 ﻿using Microsoft.Win32;
+using QSoft.Registry;
+using QSoft.Registry.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace QSoft.Registry.Linq
+//[assembly: InternalsVisibleTo("AssemblyB")]
+namespace System.Linq
 {
     public class RegProvider : IQueryProvider
     {
@@ -84,6 +88,11 @@ namespace QSoft.Registry.Linq
             TResult return_hr;
             if (type.Name == "IEnumerable`1")
             {
+                //var pppo = tte.Provider.CreateQuery(expr);
+                //foreach(var oo in pppo)
+                //{
+
+                //}
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x=>x.Name== "CreateQuery" && x.IsGenericMethod==true);
                 var tts1 = new Type[tts.Length];
                 for(int i=0; i<tts.Length; i++)
@@ -92,15 +101,34 @@ namespace QSoft.Registry.Linq
                     {
                         tts1[i] = typeof(RegistryKey);
                     }
+                    else if(tts[i].GenericTypeArguments.Length > 1)
+                    {
+                        if(tts[i].Name.Contains("IGrouping"))
+                        {
+                            tts1[i] = typeof(IGrouping<,>).MakeGenericType(typeof(string), typeof(RegistryKey));
+
+                        }
+                    }
                     else
                     {
                         tts1[i] = tts[i];
                     }
                 }
-                var creatquery = creatquerys.First().MakeGenericMethod(tts1[0]);
+
+                var creatquery = creatquerys.First().MakeGenericMethod(tts1);
                 var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
-                //var excute = tte.Provider.CreateQuery<RegistryKey>(expr);
-                if(tts[0] == this.m_DataType)
+
+                if(tts[0].Name.Contains("IGrouping"))
+                {
+                    foreach(var oo in excute)
+                    {
+
+                    }
+                    var mi = typeof(RegProvider).GetMethod("Enumerable");
+                    var fooRef = mi.MakeGenericMethod(tts[0]);
+                    return (TResult)fooRef.Invoke(this, new object[] { excute });
+                }
+                else if(tts[0] == this.m_DataType)
                 {
                     var mi = typeof(RegProvider).GetMethod("Enumerable");
                     var fooRef = mi.MakeGenericMethod(tts[0]);
@@ -111,10 +139,6 @@ namespace QSoft.Registry.Linq
             else
             {
                 object inst = null;
-                //var first_method = typeof(Queryable).GetMethods().Where(x => x.Name == "FirstOrDefault");
-                //var first1 = first_method.ElementAt(0).MakeGenericMethod(typeof(RegistryKey));
-                //var expresion_sirst = Expression.Call(first1, Expression.Constant(regs.AsQueryable()));
-
                 
                 var excute = tte.Provider.Execute(expr);
                 var excute_reg = excute as RegistryKey;
@@ -147,5 +171,34 @@ namespace QSoft.Registry.Linq
         }
     }
 
-    
+    //class GroupedEnumerable<TSource, TKey, TElement, TResult> : IEnumerable<TResult>
+    //{
+    //    IEnumerable<TSource> source;
+    //    Func<TSource, TKey> keySelector;
+    //    Func<TSource, TElement> elementSelector;
+    //    IEqualityComparer<TKey> comparer;
+    //    Func<TKey, IEnumerable<TElement>, TResult> resultSelector;
+
+    //    public GroupedEnumerable(IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, Func<TKey, IEnumerable<TElement>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
+    //    {
+    //        this.source = source;
+    //        this.keySelector = keySelector;
+    //        this.elementSelector = elementSelector;
+    //        this.comparer = comparer;
+    //        this.resultSelector = resultSelector;
+    //    }
+
+    //    public IEnumerator<TResult> GetEnumerator()
+    //    {
+    //        Lookup<TKey, TElement> lookup = Lookup<TKey, TElement>.Create<TSource>(source, keySelector, elementSelector, comparer);
+    //        return lookup.ApplyResultSelector(resultSelector).GetEnumerator();
+    //    }
+
+    //    IEnumerator IEnumerable.GetEnumerator()
+    //    {
+    //        return GetEnumerator();
+    //    }
+    //}
+
+
 }

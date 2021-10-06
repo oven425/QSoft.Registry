@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace QSoft.Registry.Linq
+namespace System.Linq
 {
     public class RegQuery<T> : IOrderedQueryable<T>
     {

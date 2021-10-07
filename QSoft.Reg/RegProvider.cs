@@ -54,6 +54,20 @@ namespace System.Linq
             }
         }
 
+        public IEnumerable<T> Group<T,T1>(IGrouping<T1, RegistryKey> query)
+        {
+            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
+            foreach (var oo in query)
+            {
+                var inst = Activator.CreateInstance(typeof(T));
+                foreach (var pp in pps)
+                {
+                    pp.SetValue(inst, oo.GetValue(pp.Name));
+                }
+                yield return (T)inst;
+            }
+        }
+
         public TResult Execute<TResult>(Expression expression)
         {
             List<RegistryKey> regs = new List<RegistryKey>();
@@ -120,7 +134,8 @@ namespace System.Linq
 
                 if(tts[0].Name.Contains("IGrouping"))
                 {
-                    foreach(var oo in excute)
+                    var groupby = excute as IEnumerable<IGrouping<string, RegistryKey>>;
+                    foreach(var group in groupby)
                     {
 
                     }
@@ -162,8 +177,8 @@ namespace System.Linq
                     oo.Close();
                     oo.Dispose();
                 }
-                this.m_Reg.Close();
-                this.m_Reg.Dispose();
+                //this.m_Reg.Close();
+                //this.m_Reg.Dispose();
                 return_hr = (TResult)inst;
             }
 

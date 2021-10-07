@@ -118,27 +118,32 @@ namespace ConsoleApp1
                     {
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-                    })
-            //.ToLookup(x => x.DisplayName);
-            .GroupBy(x => x.DisplayName);
-            //.Where(x => x.DisplayName == "CamON");
-            //regt.DisplayName = "";
-            //regt.SaveChanges();
+                    });
+
+            //var first1 = regt.First();
+            //var first2 = regt.First(x => x.DisplayName != "");
+            //var last1 = regt.Last();
+            //var last2 = regt.Last(x => x.DisplayName != "");
+            //var loopup = regt.ToLookup(x => x.DisplayName);
+            //var take = regt.Take(10);
+            //var takewhile  = regt.TakeWhile(x => x.DisplayName == "AA");
+            //var tolist = regt.ToList();
+            //var toarray = regt.ToArray();
+            //var dictonary = regt.ToDictionary(x => x.DisplayName);
+            //take = regt.Reverse().Take(4);
+            //var count1 = regt.Count();
+            //var count2 = regt.Count(x => x.DisplayName == "AA");
+            //var where = regt.Where(x => x.DisplayName != "");
+            var groupby = regt.GroupBy(x => x.DisplayName);
 
 
-            //.GroupBy(x => x.DisplayName);
-            //.Take(4);
-            //.Where(x => x.EstimatedSize==null).Count();
-            //.Where(x => x.DisplayName == "CamON");
-            //.Where(x => Test(x.DisplayName, ""));
-            //.FirstOrDefault(x => x.DisplayName != ""&& x.DisplayVersion !=""&& x.DisplayName !="");
             //foreach (var oo in regt)
             //{
             //    oo.DisplayName = oo.DisplayName + "AA";
             //}
 
 
-            foreach (var oo in regt)
+            foreach (var oo in groupby)
             {
 
             }

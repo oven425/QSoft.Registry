@@ -40,21 +40,7 @@ namespace System.Linq
             throw new NotImplementedException();
         }
 
-        public IEnumerable<T> Enumerable<T>(IQueryable<RegistryKey> query)
-        {
-            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
-            foreach (var oo in query)
-            {
-                var inst = Activator.CreateInstance(typeof(T));
-                foreach (var pp in pps)
-                {
-                    pp.SetValue(inst, oo.GetValue(pp.Name));
-                }
-                yield return (T)inst;
-            }
-        }
-
-        public IEnumerable<T> Group<T,T1>(IGrouping<T1, RegistryKey> query)
+        public IEnumerable<T> Enumerable<T>(IEnumerable<RegistryKey> query)
         {
             var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
             foreach (var oo in query)
@@ -122,13 +108,17 @@ namespace System.Linq
                             tts1[i] = typeof(IGrouping<,>).MakeGenericType(typeof(string), typeof(RegistryKey));
 
                         }
+                        else if(tts[i].Name.Contains("AnonymousType"))
+                        {
+                            tts1[i] = tts[i];
+                        }
                     }
                     else
                     {
                         tts1[i] = tts[i];
                     }
                 }
-
+                tts1[0] = tts[0];
                 var creatquery = creatquerys.First().MakeGenericMethod(tts1);
                 var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
 
@@ -137,18 +127,19 @@ namespace System.Linq
                     var groupby = excute as IEnumerable<IGrouping<string, RegistryKey>>;
                     foreach(var group in groupby)
                     {
-
+                        var mi = typeof(RegProvider).GetMethod("Enumerable");
+                        var fooRef = mi.MakeGenericMethod(this.m_DataType);
+                        var ooo = group as IEnumerable<RegistryKey>;
+                        return (TResult)fooRef.Invoke(this, new object[] { ooo });
                     }
-                    var mi = typeof(RegProvider).GetMethod("Enumerable");
-                    var fooRef = mi.MakeGenericMethod(tts[0]);
-                    return (TResult)fooRef.Invoke(this, new object[] { excute });
+                    
                 }
-                else if(tts[0] == this.m_DataType)
-                {
-                    var mi = typeof(RegProvider).GetMethod("Enumerable");
-                    var fooRef = mi.MakeGenericMethod(tts[0]);
-                    return (TResult)fooRef.Invoke(this, new object[] { excute });
-                }
+                //else if(tts[0] == this.m_DataType)
+                //{
+                //    var mi = typeof(RegProvider).GetMethod("Enumerable");
+                //    var fooRef = mi.MakeGenericMethod(tts[0]);
+                //    return (TResult)fooRef.Invoke(this, new object[] { excute });
+                //}
                 return_hr = (TResult)excute;
             }
             else

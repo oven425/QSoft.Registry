@@ -63,8 +63,6 @@ namespace QSoft.Registry.Linq
             var expr = base.VisitNew(node);
             if (this.m_Member2Regs.Count > 0)
             {
-
-
                 m_NewExpression = Expression.New(node.Constructor, this.m_Member2Regs, node.Members);
                 this.m_Member2Regs.Clear();
             }
@@ -92,7 +90,6 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
-
             var expr = base.VisitLambda(node);
 
             var lambda = expr as LambdaExpression;
@@ -123,6 +120,10 @@ namespace QSoft.Registry.Linq
             {
                 m_Lambda = Expression.Lambda(this.m_NewExpression, this.parameter);
                 this.m_NewExpression = null;
+            }
+            else if (this.parameter != null)
+            {
+                m_Lambda = Expression.Lambda(this.ToData(this.parameter), this.parameter);
             }
             else
             {
@@ -217,7 +218,7 @@ namespace QSoft.Registry.Linq
                         tts1[i] = tts.ElementAt(i);
                     }
                 }
-                
+                tts1[1] = tts[1];
                 if (this.m_IsRegQuery)
                 {
                     this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), methodcall_param_0, m_Unary);
@@ -317,6 +318,42 @@ namespace QSoft.Registry.Linq
                 m_ConstantExpression_Value = expr;
             }
             return expr;
+        }
+
+
+        public Expression ToData(ParameterExpression param)
+        {
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+            var pps = m_DataType.GetProperties();
+            var ccs = m_DataType.GetConstructors();
+            //var param = Expression.Parameter(typeof(RegistryKey), "y");
+            List<MemberAssignment> bindings = new List<MemberAssignment>();
+            foreach (var pp in pps)
+            {
+                Expression name = null;
+                if (pp.PropertyType.Name.Contains("Nullable"))
+                {
+
+                    name = Expression.Constant(pp.Name, typeof(string));
+                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+                    UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+                    var binding = Expression.Bind(pp, unary1);
+                    bindings.Add(binding);
+                }
+                else
+                {
+                    name = Expression.Constant(pp.Name, typeof(string));
+                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), param, name);
+                    var binding = Expression.Bind(pp, method);
+                    bindings.Add(binding);
+                }
+            }
+
+            var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
+            //var lambda = Expression.Lambda(memberinit, param);
+            //var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+
+            return memberinit;
         }
 
     }

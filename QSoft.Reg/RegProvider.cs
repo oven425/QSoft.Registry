@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-//[assembly: InternalsVisibleTo("AssemblyB")]
 namespace System.Linq
 {
     public class RegProvider : IQueryProvider
@@ -105,7 +104,7 @@ namespace System.Linq
                     {
                         if(tts[i].Name.Contains("IGrouping"))
                         {
-                            tts1[i] = typeof(IGrouping<,>).MakeGenericType(typeof(string), typeof(RegistryKey));
+                            tts1[i] = typeof(IGrouping<,>).MakeGenericType(tts[i].GenericTypeArguments[0], typeof(RegistryKey));
 
                         }
                         else if(tts[i].Name.Contains("AnonymousType"))
@@ -122,18 +121,18 @@ namespace System.Linq
                 var creatquery = creatquerys.First().MakeGenericMethod(tts1);
                 var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
 
-                if(tts[0].Name.Contains("IGrouping"))
-                {
-                    var groupby = excute as IEnumerable<IGrouping<string, RegistryKey>>;
-                    foreach(var group in groupby)
-                    {
-                        var mi = typeof(RegProvider).GetMethod("Enumerable");
-                        var fooRef = mi.MakeGenericMethod(this.m_DataType);
-                        var ooo = group as IEnumerable<RegistryKey>;
-                        return (TResult)fooRef.Invoke(this, new object[] { ooo });
-                    }
+                //if(tts[0].Name.Contains("IGrouping"))
+                //{
+                //    var groupby = excute as IEnumerable<IGrouping<string, RegistryKey>>;
+                //    foreach(var group in groupby)
+                //    {
+                //        var mi = typeof(RegProvider).GetMethod("Enumerable");
+                //        var fooRef = mi.MakeGenericMethod(this.m_DataType);
+                //        var ooo = group as IEnumerable<RegistryKey>;
+                //        return (TResult)fooRef.Invoke(this, new object[] { ooo });
+                //    }
                     
-                }
+                //}
                 //else if(tts[0] == this.m_DataType)
                 //{
                 //    var mi = typeof(RegProvider).GetMethod("Enumerable");
@@ -176,35 +175,4 @@ namespace System.Linq
             return return_hr;
         }
     }
-
-    //class GroupedEnumerable<TSource, TKey, TElement, TResult> : IEnumerable<TResult>
-    //{
-    //    IEnumerable<TSource> source;
-    //    Func<TSource, TKey> keySelector;
-    //    Func<TSource, TElement> elementSelector;
-    //    IEqualityComparer<TKey> comparer;
-    //    Func<TKey, IEnumerable<TElement>, TResult> resultSelector;
-
-    //    public GroupedEnumerable(IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TElement> elementSelector, Func<TKey, IEnumerable<TElement>, TResult> resultSelector, IEqualityComparer<TKey> comparer)
-    //    {
-    //        this.source = source;
-    //        this.keySelector = keySelector;
-    //        this.elementSelector = elementSelector;
-    //        this.comparer = comparer;
-    //        this.resultSelector = resultSelector;
-    //    }
-
-    //    public IEnumerator<TResult> GetEnumerator()
-    //    {
-    //        Lookup<TKey, TElement> lookup = Lookup<TKey, TElement>.Create<TSource>(source, keySelector, elementSelector, comparer);
-    //        return lookup.ApplyResultSelector(resultSelector).GetEnumerator();
-    //    }
-
-    //    IEnumerator IEnumerable.GetEnumerator()
-    //    {
-    //        return GetEnumerator();
-    //    }
-    //}
-
-
 }

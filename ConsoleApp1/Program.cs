@@ -15,19 +15,6 @@ using QSoft.Registry.Linq;
 
 namespace ConsoleApp1
 {
-    public class CTabble1
-    {
-        
-        public string Key1 { set; get; }
-        public string Name1 { set; get; }
-    }
-    public class CTable2
-    {
-        public string Key2 { set; get; }
-        public string Name2 { set; get; }
-    }
-
-
     public class Test
     {
         public string DisplayName { set; get; }
@@ -70,78 +57,73 @@ namespace ConsoleApp1
             //    DisplayVersion = y.GetValue<string>("DisplayVersion"),
             //    EstimatedSize = y.GetValue<int>("EstimatedSize")
             //});
-            var rr = queryable.Select(y => new Test()
-            {
-                DisplayName = y.GetValue<string>("DisplayName"),
-                DisplayVersion = y.GetValue<string>("DisplayVersion"),
-                EstimatedSize = y.GetValue<int>("EstimatedSize")
-            });
-
+            var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
 
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
-            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+            //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            var iuiu = methodcall.Method.GetGenericArguments();
             var unary = methodcall.Arguments[1] as UnaryExpression;
-            var lambda = unary.Operand as LambdaExpression;
-            var memberinit = lambda.Body as MemberInitExpression;
-            foreach (var binding in memberinit.Bindings)
-            {
-                var assign = binding as MemberAssignment;
-                var method = assign.Expression as MethodCallExpression;
-                var unary1 = assign.Expression as UnaryExpression;
-                if(unary1 != null)
-                {
-                    ttype = unary1.Operand.GetType();
-                    var mme = unary1.Operand as MethodCallExpression;
+            //var lambda = unary.Operand as LambdaExpression;
+            //var memberinit = lambda.Body as MemberInitExpression;
+            //foreach (var binding in memberinit.Bindings)
+            //{
+            //    var assign = binding as MemberAssignment;
+            //    var method = assign.Expression as MethodCallExpression;
+            //    var unary1 = assign.Expression as UnaryExpression;
+            //    if(unary1 != null)
+            //    {
+            //        ttype = unary1.Operand.GetType();
+            //        var mme = unary1.Operand as MethodCallExpression;
 
-                }
-
-
-            }
-            var newexpr = memberinit.NewExpression;
+            //    }
 
 
-            var pps = typeof(Test).GetProperties();
-            var ccs = typeof(Test).GetConstructors();
-            var param = Expression.Parameter(typeof(RegistryKey), "y");
-            List<MemberAssignment> bindings = new List<MemberAssignment>();
-            foreach (var pp in pps)
-            {
-                Expression name = null;
-                if (pp.PropertyType.Name.Contains("Nullable"))
-                {
+            //}
+            //var newexpr = memberinit.NewExpression;
 
-                    name = Expression.Constant(pp.Name, typeof(string));
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                    UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-                    var binding = Expression.Bind(pp, unary1);
-                    bindings.Add(binding);
-                }
-                else
-                {
-                    name = Expression.Constant(pp.Name, typeof(string));
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), param, name);
-                    var binding = Expression.Bind(pp, method);
-                    bindings.Add(binding);
-                }
-            }
 
-            memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
-            lambda = Expression.Lambda(memberinit, param);
-            unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            //var pps = typeof(Test).GetProperties();
+            //var ccs = typeof(Test).GetConstructors();
+            //var param = Expression.Parameter(typeof(RegistryKey), "y");
+            //List<MemberAssignment> bindings = new List<MemberAssignment>();
+            //foreach (var pp in pps)
+            //{
+            //    Expression name = null;
+            //    if (pp.PropertyType.Name.Contains("Nullable"))
+            //    {
 
-            var methodcall_param_0 = Expression.Constant(queryable);
-            methodcall = Expression.Call(methodcall.Method, methodcall_param_0, unary);
-            var gener = methodcall.Method.GetGenericArguments();
-            var ssl = queryable.Provider.CreateQuery<Test>(methodcall);
-            foreach(var oo in ssl)
-            {
+            //        name = Expression.Constant(pp.Name, typeof(string));
+            //        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+            //        UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+            //        var binding = Expression.Bind(pp, unary1);
+            //        bindings.Add(binding);
+            //    }
+            //    else
+            //    {
+            //        name = Expression.Constant(pp.Name, typeof(string));
+            //        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), param, name);
+            //        var binding = Expression.Bind(pp, method);
+            //        bindings.Add(binding);
+            //    }
+            //}
 
-            }
+            //memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
+            //lambda = Expression.Lambda(memberinit, param);
+            //unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+
+            //var methodcall_param_0 = Expression.Constant(queryable);
+            //methodcall = Expression.Call(methodcall.Method, methodcall_param_0, unary);
+            //var gener = methodcall.Method.GetGenericArguments();
+            //var ssl = queryable.Provider.CreateQuery<Test>(methodcall);
+            //foreach(var oo in ssl)
+            //{
+
+            //}
 
             //ttype = methodcall.Arguments[2].GetType();
 
@@ -184,14 +166,17 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     })
+            //.OrderByDescending(x => x.EstimatedSize);
+            //.OrderBy(x => x.EstimatedSize);
 
-            //.OrderBy(x => x.DisplayName);
-            //.Single(x => x.DisplayName == "A");
             //.Where(x => x.DisplayName != "");
-            .Select(x => x);
+            //.Where(x => x.DisplayName != "").Select(x => x);
+
+            //.Select(x => x);
             //.Select(x => x.DisplayName);
             //.Select(x => new { x.DisplayName, x.DisplayVersion });
             //.GroupBy(x => x.DisplayName);
+            .GroupBy(x => x.EstimatedSize);
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
 
             foreach (var oo in regt)
@@ -220,7 +205,7 @@ namespace ConsoleApp1
             //take = regt.Reverse().Take(4);
             //var count1 = regt.Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");
-
+            //var single = regt.Single(x => x.DisplayName == "A");
 
 
 #else

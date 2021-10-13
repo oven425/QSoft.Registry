@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace System.Linq
+namespace QSoft.Registry.Linq
 {
     public class RegQuery<T> : IOrderedQueryable<T>
     {
@@ -27,6 +27,8 @@ namespace System.Linq
 
         public RegQuery(RegProvider provider, Expression expression)
         {
+            //TestExpressionVisitor test = new TestExpressionVisitor();
+            //test.Visit(expression);
             this.Provider = provider;
             this.Expression = expression;
         }

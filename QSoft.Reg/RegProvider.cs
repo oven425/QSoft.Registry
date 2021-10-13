@@ -10,7 +10,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace System.Linq
+namespace QSoft.Registry.Linq
 {
     public class RegProvider : IQueryProvider
     {
@@ -39,19 +39,19 @@ namespace System.Linq
             throw new NotImplementedException();
         }
 
-        public IEnumerable<T> Enumerable<T>(IEnumerable<RegistryKey> query)
-        {
-            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
-            foreach (var oo in query)
-            {
-                var inst = Activator.CreateInstance(typeof(T));
-                foreach (var pp in pps)
-                {
-                    pp.SetValue(inst, oo.GetValue(pp.Name));
-                }
-                yield return (T)inst;
-            }
-        }
+        //public IEnumerable<T> Enumerable<T>(IEnumerable<RegistryKey> query)
+        //{
+        //    var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
+        //    foreach (var oo in query)
+        //    {
+        //        var inst = Activator.CreateInstance(typeof(T));
+        //        foreach (var pp in pps)
+        //        {
+        //            pp.SetValue(inst, oo.GetValue(pp.Name));
+        //        }
+        //        yield return (T)inst;
+        //    }
+        //}
 
         public TResult Execute<TResult>(Expression expression)
         {
@@ -87,11 +87,6 @@ namespace System.Linq
             TResult return_hr;
             if (type.Name == "IEnumerable`1")
             {
-                //var pppo = tte.Provider.CreateQuery(expr);
-                //foreach(var oo in pppo)
-                //{
-
-                //}
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x=>x.Name== "CreateQuery" && x.IsGenericMethod==true);
                 var tts1 = new Type[tts.Length];
                 for(int i=0; i<tts.Length; i++)
@@ -121,24 +116,6 @@ namespace System.Linq
                 var creatquery = creatquerys.First().MakeGenericMethod(tts1);
                 var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
 
-                //if(tts[0].Name.Contains("IGrouping"))
-                //{
-                //    var groupby = excute as IEnumerable<IGrouping<string, RegistryKey>>;
-                //    foreach(var group in groupby)
-                //    {
-                //        var mi = typeof(RegProvider).GetMethod("Enumerable");
-                //        var fooRef = mi.MakeGenericMethod(this.m_DataType);
-                //        var ooo = group as IEnumerable<RegistryKey>;
-                //        return (TResult)fooRef.Invoke(this, new object[] { ooo });
-                //    }
-                    
-                //}
-                //else if(tts[0] == this.m_DataType)
-                //{
-                //    var mi = typeof(RegProvider).GetMethod("Enumerable");
-                //    var fooRef = mi.MakeGenericMethod(tts[0]);
-                //    return (TResult)fooRef.Invoke(this, new object[] { excute });
-                //}
                 return_hr = (TResult)excute;
             }
             else
@@ -167,8 +144,7 @@ namespace System.Linq
                     oo.Close();
                     oo.Dispose();
                 }
-                //this.m_Reg.Close();
-                //this.m_Reg.Dispose();
+
                 return_hr = (TResult)inst;
             }
 

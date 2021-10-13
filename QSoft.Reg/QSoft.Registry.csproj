@@ -39,6 +39,7 @@
     <Compile Include="RegistryKeyEx.cs" />
     <Compile Include="RegProvider.cs" />
     <Compile Include="RegQuery.cs" />
+    <Compile Include="TestExpressionVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

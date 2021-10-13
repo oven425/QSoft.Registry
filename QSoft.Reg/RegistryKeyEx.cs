@@ -270,15 +270,15 @@ namespace QSoft.Registry.Linq
             return count;
         }
 
-        //public static IEnumerable<TResult> Select<TResult>(this RegistryKey src, Func<RegistryKey, TResult> select)
-        //{
-        //    foreach (var subkeyname in src.GetSubKeyNames())
-        //    {
-        //        RegistryKey reg = src.OpenSubKey(subkeyname);
-        //        TResult obj = select.Invoke(reg);
-        //        yield return obj;
-        //    }
-        //}
+        public static IEnumerable<TResult> Select<TResult>(this RegistryKey src, Func<RegistryKey, TResult> select)
+        {
+            foreach (var subkeyname in src.GetSubKeyNames())
+            {
+                RegistryKey reg = src.OpenSubKey(subkeyname);
+                TResult obj = select.Invoke(reg);
+                yield return obj;
+            }
+        }
 
         public static RegistryKey FirstOrDefault(this RegistryKey src, Func<RegistryKey, bool> func, bool writable = false)
         {

@@ -140,6 +140,7 @@ namespace QSoft.Registry.Linq
             {
                 m_Lambda = lambda;
             }
+            
             this.parameter = null;
             return expr;
         }
@@ -224,41 +225,12 @@ namespace QSoft.Registry.Linq
                 var pps = node.Method.GetParameters();
                 var methods = expr.Method.ReflectedType.GetMethods().Where(x=>x.Name == expr.Method.Name&& x.GetParameters().Length == expr.Method.GetParameters().Length);
                 var tts = expr.Method.GetGenericArguments();
-                List<Expression> paramlist = new List<Expression>();
-                this.m_ParamList.Push((typeof(RegistryKey), methodcall_param_0));
-                paramlist.Add(methodcall_param_0);
-                paramlist.Add(this.m_Unary);
+                
                 Type[] tts1 = null;
-                tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
+                //tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
                 if (expr.Method.Name.Contains("GroupBy"))
                 {
-                    tts1 = new Type[tts.Length+1];
-                    for (int i = 0; i < tts.Length; i++)
-                    {
-                        if (tts.ElementAt(i) == this.m_DataType)
-                        {
-                            tts1[i] = typeof(RegistryKey);
-                        }
-                        else
-                        {
-                            tts1[i] = tts.ElementAt(i);
-                        }
-                    }
-                    tts1[2] = this.m_DataType;
-                    methods = expr.Method.ReflectedType.GetMethods().Where(x => x.Name == expr.Method.Name && x.GetParameters().Length == 3);
-                    var temp = this.m_ParamList.ToList();
-                    temp.Reverse();
-                    this.m_ParamList.Clear();
-                    this.m_ParamList.Push((this.m_DataType, this.ToSelectData()));
-                    foreach(var oo in temp)
-                    {
-                        this.m_ParamList.Push(oo);
-                    }
-
-                }
-                else
-                {
-                    //tts1 = new Type[tts.Length];
+                    //tts1 = new Type[tts.Length+1];
                     //for (int i = 0; i < tts.Length; i++)
                     //{
                     //    if (tts.ElementAt(i) == this.m_DataType)
@@ -270,8 +242,33 @@ namespace QSoft.Registry.Linq
                     //        tts1[i] = tts.ElementAt(i);
                     //    }
                     //}
+                    //tts1[2] = this.m_DataType;
+                    methods = expr.Method.ReflectedType.GetMethods().Where(x => x.Name == expr.Method.Name && x.GetParameters().Length == 3);
+                    if(tts.Length==2)
+                    {
+                        var temp = this.m_ParamList.ToList();
+                        temp.Reverse();
+                        this.m_ParamList.Clear();
+                        this.m_ParamList.Push((this.m_DataType, this.ToSelectData()));
+                        foreach (var oo in temp)
+                        {
+                            this.m_ParamList.Push(oo);
+                        }
+                    }
+                    else if(tts.Length == 3)
+                    {
+                        var temp = this.m_ParamList.ToList();
+                        //temp.Reverse();
+                        this.m_ParamList.Clear();
+                        foreach (var oo in temp)
+                        {
+                            this.m_ParamList.Push(oo);
+                        }
+                    }
+
                 }
-                
+                this.m_ParamList.Push((typeof(RegistryKey), methodcall_param_0));
+
                 if (this.m_IsRegQuery)
                 {
                     //this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), paramlist);

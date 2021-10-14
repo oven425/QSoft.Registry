@@ -19,15 +19,35 @@ namespace ConsoleApp1
         public string DisplayName { set; get; }
         public string DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
+
+        public string A()
+        {
+            return this.DisplayName;
+        }
+    }
+
+    public class App
+    {
+        public string Name { set; get; }
+        public bool Offical { set; get; }
     }
 
     class Program
     {
         static void Main(string[] args)
         {
+            List<App> apps = new List<App>();
+            apps.Add(new App() { Name = "A", Offical = true });
+            apps.Add(new App() { Name = "AA", Offical = false });
+            apps.Add(new App() { Name = "B", Offical = true });
+            apps.Add(new App() { Name = "BB", Offical = false });
+            apps.Add(new App() { Name = "C", Offical = true });
+            apps.Add(new App() { Name = "CC", Offical = false });
+            apps.Add(new App() { Name = "D", Offical = true });
+            apps.Add(new App() { Name = "DD", Offical = false });
 
 #if Queryable
-            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
+        var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
 
 
             var queryable = queryreg.ToList().AsQueryable();
@@ -38,7 +58,7 @@ namespace ConsoleApp1
             //    EstimatedSize = y.GetValue<int>("EstimatedSize")
             //});
             //var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x=> x.GetValue<int>("EstimatedSize"));
+            var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => x.GetValue<int>("EstimatedSize"));
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -46,9 +66,13 @@ namespace ConsoleApp1
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            var pppps = methodcall.Method.GetGenericArguments();
             var iuiu = methodcall.Method.GetGenericArguments();
-            var unary = methodcall.Arguments[1] as UnaryExpression;
+            //var unary = methodcall.Arguments[1] as UnaryExpression;
             //var lambda = unary.Operand as LambdaExpression;
+
+            //var mm1 = lambda.Body as MethodCallExpression;
+            //ttype = mm1.Object.GetType();
             //var memberinit = lambda.Body as MemberInitExpression;
             //foreach (var binding in memberinit.Bindings)
             //{
@@ -140,41 +164,48 @@ namespace ConsoleApp1
             //}
 
 
-            //var regt = new RegQuery<Test>()
-            //    .useSetting(x =>
-            //        {
-            //            x.Hive = RegistryHive.LocalMachine;
-            //            x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-            //        })
-            ////.OrderByDescending(x => x.EstimatedSize);
-            ////.OrderBy(x => x.EstimatedSize);
-
-            ////.Where(x => x.DisplayName != "");
-            ////.Where(x => x.DisplayName != "").Select(x => x);
-
-            ////.Select(x => x);
-            ////.Select(x => x.EstimatedSize);
-            ////.Select(x => new { x.DisplayName, x.DisplayVersion });
-            ////.GroupBy(x => x.DisplayName);
-            ////.GroupBy(x => x.DisplayName, x=>x.EstimatedSize);
-            ////.GroupBy(x => x.EstimatedSize);
-            ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
-            ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x=>x.DisplayName);
-            ////.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion);
-
-            //foreach (var oo in regt)
-            //{
-
-            //}
-
-
-
             var regt = new RegQuery<Test>()
                 .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-                });
+                    {
+                        x.Hive = RegistryHive.LocalMachine;
+                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                    })
+            //.OrderByDescending(x => x.EstimatedSize);
+            //.OrderBy(x => x.EstimatedSize);
+
+            //.Where(x => x.DisplayName == "A");
+            //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
+            //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion)==true);
+            //.Where(x => x.DisplayName.Contains("A"));
+            //.Where(x => x.DisplayName != "").Select(x => x);
+
+            //no support
+            //.Where(x => x.A()!="");
+
+
+            //.Select(x => x);
+            //.Select(x => x.EstimatedSize);
+            //.Select(x => new { x.DisplayName, x.DisplayVersion });
+            //.GroupBy(x => x.DisplayName);
+            //.GroupBy(x => x.DisplayName, x=>x.EstimatedSize);
+            //.GroupBy(x => x.EstimatedSize);
+            //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
+            //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x=>x.DisplayName);
+            //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion);
+            .Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> x.EstimatedSize);
+            foreach (var oo in regt)
+            {
+
+            }
+
+
+
+            //var regt = new RegQuery<Test>()
+            //    .useSetting(x =>
+            //    {
+            //        x.Hive = RegistryHive.LocalMachine;
+            //        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+            //    });
             //var first1 = regt.First();
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();
@@ -185,16 +216,23 @@ namespace ConsoleApp1
             //var tolist = regt.ToList();
             //var toarray = regt.ToArray();
             //var dictonary = regt.ToDictionary(x => x.DisplayName);
-            //take = regt.Reverse().Take(4);
             //var count1 = regt.Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");
             //var single = regt.Single(x => x.DisplayName == "A");
-            var all = regt.All(x => x.DisplayName != "");
-            var any = regt.Any(x => x.EstimatedSize > 0);
-            var reverse = regt.Reverse();
+            //var all = regt.All(x => x.DisplayName != "");
+            //var any = regt.Any(x => x.EstimatedSize > 0);
+            //var reverse = regt.Reverse();
             //var average = regt.Average(x => x.EstimatedSize);
-            
-
+            //var sum = regt.Sum(x => x.EstimatedSize);
+            //var skip1 = regt.Skip(1);
+            //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
+            //var min = regt.Min(x=>x.EstimatedSize);
+            //var max = regt.Max(x => x.EstimatedSize);
+            List<Test> tests = new List<Test>();
+            for(int i=0; i<3; i++)
+            {
+                tests.Add(new ConsoleApp1.Test() { EstimatedSize = i, DisplayName = i.ToString() });
+            }
 #else
 
             //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}

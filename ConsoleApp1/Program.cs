@@ -39,12 +39,12 @@ namespace ConsoleApp1
             List<App> apps = new List<App>();
             apps.Add(new App() { Name = "A", Offical = true });
             apps.Add(new App() { Name = "AA", Offical = false });
-            apps.Add(new App() { Name = "B", Offical = true });
-            apps.Add(new App() { Name = "BB", Offical = false });
-            apps.Add(new App() { Name = "C", Offical = true });
-            apps.Add(new App() { Name = "CC", Offical = false });
-            apps.Add(new App() { Name = "D", Offical = true });
-            apps.Add(new App() { Name = "DD", Offical = false });
+            //apps.Add(new App() { Name = "B", Offical = true });
+            //apps.Add(new App() { Name = "BB", Offical = false });
+            //apps.Add(new App() { Name = "C", Offical = true });
+            //apps.Add(new App() { Name = "CC", Offical = false });
+            //apps.Add(new App() { Name = "D", Offical = true });
+            //apps.Add(new App() { Name = "DD", Offical = false });
 
 #if Queryable
         var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
@@ -58,7 +58,7 @@ namespace ConsoleApp1
             //    EstimatedSize = y.GetValue<int>("EstimatedSize")
             //});
             //var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
-            var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => x.GetValue<int>("EstimatedSize"));
+            var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -66,7 +66,8 @@ namespace ConsoleApp1
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var pppps = methodcall.Method.GetGenericArguments();
+            var pppps = methodcall.Method.GetParameters();
+            var gens = methodcall.Method.GetGenericArguments();
             var iuiu = methodcall.Method.GetGenericArguments();
             //var unary = methodcall.Arguments[1] as UnaryExpression;
             //var lambda = unary.Operand as LambdaExpression;
@@ -186,13 +187,13 @@ namespace ConsoleApp1
             //.Select(x => x);
             //.Select(x => x.EstimatedSize);
             //.Select(x => new { x.DisplayName, x.DisplayVersion });
-            //.GroupBy(x => x.DisplayName);
+            .GroupBy(x => x.DisplayName);
             //.GroupBy(x => x.DisplayName, x=>x.EstimatedSize);
             //.GroupBy(x => x.EstimatedSize);
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x=>x.DisplayName);
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion);
-            .Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> x.EstimatedSize);
+            //.Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> new { x.DisplayName, x.EstimatedSize, y.Offical});
             foreach (var oo in regt)
             {
 

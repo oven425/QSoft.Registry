@@ -8,7 +8,7 @@ using System.Text;
 
 namespace QSoft.Registry.Linq
 {
-    class RegExpressionVisitor: ExpressionVisitor
+    class RegExpressionVisitor1 : ExpressionVisitor
     {
         Type m_DataType;
         Expression m_New = null;
@@ -19,14 +19,14 @@ namespace QSoft.Registry.Linq
             //this.m_DataType = datatype;
             Expression expr = this.Visit(node);
 
-            if(expr != null)
+            if (expr != null)
             {
                 expr = this.m_New;
             }
             var methodcall = expr as MethodCallExpression;
-            if(methodcall != null&& methodcall.Method!=null)
+            if (methodcall != null && methodcall.Method != null)
             {
-                if(methodcall.Method.ReturnType == typeof(IQueryable<RegistryKey>) || methodcall.Method.ReturnType == typeof(IOrderedQueryable<RegistryKey>))
+                if (methodcall.Method.ReturnType == typeof(IQueryable<RegistryKey>) || methodcall.Method.ReturnType == typeof(IOrderedQueryable<RegistryKey>))
                 {
                     var sd = this.ToSelectData();
                     var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
@@ -43,24 +43,24 @@ namespace QSoft.Registry.Linq
             Type left = node.Left.GetType();
             Type right = node.Right.GetType();
             System.Diagnostics.Trace.WriteLine($"VisitBinary");
-            
+
 
             var expr = base.VisitBinary(node);
 
-            if (this.m_Member2Regs.Count >0)
+            if (this.m_Member2Regs.Count > 0)
             {
                 var binary = Expression.MakeBinary(node.NodeType, m_Member2Regs[0], node.Right);
                 m_Binarys.Add(binary);
                 this.m_Member2Regs.Clear();
                 this.m_ParamList.Clear();
             }
-            else if(m_MethodCall_Member != null)
+            else if (m_MethodCall_Member != null)
             {
                 var binary = Expression.MakeBinary(node.NodeType, m_MethodCall_Member, node.Right);
                 m_Binarys.Add(binary);
                 m_MethodCall_Member = null;
             }
-            else if(this.m_Binarys.Count==2)
+            else if (this.m_Binarys.Count == 2)
             {
                 var binary = Expression.MakeBinary(node.NodeType, m_Binarys[0], m_Binarys[1]);
                 m_Binarys.Clear();
@@ -101,7 +101,7 @@ namespace QSoft.Registry.Linq
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
         {
             var regexs = typeof(RegistryKey).GetMethods().Where(x => "SetValue" == x.Name);
-            
+
             return base.VisitMemberAssignment(node);
         }
 
@@ -114,9 +114,9 @@ namespace QSoft.Registry.Linq
             var lambda = expr as LambdaExpression;
             Type type = lambda.Body.GetType();
 
-            if(this.m_Binarys.Count > 0)
+            if (this.m_Binarys.Count > 0)
             {
-                if(this.parameter == null)
+                if (this.parameter == null)
                 {
                     m_Lambda = Expression.Lambda(this.m_Binarys[0], lambda.Parameters);
                 }
@@ -125,29 +125,29 @@ namespace QSoft.Registry.Linq
                     m_Lambda = Expression.Lambda(this.m_Binarys[0], this.parameter);
                 }
             }
-            else if(m_Member2Regs.Count>0)
+            else if (m_Member2Regs.Count > 0)
             {
                 m_Lambda = Expression.Lambda(this.m_Member2Regs[0], this.m_Parameters.Values);
                 m_Member2Regs.Clear();
                 //this.m_Parameters.Clear();
             }
-            else if(this.m_MethodCall_Member != null)
+            else if (this.m_MethodCall_Member != null)
             {
                 m_Lambda = Expression.Lambda(this.m_MethodCall_Member, this.parameter);
                 this.m_MethodCall_Member = null;
             }
-            else if(this.m_NewExpression != null)
+            else if (this.m_NewExpression != null)
             {
                 m_Lambda = Expression.Lambda(this.m_NewExpression, this.m_Parameters.Values);
                 this.m_NewExpression = null;
             }
-            else if (this.m_Parameters.Count > 0 && this.m_Parameters.Values.Any(x=>x.Type == typeof(RegistryKey)))
+            else if (this.m_Parameters.Count > 0 && this.m_Parameters.Values.Any(x => x.Type == typeof(RegistryKey)))
             {
-                if(lambda.ReturnType == this.m_DataType)
+                if (lambda.ReturnType == this.m_DataType)
                 {
-                    m_Lambda = Expression.Lambda(this.ToData(this.m_Parameters.Values.FirstOrDefault(x=>x.Type== typeof(RegistryKey))), this.m_Parameters.Values);
+                    m_Lambda = Expression.Lambda(this.ToData(this.m_Parameters.Values.FirstOrDefault(x => x.Type == typeof(RegistryKey))), this.m_Parameters.Values);
                 }
-                else if(lambda.Body is ParameterExpression)
+                else if (lambda.Body is ParameterExpression)
                 {
                     var pp = lambda.Body as ParameterExpression;
                     m_Lambda = Expression.Lambda(this.m_Parameters[pp.Name], this.m_Parameters.Values.Reverse());
@@ -173,7 +173,7 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitParameter(ParameterExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
-            if(node.Type == this.m_DataType)
+            if (node.Type == this.m_DataType)
             {
                 //if(parameter == null)
                 //{
@@ -191,17 +191,17 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-                if (this.m_Parameters.Count ==0)
+                if (this.m_Parameters.Count == 0)
                 {
                     this.m_Parameters.Add(node.Name, node);
                 }
-                else if(this.m_Parameters.ContainsKey(node.Name)==false)
+                else if (this.m_Parameters.ContainsKey(node.Name) == false)
                 {
                     this.m_Parameters.Add(node.Name, node);
                 }
                 //parameter = node;
             }
-            
+
             return base.VisitParameter(node);
         }
 
@@ -229,7 +229,7 @@ namespace QSoft.Registry.Linq
         {
             System.Diagnostics.Trace.WriteLine($"VisitUnary");
             var expr = base.VisitUnary(node);
-            if(this.m_Lambda != null)
+            if (this.m_Lambda != null)
             {
                 this.m_Unary = Expression.MakeUnary(node.NodeType, this.m_Lambda, typeof(RegistryKey));
                 Type ttype = this.m_Lambda.ReturnType;
@@ -238,7 +238,7 @@ namespace QSoft.Registry.Linq
                 this.m_Binarys.Clear();
                 this.m_Lambda = null;
             }
-            
+
             return expr;
         }
 
@@ -249,24 +249,24 @@ namespace QSoft.Registry.Linq
         {
             System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
-            if(this.m_Unary != null)
+            if (this.m_Unary != null)
             {
                 Expression methodcall_param_0 = null;
                 if (this.m_IsRegQuery == true)
                 {
-                    this.m_ConstantExpression_Source = Expression.Constant(null, typeof(IQueryable<RegistryKey>));
+                    this.m_ConstantExpression_Source = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
                     methodcall_param_0 = this.m_ConstantExpression_Source;
                 }
                 else
                 {
                     methodcall_param_0 = m_MethodCall;
                 }
-                
-                
+
+
                 var pps = node.Method.GetParameters();
                 //var methods = expr.Method.ReflectedType.GetMethods().Where(x=>x.Name == expr.Method.Name&& x.GetParameters().Length == expr.Method.GetParameters().Length);
                 var methods = expr.Method.ReflectedType.GetMethods().Where(x => x.Name == expr.Method.Name);
-                
+
                 methods = methods.Where(x => x.IsGenericMethod == expr.Method.IsGenericMethod);
                 methods = methods.Where(x => x.GetParameters().Length == expr.Method.GetParameters().Length);
                 var pps1 = methods.ElementAt(0).GetParameters();
@@ -282,12 +282,12 @@ namespace QSoft.Registry.Linq
                 methods = methods.Where(x => x.MakeGenericMethod(expr.Method.GetGenericArguments()).GetParameters().Except(dst).Count() == 0);
                 pps1 = methods.ElementAt(0).GetParameters();
                 var tts = expr.Method.GetGenericArguments();
-                
+
                 Type[] tts1 = null;
                 if (expr.Method.Name.Contains("GroupBy"))
                 {
                     methods = expr.Method.ReflectedType.GetMethods().Where(x => x.Name == expr.Method.Name && x.GetParameters().Length == 3);
-                    if(tts.Length==2)
+                    if (tts.Length == 2)
                     {
                         var temp = this.m_ParamList.ToList();
                         temp.Reverse();
@@ -298,7 +298,7 @@ namespace QSoft.Registry.Linq
                             this.m_ParamList.Push(oo);
                         }
                     }
-                    else if(tts.Length == 3)
+                    else if (tts.Length == 3)
                     {
                         var temp = this.m_ParamList.ToList();
                         //temp.Reverse();
@@ -310,10 +310,10 @@ namespace QSoft.Registry.Linq
                     }
                     this.m_ParamList.Push((typeof(RegistryKey), methodcall_param_0));
                     tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
-                    
+
                     //tts1[0] = typeof(RegistryKey);
                 }
-                else if(expr.Method.Name.Contains("Join")|| expr.Method.Name.Contains("GroupJoin"))
+                else if (expr.Method.Name.Contains("Join") || expr.Method.Name.Contains("GroupJoin"))
                 {
                     var temp = this.m_ParamList.ToList();
                     //temp.Reverse();
@@ -359,9 +359,9 @@ namespace QSoft.Registry.Linq
                 this.m_IsRegQuery = false;
                 this.m_New = this.m_MethodCall;
             }
-            else if (m_Member2Regs.Count >0)
+            else if (m_Member2Regs.Count > 0)
             {
-                if(node.Method.IsStatic == true)
+                if (node.Method.IsStatic == true)
                 {
                     this.m_MethodCall_Member = Expression.Call(node.Method, m_Member2Regs[0]);
                 }
@@ -377,12 +377,7 @@ namespace QSoft.Registry.Linq
                 if (this.m_IsRegQuery == true)
                 {
                     //this.m_IsRegQuery = false;
-#if CreateQuery
-                    methodcall_param_0 = Expression.Constant(null, typeof(IQueryable<RegistryKey>));
-#else
                     methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
-#endif
-
                 }
                 else
                 {
@@ -406,7 +401,7 @@ namespace QSoft.Registry.Linq
                     }
                 }
                 MethodInfo method = null;
-                if(methods.ElementAt(0).IsGenericMethod==true)
+                if (methods.ElementAt(0).IsGenericMethod == true)
                 {
                     method = methods.ElementAt(0).MakeGenericMethod(tts1);
                 }
@@ -420,7 +415,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    if(method.IsStatic == true)
+                    if (method.IsStatic == true)
                     {
                         this.m_MethodCall = Expression.Call(method, methodcall_param_0);
                     }
@@ -480,7 +475,7 @@ namespace QSoft.Registry.Linq
         public Expression ToData(ParameterExpression param)
         {
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-            var pps = m_DataType.GetProperties().Where(x=>x.CanWrite==true);
+            var pps = m_DataType.GetProperties().Where(x => x.CanWrite == true);
             var ccs = m_DataType.GetConstructors();
             //var param = Expression.Parameter(typeof(RegistryKey), "y");
             List<MemberAssignment> bindings = new List<MemberAssignment>();

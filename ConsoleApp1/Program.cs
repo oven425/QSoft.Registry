@@ -51,14 +51,14 @@ namespace ConsoleApp1
 
 
             var queryable = queryreg.ToList().AsQueryable();
-            //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
-            //{
-            //    DisplayName = y.GetValue<string>("DisplayName"),
-            //    DisplayVersion = y.GetValue<string>("DisplayVersion"),
-            //    EstimatedSize = y.GetValue<int>("EstimatedSize")
-            //});
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
+            {
+                DisplayName = y.GetValue<string>("DisplayName"),
+                DisplayVersion = y.GetValue<string>("DisplayVersion"),
+                EstimatedSize = y.GetValue<int>("EstimatedSize")
+            });
             //var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
-            var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
+            //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -177,7 +177,7 @@ namespace ConsoleApp1
             //.Where(x => x.DisplayName == "A");
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion)==true);
-            //.Where(x => x.DisplayName.Contains("A"));
+            ///.Where(x => x.DisplayName.Contains("A"));
             //.Where(x => x.DisplayName != "").Select(x => x);
 
             //no support
@@ -187,13 +187,14 @@ namespace ConsoleApp1
             //.Select(x => x);
             //.Select(x => x.EstimatedSize);
             //.Select(x => new { x.DisplayName, x.DisplayVersion });
-            .GroupBy(x => x.DisplayName);
+            //.GroupBy(x => x.DisplayName);
             //.GroupBy(x => x.DisplayName, x=>x.EstimatedSize);
             //.GroupBy(x => x.EstimatedSize);
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x=>x.DisplayName);
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion);
-            //.Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> new { x.DisplayName, x.EstimatedSize, y.Offical});
+            .Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> new { x.DisplayName, x.EstimatedSize, y.Offical});
+            //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
             foreach (var oo in regt)
             {
 

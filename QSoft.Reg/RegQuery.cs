@@ -16,21 +16,45 @@ namespace QSoft.Registry.Linq
             this.Expression = Expression.Constant(this);
         }
 
-        Setting m_Setting = null;
+        //Setting m_Setting = null;
         public RegQuery<T> useSetting(Action<Setting> data)
         {
-            this.m_Setting = new Setting();
-            data(this.m_Setting);
-            this.Provider = new RegProvider(this.m_Setting.Hive, this.m_Setting.SubKey, typeof(T));
+            //this.m_Setting = new Setting();
+            //data(this.m_Setting);
+            //this.Provider = new RegProvider(this.m_Setting.Hive, this.m_Setting.SubKey, typeof(T));
+
+            var provider = new RegProvider(typeof(T));
+            data(provider.Setting);
+            this.Provider = provider;
             return this;
         }
 
-        public RegQuery(RegProvider provider, Expression expression)
+        public RegQuery(RegProvider provider, Expression expression, bool isfirst)
         {
-            //TestExpressionVisitor test = new TestExpressionVisitor();
-            //test.Visit(expression);
             this.Provider = provider;
+#if CreateQuery
+            if(isfirst == true)
+            {
+                List<RegistryKey> regs = new List<RegistryKey>();
+                RegistryKey registry = provider.Setting;
+                var subkeynames = registry.GetSubKeyNames();
+
+                foreach (var subkeyname in subkeynames)
+                {
+                    regs.Add(registry.OpenSubKey(subkeyname));
+                }
+                var tte = regs.AsQueryable();
+                RegExpressionVisitor reg = new RegExpressionVisitor();
+                this.Expression = reg.Visit(expression, typeof(T), tte);
+            }
+            else
+            {
+                this.Expression = expression;
+            }
+#else
+            
             this.Expression = expression;
+#endif
         }
 
 
@@ -52,6 +76,17 @@ namespace QSoft.Registry.Linq
     {
         public string SubKey { set; get; }
         public RegistryHive Hive { set; get; }
+
+        //public static RegistryKey operator =(Setting a)
+        //{
+        //    RegistryKey reg = null;
+        //    return reg;
+        //}
+
+        public static implicit operator RegistryKey(Setting data)
+        {
+            return data.Hive.OpenView64(data.SubKey);
+        }
     }
 
     //public static class TestEx

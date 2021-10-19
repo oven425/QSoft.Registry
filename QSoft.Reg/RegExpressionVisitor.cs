@@ -254,7 +254,7 @@ namespace QSoft.Registry.Linq
                 Expression methodcall_param_0 = null;
                 if (this.m_IsRegQuery == true)
                 {
-                    this.m_ConstantExpression_Source = Expression.Constant(null, typeof(IQueryable<RegistryKey>));
+                    this.m_ConstantExpression_Source = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
                     methodcall_param_0 = this.m_ConstantExpression_Source;
                 }
                 else
@@ -272,12 +272,7 @@ namespace QSoft.Registry.Linq
                 var pps1 = methods.ElementAt(0).GetParameters();
                 //var src = methods.Select(x => x.MakeGenericMethod(expr.Method.GetGenericArguments()).GetParameters());
                 var dst = expr.Method.GetParameters();
-                //var find = src.Where(x => x.Except(dst).Count() == 0);
-                //foreach (var oo in src)
-                //{
-                //    var hr = oo.Except(dst);
-                //    var count = hr.Count();
-                //}
+
 
                 methods = methods.Where(x => x.MakeGenericMethod(expr.Method.GetGenericArguments()).GetParameters().Except(dst).Count() == 0);
                 pps1 = methods.ElementAt(0).GetParameters();
@@ -341,7 +336,7 @@ namespace QSoft.Registry.Linq
                     //tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
                     //tts1 = node.Method.GetGenericArguments();
                     //tts1[0] = typeof(RegistryKey);
-                    var param = this.m_ParamList.Select(x => x.Item2);
+                    var param = this.m_ParamList.Select(x => x.Item2).Take(methods.ElementAt(0).GetParameters().Length);
                     this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
                 }
                 else
@@ -378,7 +373,7 @@ namespace QSoft.Registry.Linq
                 {
                     //this.m_IsRegQuery = false;
 #if CreateQuery
-                    methodcall_param_0 = Expression.Constant(null, typeof(IQueryable<RegistryKey>));
+                    methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
 #else
                     methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
 #endif

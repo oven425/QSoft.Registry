@@ -26,19 +26,28 @@ namespace ConsoleApp1
         }
     }
 
-    public class App
+    public class Provider
     {
-        public string Name { set; get; }
-        public bool Offical { set; get; }
+        public IQueryable<RegistryKey> Refresh()
+        {
+            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
+            return queryreg.ToList().AsQueryable();
+        }
     }
+
 
     class Program
     {
+        static IQueryable<RegistryKey> Refresh()
+        {
+            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
+            return queryreg.ToList().AsQueryable();
+        }
         static void Main(string[] args)
         {
-            List<App> apps = new List<App>();
-            apps.Add(new App() { Name = "A", Offical = true });
-            apps.Add(new App() { Name = "AA", Offical = false });
+            List<AppData> apps = new List<AppData>();
+            apps.Add(new AppData() { Name = "A", IsOfficial = true });
+            apps.Add(new AppData() { Name = "AA", IsOfficial = false });
             //apps.Add(new App() { Name = "B", Offical = true });
             //apps.Add(new App() { Name = "BB", Offical = false });
             //apps.Add(new App() { Name = "C", Offical = true });
@@ -49,9 +58,9 @@ namespace ConsoleApp1
 #if Queryable
         var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
 
-
+            Provider provider = new Provider();
             var queryable = queryreg.ToList().AsQueryable();
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
+            var rr = provider.Refresh().GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
             {
                 DisplayName = y.GetValue<string>("DisplayName"),
                 DisplayVersion = y.GetValue<string>("DisplayVersion"),
@@ -177,7 +186,7 @@ namespace ConsoleApp1
             //.Where(x => x.DisplayName == "A");
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion)==true);
-            ///.Where(x => x.DisplayName.Contains("A"));
+            .Where(x => x.DisplayName.Contains("A"));
             //.Where(x => x.DisplayName != "").Select(x => x);
 
             //no support
@@ -193,7 +202,7 @@ namespace ConsoleApp1
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x=>x.DisplayName);
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion);
-            .Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> new { x.DisplayName, x.EstimatedSize, y.Offical});
+            //.Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> new { x.DisplayName, x.EstimatedSize, y.IsOfficial});
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
             foreach (var oo in regt)
             {

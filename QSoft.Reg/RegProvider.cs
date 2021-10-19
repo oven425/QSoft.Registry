@@ -15,12 +15,12 @@ namespace QSoft.Registry.Linq
     public class RegProvider : IQueryProvider
     {
         public Setting Setting { set; get; } = new Setting();
-        RegistryKey m_Reg;
+        //RegistryKey m_Reg;
         Type m_DataType;
         public RegProvider(RegistryHive hive, string path, Type datatype)
         {
             this.m_DataType = datatype;
-            this.m_Reg = hive.OpenView64(path);
+            //this.m_Reg = hive.OpenView64(path);
         }
 
         public RegProvider(Type datatype)
@@ -141,11 +141,12 @@ namespace QSoft.Registry.Linq
             return default(TResult);
 #else
             List<RegistryKey> regs = new List<RegistryKey>();
-            var subkeynames = this.m_Reg.GetSubKeyNames();
+            RegistryKey reg = this.Setting;
+            var subkeynames = reg.GetSubKeyNames();
 
             foreach (var subkeyname in subkeynames)
             {
-                regs.Add(this.m_Reg.OpenSubKey(subkeyname));
+                regs.Add(reg.OpenSubKey(subkeyname));
             }
             var tte = regs.AsQueryable();
             

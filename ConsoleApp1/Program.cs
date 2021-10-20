@@ -19,7 +19,10 @@ namespace ConsoleApp1
         public string DisplayName { set; get; }
         public string DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
-
+        public Test()
+            {
+            DisplayName = "AA";
+            }
         public string A()
         {
             return this.DisplayName;
@@ -60,15 +63,18 @@ namespace ConsoleApp1
 
             Provider provider = new Provider();
             var queryable = queryreg.ToList().AsQueryable();
-            var rr = provider.Refresh().GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
-            {
-                DisplayName = y.GetValue<string>("DisplayName"),
-                DisplayVersion = y.GetValue<string>("DisplayVersion"),
-                EstimatedSize = y.GetValue<int>("EstimatedSize")
-            });
+            //var rr = provider.Refresh().GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
+            //{
+            //    DisplayName = y.GetValue<string>("DisplayName"),
+            //    DisplayVersion = y.GetValue<string>("DisplayVersion"),
+            //    EstimatedSize = y.GetValue<int>("EstimatedSize")
+            //});
             //var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
             //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
+
+            var rr = queryable.Select(x => new AppData() { Name = x.GetValue<string>("DisplayName") });
+
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
             //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
@@ -78,26 +84,25 @@ namespace ConsoleApp1
             var pppps = methodcall.Method.GetParameters();
             var gens = methodcall.Method.GetGenericArguments();
             var iuiu = methodcall.Method.GetGenericArguments();
-            //var unary = methodcall.Arguments[1] as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
+            var unary = methodcall.Arguments[1] as UnaryExpression;
+            var lambda = unary.Operand as LambdaExpression;
 
-            //var mm1 = lambda.Body as MethodCallExpression;
-            //ttype = mm1.Object.GetType();
-            //var memberinit = lambda.Body as MemberInitExpression;
-            //foreach (var binding in memberinit.Bindings)
-            //{
-            //    var assign = binding as MemberAssignment;
-            //    var method = assign.Expression as MethodCallExpression;
-            //    var unary1 = assign.Expression as UnaryExpression;
-            //    if(unary1 != null)
-            //    {
-            //        ttype = unary1.Operand.GetType();
-            //        var mme = unary1.Operand as MethodCallExpression;
+            ttype = lambda.Body.GetType();
+            var memberinit = lambda.Body as MemberInitExpression;
+            foreach (var binding in memberinit.Bindings)
+            {
+                var assign = binding as MemberAssignment;
+                var method = assign.Expression as MethodCallExpression;
+                var unary1 = assign.Expression as UnaryExpression;
+                if (unary1 != null)
+                {
+                    ttype = unary1.Operand.GetType();
+                    var mme = unary1.Operand as MethodCallExpression;
 
-            //    }
+                }
 
 
-            //}
+            }
             //var newexpr = memberinit.NewExpression;
 
 
@@ -185,25 +190,27 @@ namespace ConsoleApp1
 
             //.Where(x => x.DisplayName == "A");
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
-            //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion)==true);
-            .Where(x => x.DisplayName.Contains("A"));
+            //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
+            //.Where(x => x.DisplayName.Contains("A"));
             //.Where(x => x.DisplayName != "").Select(x => x);
 
             //no support
-            //.Where(x => x.A()!="");
+            //.Where(x => x.A() != "");
 
 
             //.Select(x => x);
             //.Select(x => x.EstimatedSize);
             //.Select(x => new { x.DisplayName, x.DisplayVersion });
             //.GroupBy(x => x.DisplayName);
-            //.GroupBy(x => x.DisplayName, x=>x.EstimatedSize);
+            //.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
             //.GroupBy(x => x.EstimatedSize);
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
-            //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x=>x.DisplayName);
-            //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion);
-            //.Join(apps, x => x.DisplayName, y => y.Name, (x,y)=> new { x.DisplayName, x.EstimatedSize, y.IsOfficial});
+            //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
+            //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
+            //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
+            .Select(x => new AppData() { Name = x.DisplayName });
+            //.Select(x => new { x.DisplayName});
             foreach (var oo in regt)
             {
 
@@ -221,15 +228,13 @@ namespace ConsoleApp1
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();
             //var last2 = regt.Last(x => x.DisplayName != "");
-            //var loopup = regt.ToLookup(x => x.DisplayName);
+
             //var take = regt.Take(10);
             //var takewhile = regt.TakeWhile(x => x.DisplayName == "AA");
-            //var tolist = regt.ToList();
-            //var toarray = regt.ToArray();
-            //var dictonary = regt.ToDictionary(x => x.DisplayName);
+
             //var count1 = regt.Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");
-            //var single = regt.Single(x => x.DisplayName == "A");
+
             //var all = regt.All(x => x.DisplayName != "");
             //var any = regt.Any(x => x.EstimatedSize > 0);
             //var reverse = regt.Reverse();
@@ -237,8 +242,15 @@ namespace ConsoleApp1
             //var sum = regt.Sum(x => x.EstimatedSize);
             //var skip1 = regt.Skip(1);
             //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
-            //var min = regt.Min(x=>x.EstimatedSize);
+            //var min = regt.Min(x => x.EstimatedSize);
             //var max = regt.Max(x => x.EstimatedSize);
+
+            //var loopup = regt.ToLookup(x => x.DisplayName);
+            //var tolist = regt.ToList();
+            //var toarray = regt.ToArray();
+            //var dictonary = regt.ToDictionary(x => x.DisplayName);
+            //var single = regt.Single(x => x.DisplayName == "A");
+            //var singledefault = regt.SingleOrDefault(x => x.DisplayName == "A");
             List<Test> tests = new List<Test>();
             for(int i=0; i<3; i++)
             {

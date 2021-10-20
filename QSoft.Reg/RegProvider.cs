@@ -50,6 +50,20 @@ namespace QSoft.Registry.Linq
             throw new NotImplementedException();
         }
 
+        public IEnumerable<T> Enumerable<T>(IQueryable<RegistryKey> query)
+        {
+            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
+            foreach (var oo in query)
+            {
+                var inst = Activator.CreateInstance(typeof(T));
+                foreach (var pp in pps)
+                {
+                    pp.SetValue(inst, oo.GetValue(pp.Name));
+                }
+                yield return (T)inst;
+            }
+        }
+
         public TResult Execute<TResult>(Expression expression)
         {
 #if CreateQuery
@@ -152,14 +166,11 @@ namespace QSoft.Registry.Linq
             
             var type = typeof(TResult);
             Type[] tts = type.GetGenericArguments();
-            if (expression is ConstantExpression)
+            if (expression is ConstantExpression && tts[0] == this.m_DataType)
             {
-                if (tts[0] == this.m_DataType)
-                {
-                    var mi = typeof(RegProvider).GetMethod("Enumerable");
-                    var fooRef = mi.MakeGenericMethod(tts[0]);
-                    return (TResult)fooRef.Invoke(this, new object[] { tte });
-                }
+                var mi = typeof(RegProvider).GetMethod("Enumerable");
+                var fooRef = mi.MakeGenericMethod(tts[0]);
+                return (TResult)fooRef.Invoke(this, new object[] { tte });
             }
 
 

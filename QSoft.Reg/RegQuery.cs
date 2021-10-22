@@ -76,6 +76,7 @@ namespace QSoft.Registry.Linq
     {
         public string SubKey { set; get; }
         public RegistryHive Hive { set; get; }
+        public RegistryView View { set; get; }
 
         //public static RegistryKey operator =(Setting a)
         //{
@@ -85,7 +86,14 @@ namespace QSoft.Registry.Linq
 
         public static implicit operator RegistryKey(Setting data)
         {
-            return data.Hive.OpenView64(data.SubKey);
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(data.Hive, RegistryView.Registry64);
+            if (string.IsNullOrEmpty(data.SubKey) == false)
+            {
+                RegistryKey reg = reg_base.OpenSubKey(data.SubKey);
+                reg_base.Dispose();
+                return reg;
+            }
+            return reg_base;
         }
     }
 

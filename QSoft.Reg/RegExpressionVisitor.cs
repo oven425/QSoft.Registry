@@ -81,7 +81,15 @@ namespace QSoft.Registry.Linq
             var expr = base.VisitNew(node);
             if (this.m_Member2Regs.Count > 0)
             {
-                m_NewExpression = Expression.New(node.Constructor, this.m_Member2Regs, node.Members);
+                if(node.Members == null)
+                {
+                    m_NewExpression = Expression.New(node.Constructor, this.m_Member2Regs);
+                }
+                else
+                {
+                    m_NewExpression = Expression.New(node.Constructor, this.m_Member2Regs, node.Members);
+                }
+                
                 this.m_Member2Regs.Clear();
             }
 
@@ -93,16 +101,30 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
             var expr = base.VisitMemberInit(node);
+
             if (this.m_Member2Regs.Count > 0)
             {
                 List<MemberBinding> bindings = new List<MemberBinding>();
-                foreach (var oo in node.Bindings)
+                for(int i=0; i<this.m_Member2Regs.Count; i++)
                 {
-                    var binding = Expression.Bind(oo.Member, this.m_Member2Regs[0]);
+                    var binding = Expression.Bind(node.Bindings.ElementAt(i).Member, this.m_Member2Regs[i]);
                     bindings.Add(binding);
                 }
-
-                m_MemberInit = Expression.MemberInit(node.NewExpression, bindings);
+                //foreach (var oo in node.Bindings)
+                //{
+                //    var binding = Expression.Bind(oo.Member, this.m_Member2Regs[0]);
+                //    bindings.Add(binding);
+                //}
+                if(this.m_NewExpression != null)
+                {
+                    m_MemberInit = Expression.MemberInit(m_NewExpression, bindings);
+                    m_NewExpression = null;
+                }
+                else
+                {
+                    m_MemberInit = Expression.MemberInit(node.NewExpression, bindings);
+                }
+                
                 this.m_Member2Regs.Clear();
             }
             return expr;

@@ -184,6 +184,7 @@ namespace ConsoleApp1
                     {
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                        x.View = RegistryView.Registry64;
                     })
             //.OrderByDescending(x => x.EstimatedSize);
             //.OrderBy(x => x.EstimatedSize);
@@ -208,12 +209,15 @@ namespace ConsoleApp1
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
+            .Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
-            .Select(x => new AppData() { Name = x.DisplayName });
+            //.Select(x => new AppData() { Name = x.DisplayName });
+            //.Select(x => new AppData(x.DisplayName));
+            //.Select(x => new AppData(x.DisplayName) { Ver=x.DisplayVersion });
             //.Select(x => new { x.DisplayName});
             foreach (var oo in regt)
             {
-
+                
             }
 
 
@@ -449,6 +453,15 @@ namespace ConsoleApp1
 
     public class AppData
     {
+        public AppData()
+        {
+
+        }
+
+        public AppData(string name)
+        {
+            this.Name = name;
+        }
         public string Name { set; get; }
         public string Ver { set; get; }
         public string Uninstallstring { set; get; }

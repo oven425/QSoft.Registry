@@ -14,15 +14,15 @@ using QSoft.Registry.Linq;
 
 namespace ConsoleApp1
 {
-    public class Test
+    public class InstalledApp
     {
         public string DisplayName { set; get; }
         public string DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
-        public Test()
-            {
+        public InstalledApp()
+        {
             DisplayName = "AA";
-            }
+        }
         public string A()
         {
             return this.DisplayName;
@@ -179,21 +179,21 @@ namespace ConsoleApp1
             //}
 
 
-            var regt = new RegQuery<Test>()
+            var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
                         x.Hive = RegistryHive.LocalMachine;
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
-                    })
-            //.OrderByDescending(x => x.EstimatedSize);
-            //.OrderBy(x => x.EstimatedSize);
+                    });
+            var orderbydesc = regt.OrderByDescending(x => x.EstimatedSize);
+            var oderby = regt.OrderBy(x => x.EstimatedSize);
 
             //.Where(x => x.DisplayName == "A");
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
             //.Where(x => x.DisplayName.Contains("A"));
-            //.Where(x => x.DisplayName != "").Select(x => x);
+            var where = regt.Where(x => x.DisplayName != "").Select(x => x);
 
             //no support
             //.Where(x => x.A() != "");
@@ -209,20 +209,21 @@ namespace ConsoleApp1
             //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
-            .Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
+            //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
             //.Select(x => new AppData() { Name = x.DisplayName });
             //.Select(x => new AppData(x.DisplayName));
             //.Select(x => new AppData(x.DisplayName) { Ver=x.DisplayVersion });
             //.Select(x => new { x.DisplayName});
-            foreach (var oo in regt)
+            var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
+            foreach (var oo in zip)
             {
-                
+
             }
 
 
 
-            //var regt = new RegQuery<Test>()
+            //var regt = new RegQuery<InstalledApp>()
             //    .useSetting(x =>
             //    {
             //        x.Hive = RegistryHive.LocalMachine;
@@ -252,13 +253,13 @@ namespace ConsoleApp1
             //var loopup = regt.ToLookup(x => x.DisplayName);
             //var tolist = regt.ToList();
             //var toarray = regt.ToArray();
-            //var dictonary = regt.ToDictionary(x => x.DisplayName);
+            //var dictonary = regt.ToDictionary(x => x.EstimatedSize);
             //var single = regt.Single(x => x.DisplayName == "A");
             //var singledefault = regt.SingleOrDefault(x => x.DisplayName == "A");
-            List<Test> tests = new List<Test>();
+            List<InstalledApp> tests = new List<InstalledApp>();
             for(int i=0; i<3; i++)
             {
-                tests.Add(new ConsoleApp1.Test() { EstimatedSize = i, DisplayName = i.ToString() });
+                tests.Add(new ConsoleApp1.InstalledApp() { EstimatedSize = i, DisplayName = i.ToString() });
             }
 #else
 

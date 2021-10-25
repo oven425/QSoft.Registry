@@ -35,7 +35,6 @@ namespace QSoft.Registry.Linq
         }
 
         bool m_IsFirst = true;
-        Queue<(MethodInfo method, Expression expression)> CreateQuertys = new Queue<(MethodInfo method, Expression expression)>();
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             IQueryable<TElement> hr = default(IQueryable<TElement>);
@@ -58,7 +57,7 @@ namespace QSoft.Registry.Linq
                 var inst = Activator.CreateInstance(typeof(T));
                 foreach (var pp in pps)
                 {
-                    pp.SetValue(inst, oo.GetValue(pp.Name));
+                    pp.SetValue(inst, oo.GetValue(pp.Name), null);
                 }
                 yield return (T)inst;
             }
@@ -192,11 +191,11 @@ namespace QSoft.Registry.Linq
                     {
                         tts1[i] = typeof(RegistryKey);
                     }
-                    else if(tts[i].GenericTypeArguments.Length > 1)
+                    else if(tts[i].GetGenericArguments().Length > 1)
                     {
                         if(tts[i].Name.Contains("IGrouping"))
                         {
-                            tts1[i] = typeof(IGrouping<,>).MakeGenericType(tts[i].GenericTypeArguments[0], typeof(RegistryKey));
+                            tts1[i] = typeof(IGrouping<,>).MakeGenericType(tts[i].GetGenericArguments()[0], typeof(RegistryKey));
 
                         }
                         else if(tts[i].Name.Contains("AnonymousType"))
@@ -227,7 +226,7 @@ namespace QSoft.Registry.Linq
                     inst = Activator.CreateInstance(typeof(TResult));
                     foreach (var pp in pps)
                     {
-                        pp.SetValue(inst, excute_reg.GetValue(pp.Name));
+                        pp.SetValue(inst, excute_reg.GetValue(pp.Name),null);
                     }
 
                 }

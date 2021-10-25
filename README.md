@@ -11,7 +11,7 @@ Create definition
 ```csharp
 public class InstalledApp
 {
-	public string DisplayName { set; get; }
+    public string DisplayName { set; get; }
     public string DisplayVersion { set; get; }
     public int? EstimatedSize { set; get; }
 }
@@ -19,11 +19,11 @@ public class InstalledApp
 Create Query
 ```csharp
 var regt = new RegQuery<InstalledApp>()
-                .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                });
+	.useSetting(x =>
+	{
+	    x.Hive = RegistryHive.LocalMachine;
+	    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+	});
 ```
 Query data
 ```csharp

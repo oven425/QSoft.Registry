@@ -41,7 +41,7 @@ namespace QSoft.Registry.Linq
         {
             Type left = node.Left.GetType();
             Type right = node.Right.GetType();
-            //System.Diagnostics.Trace.WriteLine($"VisitBinary");
+            System.Diagnostics.Trace.WriteLine($"VisitBinary");
             
 
             var expr = base.VisitBinary(node);
@@ -77,8 +77,8 @@ namespace QSoft.Registry.Linq
         NewExpression m_NewExpression = null;
         protected override Expression VisitNew(NewExpression node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitNew");
-            var expr = base.VisitNew(node);
+            System.Diagnostics.Trace.WriteLine($"VisitNew");
+            var expr = base.VisitNew(node) as NewExpression;
             if (this.m_Member2Regs.Count > 0)
             {
                 if(node.Members == null)
@@ -92,7 +92,24 @@ namespace QSoft.Registry.Linq
                 
                 this.m_Member2Regs.Clear();
             }
-
+            else if(expr.Members?.Count > 0)
+            {
+                var args = expr.Arguments.ToList();
+                for(int i=0; i<args.Count; i++)
+                {
+                    ParameterExpression parameter = args[i] as ParameterExpression;
+                    if(parameter != null)
+                    {
+                        if(parameter.Type == this.m_DataType)
+                        {
+                            var param = this.m_Parameters[parameter.Name];
+                            var todata = this.ToData(param);
+                            args[i] = todata;
+                        }
+                    }
+                }
+                m_NewExpression = Expression.New(node.Constructor, args, expr.Members);
+            }
 
             return expr;
         }
@@ -111,16 +128,6 @@ namespace QSoft.Registry.Linq
                     var binding = Expression.Bind(oo.binding.Member, oo.member);
                     bindings.Add(binding);
                 }
-                //for(int i=0; i<this.m_Member2Regs.Count; i++)
-                //{
-                //    var binding = Expression.Bind(node.Bindings.ElementAt(i).Member, this.m_Member2Regs[i]);
-                //    bindings.Add(binding);
-                //}
-                //foreach (var oo in node.Bindings)
-                //{
-                //    var binding = Expression.Bind(oo.Member, this.m_Member2Regs[0]);
-                //    bindings.Add(binding);
-                //}
                 if(this.m_NewExpression != null)
                 {
                     m_MemberInit = Expression.MemberInit(m_NewExpression, bindings);
@@ -144,7 +151,7 @@ namespace QSoft.Registry.Linq
         LambdaExpression m_Lambda = null;
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
+            System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
             var expr = base.VisitLambda(node);
 
             var lambda = expr as LambdaExpression;
@@ -213,7 +220,7 @@ namespace QSoft.Registry.Linq
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
+            System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
             if(node.Type == this.m_DataType)
             {
                 //if(parameter == null)
@@ -249,7 +256,7 @@ namespace QSoft.Registry.Linq
         List<Expression> m_Member2Regs = new List<Expression>();
         protected override Expression VisitMember(MemberExpression node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
+            System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
             var expr = base.VisitMember(node);
             if (this.m_Parameters.Count > 0 && node.Expression.Type == this.m_DataType)
             {
@@ -268,7 +275,7 @@ namespace QSoft.Registry.Linq
         UnaryExpression m_Unary = null;
         protected override Expression VisitUnary(UnaryExpression node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitUnary");
+            System.Diagnostics.Trace.WriteLine($"VisitUnary");
             var expr = base.VisitUnary(node);
             if(this.m_Lambda != null)
             {
@@ -288,7 +295,7 @@ namespace QSoft.Registry.Linq
         Stack<Tuple<Type, Expression>> m_ParamList = new Stack<Tuple<Type, Expression>>();
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
+            System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
             if(this.m_Unary != null)
             {
@@ -467,7 +474,7 @@ namespace QSoft.Registry.Linq
         Expression m_ConstantExpression_Value = null;
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitConstant {node.Type.Name}");
+            System.Diagnostics.Trace.WriteLine($"VisitConstant {node.Type.Name}");
             var expr = base.VisitConstant(node);
             if (node.Type.Name == "RegQuery`1")
             {
@@ -512,7 +519,6 @@ namespace QSoft.Registry.Linq
                 Expression name = null;
                 if (pp.PropertyType.Name.Contains("Nullable"))
                 {
-
                     name = Expression.Constant(pp.Name, typeof(string));
                     var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
                     UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);

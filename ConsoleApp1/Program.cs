@@ -73,7 +73,7 @@ namespace ConsoleApp1
             //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
 
-            var rr = queryable.Select(x => new AppData() { Name = x.GetValue<string>("DisplayName") });
+            var rr = queryable.Select((x,index) => new {x=new InstalledApp() {DisplayName = x.GetValue<string>("DisplayName") }, index});
 
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -87,22 +87,22 @@ namespace ConsoleApp1
             var unary = methodcall.Arguments[1] as UnaryExpression;
             var lambda = unary.Operand as LambdaExpression;
 
-            ttype = lambda.Body.GetType();
-            var memberinit = lambda.Body as MemberInitExpression;
-            foreach (var binding in memberinit.Bindings)
-            {
-                var assign = binding as MemberAssignment;
-                var method = assign.Expression as MethodCallExpression;
-                var unary1 = assign.Expression as UnaryExpression;
-                if (unary1 != null)
-                {
-                    ttype = unary1.Operand.GetType();
-                    var mme = unary1.Operand as MethodCallExpression;
+            //ttype = lambda.Body.GetType();
+            //var memberinit = lambda.Body as MemberInitExpression;
+            //foreach (var binding in memberinit.Bindings)
+            //{
+            //    var assign = binding as MemberAssignment;
+            //    var method = assign.Expression as MethodCallExpression;
+            //    var unary1 = assign.Expression as UnaryExpression;
+            //    if (unary1 != null)
+            //    {
+            //        ttype = unary1.Operand.GetType();
+            //        var mme = unary1.Operand as MethodCallExpression;
 
-                }
+            //    }
 
 
-            }
+            //}
             //var newexpr = memberinit.NewExpression;
 
 
@@ -199,9 +199,7 @@ namespace ConsoleApp1
             //.Where(x => x.A() != "");
 
 
-            //.Select(x => x);
-            //.Select(x => x.EstimatedSize);
-            //.Select(x => new { x.DisplayName, x.DisplayVersion });
+
             //.GroupBy(x => x.DisplayName);
             //.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
             //.GroupBy(x => x.EstimatedSize);
@@ -211,15 +209,24 @@ namespace ConsoleApp1
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
-            //.Select(x => new AppData() { Name = x.DisplayName });
+
+            var select = regt.Select(x => x);
+            //.Select(x => x.EstimatedSize);
+            //.Select(x => new { x.DisplayName, x.DisplayVersion });
+            //var select = regt.Select(x => new AppData() { Name = x.DisplayName });
             //.Select(x => new AppData(x.DisplayName));
             //.Select(x => new AppData(x.DisplayName) { Ver=x.DisplayVersion });
             //.Select(x => new { x.DisplayName});
-            var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
-            foreach (var oo in zip)
+            //var select = regt.Select((x, index) =>new { x, index });
+            foreach(var oo in select)
             {
-
+                
             }
+            ////var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
+            ////foreach (var oo in zip)
+            ////{
+
+            ////}
 
 
 

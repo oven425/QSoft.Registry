@@ -186,6 +186,7 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+            //int update = regt.Update(x=>new InstalledApp() { });
             var orderbydesc = regt.OrderByDescending(x => x.EstimatedSize);
             var oderby = regt.OrderBy(x => x.EstimatedSize);
 
@@ -193,8 +194,12 @@ namespace ConsoleApp1
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
             //.Where(x => x.DisplayName.Contains("A"));
-            var where = regt.Where(x => x.DisplayName != "").Select(x => x);
+            //var where = regt.Where(x => x.DisplayName != "").Select(x => x);
+            //var where = regt.Where((x, index) => x.DisplayName != "");
+            //foreach (var oo in where)
+            //{
 
+            //}
             //no support
             //.Where(x => x.A() != "");
 
@@ -222,11 +227,11 @@ namespace ConsoleApp1
             {
                 
             }
-            ////var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
-            ////foreach (var oo in zip)
-            ////{
+            //var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
+            //foreach (var oo in zip)
+            //{
 
-            ////}
+            //}
 
 
 

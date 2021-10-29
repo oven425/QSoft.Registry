@@ -97,6 +97,23 @@ namespace QSoft.Registry.Linq
         }
     }
 
+    public static class RegQueryEx
+    {
+        //public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, TSource>> selector)
+        //{
+        //    var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
+        //    var pps = methods.ElementAt(0).GetParameters();
+        //    var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
+        //    var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression, selector);
+        //    return source.Provider.Execute<int>(methdodcall);
+        //}
+
+        //public static int Update<TSource>(this IEnumerable<TSource> src) where TSource: struct
+        //{
+        //    return src.Count();
+        //}
+    }
+
     //public static class TestEx
     //{
     //    public static int RemoveAll<TSource>(this IQueryable<TSource> source)
@@ -112,11 +129,11 @@ namespace QSoft.Registry.Linq
     //        {
     //            var name = oo.Name;
     //            int index = name.LastIndexOf("\\");
-                
+
     //            Uri uri = new Uri(name);
     //            //Uri uri = new Uri(oo.)
     //        }
-            
+
     //        return src.Count();
     //    }
 
@@ -229,7 +246,7 @@ namespace QSoft.Registry.Linq
     //    //{
     //    //    var first = typeof(RegQueryEx).GetMethod("Update");
     //    //    var methdodcall = Expression.Call(first.MakeGenericMethod(typeof(TSource)), source.Expression);
-            
+
     //    //    return source.Provider.Execute<TSource>(methdodcall);
 
 

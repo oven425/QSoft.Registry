@@ -159,13 +159,13 @@ namespace QSoft.Registry.Linq
 
             if(this.m_Binarys.Count > 0)
             {
-                if(this.parameter == null)
+                if(this.m_Parameters.Count == 0)
                 {
                     m_Lambda = Expression.Lambda(this.m_Binarys[0], lambda.Parameters);
                 }
                 else
                 {
-                    m_Lambda = Expression.Lambda(this.m_Binarys[0], this.parameter);
+                    m_Lambda = Expression.Lambda(this.m_Binarys[0], this.m_Parameters.Values);
                 }
             }
             else if(m_Member2Regs.Count>0)
@@ -176,7 +176,7 @@ namespace QSoft.Registry.Linq
             }
             else if(this.m_MethodCall_Member != null)
             {
-                m_Lambda = Expression.Lambda(this.m_MethodCall_Member, this.parameter);
+                m_Lambda = Expression.Lambda(this.m_MethodCall_Member, this.m_Parameters.Values);
                 this.m_MethodCall_Member = null;
             }
             else if(this.m_NewExpression != null)
@@ -211,11 +211,11 @@ namespace QSoft.Registry.Linq
             }
             this.m_Parameters.Clear();
             //this.m_ParamList.Clear();
-            this.parameter = null;
+            //this.parameter = null;
             return expr;
         }
 
-        ParameterExpression parameter = null;
+        //ParameterExpression parameter = null;
         //List<ParameterExpression> m_Parameters = new List<ParameterExpression>();
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
@@ -227,13 +227,13 @@ namespace QSoft.Registry.Linq
                 //{
                 //    parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
                 //}
-                if (parameter == null)
-                {
-                    parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
-                }
+                //if (parameter == null)
+                //{
+                //    parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
+                //}
                 if (this.m_Parameters.ContainsKey(node.Name) == false)
                 {
-                    parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
+                    var parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
                     this.m_Parameters.Add(parameter.Name, parameter);
                 }
             }

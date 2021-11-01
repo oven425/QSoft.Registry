@@ -13,7 +13,7 @@ namespace QSoft.Registry.Linq
         Type m_DataType;
         Expression m_New = null;
         IQueryable<RegistryKey> m_RegKeys = null;
-        public Expression Visit(Expression node, Type datatype, IQueryable<RegistryKey> regkeys)
+        public Expression Visit(Expression node, Type datatype, RegistryKey regkey, IQueryable<RegistryKey> regkeys)
         {
             this.m_RegKeys = regkeys;
             Expression expr = this.Visit(node);
@@ -114,11 +114,15 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+        List<MemberBinding> m_UpdateBidings = null;
         MemberInitExpression m_MemberInit = null;
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
             var expr = base.VisitMemberInit(node);
-
+            //if(this.m_IsUpdate==true)
+            {
+                this.m_UpdateBidings = node.Bindings.ToList();
+            }
             if (this.m_Member2Regs.Count > 0)
             {
                 List<MemberBinding> bindings = new List<MemberBinding>();
@@ -145,6 +149,7 @@ namespace QSoft.Registry.Linq
 
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
         {
+            //System.Diagnostics.Trace.WriteLine($"VisitMemberAssignment");
             return base.VisitMemberAssignment(node);
         }
 
@@ -193,6 +198,7 @@ namespace QSoft.Registry.Linq
             {
                 if(lambda.ReturnType == this.m_DataType)
                 {
+                    //var update_expr = this.ToUpdate();
                     m_Lambda = Expression.Lambda(this.ToData(this.m_Parameters.Values.FirstOrDefault(x=>x.Type== typeof(RegistryKey))), this.m_Parameters.Values);
                 }
                 else if(lambda.Body is ParameterExpression)
@@ -210,27 +216,15 @@ namespace QSoft.Registry.Linq
                 m_Lambda = lambda;
             }
             this.m_Parameters.Clear();
-            //this.m_ParamList.Clear();
-            //this.parameter = null;
             return expr;
         }
 
-        //ParameterExpression parameter = null;
-        //List<ParameterExpression> m_Parameters = new List<ParameterExpression>();
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
             if(node.Type == this.m_DataType)
             {
-                //if(parameter == null)
-                //{
-                //    parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
-                //}
-                //if (parameter == null)
-                //{
-                //    parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
-                //}
                 if (this.m_Parameters.ContainsKey(node.Name) == false)
                 {
                     var parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
@@ -247,7 +241,6 @@ namespace QSoft.Registry.Linq
                 {
                     this.m_Parameters.Add(node.Name, node);
                 }
-                //parameter = node;
             }
             
             return base.VisitParameter(node);
@@ -271,7 +264,7 @@ namespace QSoft.Registry.Linq
             }
             return expr;
         }
-
+        
         UnaryExpression m_Unary = null;
         protected override Expression VisitUnary(UnaryExpression node)
         {
@@ -290,14 +283,21 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+        bool m_IsUpdate = false;
         MethodCallExpression m_MethodCall_Member = null;
         MethodCallExpression m_MethodCall = null;
         Stack<Tuple<Type, Expression>> m_ParamList = new Stack<Tuple<Type, Expression>>();
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
+            
+            
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
-            if(this.m_Unary != null)
+            if (this.m_IsUpdate == false)
+            {
+                this.m_IsUpdate = expr.Method?.Name == "Update";
+            }
+            if (this.m_Unary != null)
             {
                 Expression methodcall_param_0 = null;
                 if (this.m_IsRegQuery == true)
@@ -366,6 +366,13 @@ namespace QSoft.Registry.Linq
                     tts1[0] = typeof(RegistryKey);
                     this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
                 }
+                else if (expr.Method.Name.Contains("Update"))
+                {
+                    tts1 = node.Method.GetGenericArguments();
+                    tts1[0] = typeof(RegistryKey);
+                    var method = typeof(RegExpressionVisitor).GetMethod("ToUpdate");
+                    this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
+                }
                 else
                 {
                     tts1 = node.Method.GetGenericArguments();
@@ -375,15 +382,33 @@ namespace QSoft.Registry.Linq
 
                 if (this.m_IsRegQuery)
                 {
-                    var param = this.m_ParamList.Select(x => x.Item2).Take(methods.ElementAt(0).GetParameters().Length);
-                    this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
+                    if(this.m_IsUpdate == true)
+                    {
+                        var method = typeof(RegExpressionVisitor).GetMethod("ToUpdate");
+                        this.m_MethodCall = Expression.Call(Expression.Constant(this), method, methodcall_param_0);
+                    }
+                    else
+                    {
+                        var param = this.m_ParamList.Select(x => x.Item2).Take(methods.ElementAt(0).GetParameters().Length);
+                        this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
+                    }
                 }
                 else
                 {
-                    tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
-                    var param = this.m_ParamList.Select(x => x.Item2);
-                    this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
-
+                    if (this.m_IsUpdate == true)
+                    {
+                        var method = typeof(RegExpressionVisitor).GetMethod("ToUpdate");
+                        tts1 = this.m_ParamList.Select(x => x.Item1).Take(method.GetParameters().Length).ToArray();
+                        var param = this.m_ParamList.Select(x => x.Item2);
+                        this.m_MethodCall = Expression.Call(Expression.Constant(this), method, param.ElementAt(0));
+                        //this.m_MethodCall = Expression.Call(Expression.Constant(this), method, methodcall_param_0);
+                    }
+                    else
+                    {
+                        tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
+                        var param = this.m_ParamList.Select(x => x.Item2);
+                        this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
+                    }
                 }
                 this.m_ParamList.Clear();
                 this.m_Unary = null;
@@ -538,6 +563,30 @@ namespace QSoft.Registry.Linq
 
             return memberinit;
         }
+
+        public int ToUpdate(IEnumerable<RegistryKey> regs)
+        {
+            var assigns = this.m_UpdateBidings.Select(x=>x as MemberAssignment).Where(x=>x!=null);
+            foreach(var reg in regs)
+            {
+                foreach (var oo in assigns)
+                {
+                    var objectMember = Expression.Convert(oo.Expression, typeof(object));
+
+                    var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+
+                    var getter = getterLambda.Compile();
+                    object aaa = getter();
+                    reg.SetValue(oo.Member.Name, aaa);
+
+
+                }
+            }
+            
+
+            return regs.Count();
+        }
+
 
     }
 }

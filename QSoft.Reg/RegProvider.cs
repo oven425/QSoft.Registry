@@ -14,7 +14,7 @@ namespace QSoft.Registry.Linq
 {
     public class RegProvider : IQueryProvider
     {
-        public Setting Setting { set; get; } = new Setting();
+        public RegSetting Setting { set; get; } = new RegSetting();
         //RegistryKey m_Reg;
         Type m_DataType;
         public RegProvider(RegistryHive hive, string path, Type datatype)
@@ -157,9 +157,10 @@ namespace QSoft.Registry.Linq
             RegistryKey reg = this.Setting;
             var subkeynames = reg.GetSubKeyNames();
 
+            var updatemethod = expression as MethodCallExpression;
             foreach (var subkeyname in subkeynames)
             {
-                regs.Add(reg.OpenSubKey(subkeyname));
+                regs.Add(reg.OpenSubKey(subkeyname, updatemethod?.Method.Name=="Update"));
             }
             var tte = regs.AsQueryable();
             
@@ -176,7 +177,7 @@ namespace QSoft.Registry.Linq
 
             RegExpressionVisitor regvisitor = new RegExpressionVisitor();
 
-            var expr = regvisitor.Visit(expression, this.m_DataType, tte);
+            var expr = regvisitor.Visit(expression, this.m_DataType, reg, tte);
 
             var methodcall_param_0 = Expression.Constant(tte);
 

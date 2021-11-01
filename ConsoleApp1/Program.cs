@@ -29,23 +29,10 @@ namespace ConsoleApp1
         }
     }
 
-    public class Provider
-    {
-        public IQueryable<RegistryKey> Refresh()
-        {
-            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
-            return queryreg.ToList().AsQueryable();
-        }
-    }
 
 
     class Program
     {
-        static IQueryable<RegistryKey> Refresh()
-        {
-            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
-            return queryreg.ToList().AsQueryable();
-        }
         static void Main(string[] args)
         {
             List<AppData> apps = new List<AppData>();
@@ -60,9 +47,13 @@ namespace ConsoleApp1
 
 #if Queryable
         var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
-
-            Provider provider = new Provider();
-            var queryable = queryreg.ToList().AsQueryable();
+            List<RegistryKey> ll = new List<RegistryKey>();
+            foreach (var subkeyname in queryreg.GetSubKeyNames())
+            {
+                RegistryKey reg = queryreg.OpenSubKey(subkeyname, false);
+                ll.Add(reg);
+            }
+            var queryable = ll.AsQueryable();
             //var rr = provider.Refresh().GroupBy(x => x.GetValue<string>("DisplayName"), y => new Test()
             //{
             //    DisplayName = y.GetValue<string>("DisplayName"),
@@ -71,9 +62,9 @@ namespace ConsoleApp1
             //});
             //var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
             //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
-            //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
 
-            var rr = queryable.Select((x,index) => new {x=new InstalledApp() {DisplayName = x.GetValue<string>("DisplayName") }, index});
+            //var rr = queryable.Update(x => x.SetValue("", "")).Update(x=>x.SetValue("",""));
 
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -178,7 +169,6 @@ namespace ConsoleApp1
 
             //}
 
-
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
@@ -186,9 +176,9 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            //int update = regt.Update(x=>new InstalledApp() { });
-            var orderbydesc = regt.OrderByDescending(x => x.EstimatedSize);
-            var oderby = regt.OrderBy(x => x.EstimatedSize);
+            var update = regt.Where(x=>x.DisplayName=="123456789").Update(x=>new InstalledApp() {DisplayName="123456789", EstimatedSize=100 });
+            var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
+            //var oderby = regt.OrderBy(x => x.EstimatedSize);
 
             //.Where(x => x.DisplayName == "A");
             //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
@@ -215,12 +205,12 @@ namespace ConsoleApp1
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
 
-            var select = regt.Select(x => x);
+            //var select = regt.Select(x => x);
             //.Select(x => x.EstimatedSize);
-            //.Select(x => new { x.DisplayName, x.DisplayVersion });
+            //var select = regt.Select(x => new { x.DisplayName, x.DisplayVersion });
             //var select = regt.Select(x => new AppData() { Name = x.DisplayName });
             //.Select(x => new AppData(x.DisplayName));
-            //.Select(x => new AppData(x.DisplayName) { Ver=x.DisplayVersion });
+            var select = regt.Select(x => new AppData(x.DisplayName) { Ver=x.DisplayVersion });
             //.Select(x => new { x.DisplayName});
             //var select = regt.Select((x, index) =>new { x, index });
             foreach(var oo in select)

@@ -17,7 +17,7 @@ namespace QSoft.Registry.Linq
         }
 
         //Setting m_Setting = null;
-        public RegQuery<T> useSetting(Action<Setting> data)
+        public RegQuery<T> useSetting(Action<RegSetting> data)
         {
             //this.m_Setting = new Setting();
             //data(this.m_Setting);
@@ -72,7 +72,7 @@ namespace QSoft.Registry.Linq
         }
     }
 
-    public class Setting
+    public class RegSetting
     {
         public string SubKey { set; get; }
         public RegistryHive Hive { set; get; }
@@ -84,7 +84,7 @@ namespace QSoft.Registry.Linq
         //    return reg;
         //}
 
-        public static implicit operator RegistryKey(Setting data)
+        public static implicit operator RegistryKey(RegSetting data)
         {
             RegistryKey reg_base = RegistryKey.OpenBaseKey(data.Hive, RegistryView.Registry64);
             if (string.IsNullOrEmpty(data.SubKey) == false)
@@ -99,18 +99,22 @@ namespace QSoft.Registry.Linq
 
     public static class RegQueryEx
     {
-        //public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, TSource>> selector)
-        //{
-        //    var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-        //    var pps = methods.ElementAt(0).GetParameters();
-        //    var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-        //    var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression, selector);
-        //    return source.Provider.Execute<int>(methdodcall);
-        //}
+        public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, TSource>> selector)
+        {
+            var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
+            var pps = methods.ElementAt(0).GetParameters();
+            var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
+            var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression, selector);
+            return source.Provider.Execute<int>(methdodcall);
+        }
 
-        //public static int Update<TSource>(this IEnumerable<TSource> src) where TSource: struct
+        //public static IEnumerable<TSource> Update<TSource>(this IEnumerable<TSource> src, Action<TSource> action)
         //{
-        //    return src.Count();
+        //    foreach (var oo in src)
+        //    {
+        //        action(oo);
+        //        yield return oo;
+        //    }
         //}
     }
 

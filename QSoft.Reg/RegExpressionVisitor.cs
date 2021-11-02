@@ -44,9 +44,15 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Trace.WriteLine($"VisitBinary");
             
 
-            var expr = base.VisitBinary(node);
-
-            if (this.m_Member2Regs.Count >0)
+            var expr = base.VisitBinary(node) as BinaryExpression;
+            if(expr.Method != null)
+            {
+                var binary = Expression.MakeBinary(node.NodeType, m_Member2Regs[0], node.Right, expr.IsLiftedToNull, expr.Method);
+                m_Binarys.Add(binary);
+                this.m_Member2Regs.Clear();
+                this.m_ParamList.Clear();
+            }
+            else if (this.m_Member2Regs.Count >0)
             {
                 var binary = Expression.MakeBinary(node.NodeType, m_Member2Regs[0], node.Right);
                 m_Binarys.Add(binary);
@@ -58,6 +64,7 @@ namespace QSoft.Registry.Linq
                 var binary = Expression.MakeBinary(node.NodeType, m_MethodCall_Member, node.Right);
                 m_Binarys.Add(binary);
                 m_MethodCall_Member = null;
+                this.m_ParamList.Clear();
             }
             else if(this.m_Binarys.Count==2)
             {
@@ -123,7 +130,27 @@ namespace QSoft.Registry.Linq
             {
                 this.m_UpdateBidings = node.Bindings.ToList();
             }
-            if (this.m_Member2Regs.Count > 0)
+            if(this.m_Binarys.Count > 0)
+            {
+                List<MemberBinding> bindings = new List<MemberBinding>();
+                var zip = this.m_Binarys.Zip(node.Bindings, (member, binding) => new { member, binding });
+                foreach (var oo in zip)
+                {
+                    var binding = Expression.Bind(oo.binding.Member, oo.member);
+                    bindings.Add(binding);
+                }
+                if (this.m_NewExpression != null)
+                {
+                    m_MemberInit = Expression.MemberInit(m_NewExpression, bindings);
+                    m_NewExpression = null;
+                }
+                else
+                {
+                    m_MemberInit = Expression.MemberInit(node.NewExpression, bindings);
+                }
+                this.m_Binarys.Clear();
+            }
+            else if (this.m_Member2Regs.Count > 0)
             {
                 List<MemberBinding> bindings = new List<MemberBinding>();
                 var zip = this.m_Member2Regs.Zip(node.Bindings, (member, binding) => new { member, binding });
@@ -144,6 +171,7 @@ namespace QSoft.Registry.Linq
                 
                 this.m_Member2Regs.Clear();
             }
+            this.m_ParamList.Clear();
             return expr;
         }
 
@@ -198,8 +226,16 @@ namespace QSoft.Registry.Linq
             {
                 if(lambda.ReturnType == this.m_DataType)
                 {
-                    //var update_expr = this.ToUpdate();
-                    m_Lambda = Expression.Lambda(this.ToData(this.m_Parameters.Values.FirstOrDefault(x=>x.Type== typeof(RegistryKey))), this.m_Parameters.Values);
+                    
+                    var pp = lambda.Body as ParameterExpression;
+                    if(pp== null)
+                    {
+                        m_Lambda = Expression.Lambda(this.ToData(this.m_Parameters.Values.FirstOrDefault(x => x.Type == typeof(RegistryKey))), this.m_Parameters.Values);
+                    }
+                    else
+                    {
+                        m_Lambda = Expression.Lambda(this.m_Parameters[pp.Name], this.m_Parameters.Values.Reverse());
+                    }
                 }
                 else if(lambda.Body is ParameterExpression)
                 {
@@ -371,6 +407,12 @@ namespace QSoft.Registry.Linq
                     tts1 = node.Method.GetGenericArguments();
                     tts1[0] = typeof(RegistryKey);
                     var method = typeof(RegExpressionVisitor).GetMethod("ToUpdate");
+                    this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
+                }
+                else if (expr.Method.Name.Contains("Select"))
+                {
+                    tts1 = methods.ElementAt(0).GetGenericArguments();
+                    tts1[0] = tts1[1] = typeof(RegistryKey);
                     this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
                 }
                 else
@@ -567,8 +609,9 @@ namespace QSoft.Registry.Linq
         public int ToUpdate(IEnumerable<RegistryKey> regs)
         {
             var assigns = this.m_UpdateBidings.Select(x=>x as MemberAssignment).Where(x=>x!=null);
-            foreach(var reg in regs)
+            if(assigns.Count() > 0)
             {
+                Dictionary<string, object> values = new Dictionary<string, object>();
                 foreach (var oo in assigns)
                 {
                     var objectMember = Expression.Convert(oo.Expression, typeof(object));
@@ -577,13 +620,26 @@ namespace QSoft.Registry.Linq
 
                     var getter = getterLambda.Compile();
                     object aaa = getter();
-                    reg.SetValue(oo.Member.Name, aaa);
+                    values[oo.Member.Name] = aaa;
+                }
+                foreach (var reg in regs)
+                {
+                    foreach (var oo in assigns)
+                    {
+                        //var objectMember = Expression.Convert(oo.Expression, typeof(object));
+
+                        //var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+
+                        //var getter = getterLambda.Compile();
+                        //object aaa = getter();
+                        reg.SetValue(oo.Member.Name, values[oo.Member.Name]);
 
 
+                    }
                 }
             }
             
-
+            
             return regs.Count();
         }
 

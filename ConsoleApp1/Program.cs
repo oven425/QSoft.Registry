@@ -29,8 +29,6 @@ namespace ConsoleApp1
         }
     }
 
-
-
     class Program
     {
         static void Main(string[] args)
@@ -62,9 +60,9 @@ namespace ConsoleApp1
             //});
             //var rr = queryable.GroupBy(x=>new { DisplayName=x.GetValue<string>("DisplayName"), EstimatedSize = x.GetValue<int>("EstimatedSize") });
             //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
+            //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
 
-            //var rr = queryable.Update(x => x.SetValue("", "")).Update(x=>x.SetValue("",""));
+            var rr = queryable.Select(x => x);
 
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -72,12 +70,11 @@ namespace ConsoleApp1
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var pppps = methodcall.Method.GetParameters();
-            var gens = methodcall.Method.GetGenericArguments();
-            var iuiu = methodcall.Method.GetGenericArguments();
             var unary = methodcall.Arguments[1] as UnaryExpression;
             var lambda = unary.Operand as LambdaExpression;
-
+            //var newexpr = lambda.Body as NewExpression;
+            //var binary = newexpr.Arguments[0] as BinaryExpression;
+            //ttype = newexpr.Arguments[0].GetType();
             //ttype = lambda.Body.GetType();
             //var memberinit = lambda.Body as MemberInitExpression;
             //foreach (var binding in memberinit.Bindings)
@@ -176,16 +173,18 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            var update = regt.Where(x=>x.DisplayName=="123456789").Update(x=>new InstalledApp() {DisplayName="123456789", EstimatedSize=100 });
-            var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
+            var update = regt.Select(x => x).Where(x=>x.DisplayName.Contains("123456")==true).Update(x => new InstalledApp() { });
+            //var update_where = regt.Where(x => x.DisplayName == "123456" + "789");
+            //var update = update_where.Update(x => new InstalledApp() { DisplayName = "123456789", EstimatedSize = 100 });
+            //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
             //var oderby = regt.OrderBy(x => x.EstimatedSize);
 
-            //.Where(x => x.DisplayName == "A");
-            //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
-            //.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
-            //.Where(x => x.DisplayName.Contains("A"));
-            //var where = regt.Where(x => x.DisplayName != "").Select(x => x);
-            //var where = regt.Where((x, index) => x.DisplayName != "");
+            //var where = regt.Where(x => x.DisplayName == "A");
+            ////.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
+            ////.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
+            ////.Where(x => x.DisplayName.Contains("A"));
+            ////var where = regt.Where(x => x.DisplayName != "").Select(x => x);
+            ////var where = regt.Where((x, index) => x.DisplayName != "");
             //foreach (var oo in where)
             //{
 
@@ -210,13 +209,13 @@ namespace ConsoleApp1
             //var select = regt.Select(x => new { x.DisplayName, x.DisplayVersion });
             //var select = regt.Select(x => new AppData() { Name = x.DisplayName });
             //.Select(x => new AppData(x.DisplayName));
-            var select = regt.Select(x => new AppData(x.DisplayName) { Ver=x.DisplayVersion });
+            //var select = regt.Select(x=>x);
             //.Select(x => new { x.DisplayName});
             //var select = regt.Select((x, index) =>new { x, index });
-            foreach(var oo in select)
-            {
-                
-            }
+            //foreach (var oo in select)
+            //{
+
+            //}
             //var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
             //foreach (var oo in zip)
             //{
@@ -430,12 +429,6 @@ namespace ConsoleApp1
 #endif
 
         }
-
-        static bool Test(string left, string right)
-        {
-            return left == right;
-        }
-
     }
 
     public class AppDataComparer : IEqualityComparer<string>

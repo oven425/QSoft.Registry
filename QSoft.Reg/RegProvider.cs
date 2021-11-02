@@ -37,7 +37,8 @@ namespace QSoft.Registry.Linq
         bool m_IsFirst = true;
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            IQueryable<TElement> hr = default(IQueryable<TElement>);
+            System.Diagnostics.Trace.WriteLine($"CreateQuery {(expression as MethodCallExpression).Method?.Name}");
+            IQueryable <TElement> hr = default(IQueryable<TElement>);
             hr = new RegQuery<TElement>(this, expression, this.m_IsFirst);
             this.m_IsFirst = false;
             return hr;

@@ -24,23 +24,24 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        public RegQuery(RegProvider provider, Expression expression, bool isfirst)
+        public RegQuery(RegProvider provider, Expression expression, bool isfirst, Expression regsource)
         {
             this.Provider = provider;
 #if CreateQuery
             if(isfirst == true)
             {
-                List<RegistryKey> regs = new List<RegistryKey>();
-                RegistryKey registry = provider.Setting;
-                var subkeynames = registry.GetSubKeyNames();
+                //List<RegistryKey> regs = new List<RegistryKey>();
+                //RegistryKey registry = provider.Setting;
+                //var subkeynames = registry.GetSubKeyNames();
 
-                foreach (var subkeyname in subkeynames)
-                {
-                    regs.Add(registry.OpenSubKey(subkeyname));
-                }
-                var tte = regs.AsQueryable();
+                //foreach (var subkeyname in subkeynames)
+                //{
+                //    regs.Add(registry.OpenSubKey(subkeyname));
+                //}
+                //var tte = regs.AsQueryable();
+
                 RegExpressionVisitor reg = new RegExpressionVisitor();
-                this.Expression = reg.Visit(expression, typeof(T), tte);
+                this.Expression = reg.Visit(expression, typeof(T), null, regsource);
             }
             else
             {
@@ -89,13 +90,18 @@ namespace QSoft.Registry.Linq
 
     public static class RegQueryEx
     {
-        public static int Update<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, TSource>> selector)
+        public static int Update<TSource>(this IQueryable<TSource> source)
         {
             var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
             var pps = methods.ElementAt(0).GetParameters();
             var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-            var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression, selector);
+            var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression);
             return source.Provider.Execute<int>(methdodcall);
         }
+
+        //public static int Update<TSource>(this IEnumerable<TSource> source)
+        //{
+        //    return source.Count();
+        //}
     }
 }

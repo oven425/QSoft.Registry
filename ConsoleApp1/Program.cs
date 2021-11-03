@@ -166,14 +166,13 @@ namespace ConsoleApp1
 
             //}
 
-            var regt = new RegQuery<InstalledApp>()
-                .useSetting(x =>
-                    {
-                        x.Hive = RegistryHive.LocalMachine;
-                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-                        x.View = RegistryView.Registry64;
-                    });
-            var update = regt.Select(x => x).Where(x=>x.DisplayName.Contains("123456")==true).Update(x => new InstalledApp() { });
+            //var regt = new RegQuery<InstalledApp>()
+            //    .useSetting(x =>
+            //        {
+            //            x.Hive = RegistryHive.LocalMachine;
+            //            x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+            //            x.View = RegistryView.Registry64;
+            //        });
             //var update_where = regt.Where(x => x.DisplayName == "123456" + "789");
             //var update = update_where.Update(x => new InstalledApp() { DisplayName = "123456789", EstimatedSize = 100 });
             //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
@@ -185,6 +184,10 @@ namespace ConsoleApp1
             ////.Where(x => x.DisplayName.Contains("A"));
             ////var where = regt.Where(x => x.DisplayName != "").Select(x => x);
             ////var where = regt.Where((x, index) => x.DisplayName != "");
+            //foreach (var oo in where)
+            //{
+
+            //}
             //foreach (var oo in where)
             //{
 
@@ -224,13 +227,14 @@ namespace ConsoleApp1
 
 
 
-            //var regt = new RegQuery<InstalledApp>()
-            //    .useSetting(x =>
-            //    {
-            //        x.Hive = RegistryHive.LocalMachine;
-            //        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-            //    });
-            //var first1 = regt.First();
+            var regt = new RegQuery<InstalledApp>()
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.LocalMachine;
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                });
+            var update = regt.Where(x => x.DisplayName == "123456789").Update();
+            //var first1 = regt.Select(x=>x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();
             //var last2 = regt.Last(x => x.DisplayName != "");
@@ -427,22 +431,6 @@ namespace ConsoleApp1
             var takes = uninstall.Take(3);
 
 #endif
-
-        }
-    }
-
-    public class AppDataComparer : IEqualityComparer<string>
-    {
-        public bool Equals(string x, string y)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int GetHashCode(string obj)
-        {
-            if (Object.ReferenceEquals(obj, null)) return 0;
-
-            return obj.GetHashCode();
 
         }
     }

@@ -12,10 +12,13 @@ namespace QSoft.Registry.Linq
     {
         Type m_DataType;
         Expression m_New = null;
-        IQueryable<RegistryKey> m_RegKeys = null;
-        public Expression Visit(Expression node, Type datatype, RegistryKey regkey, IQueryable<RegistryKey> regkeys)
+        //IQueryable<RegistryKey> m_RegKeys = null;
+        Expression m_RegSource;
+        public Expression Visit(Expression node, Type datatype, IQueryable<RegistryKey> regkeys, Expression regfunc)
         {
-            this.m_RegKeys = regkeys;
+            this.m_RegSource = regfunc;
+            Type ttupe = regfunc.GetType();
+            //this.m_RegKeys = regkeys;
             Expression expr = this.Visit(node);
 
             if(expr != null)
@@ -338,8 +341,9 @@ namespace QSoft.Registry.Linq
                 Expression methodcall_param_0 = null;
                 if (this.m_IsRegQuery == true)
                 {
-                    this.m_ConstantExpression_Source = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
-                    methodcall_param_0 = this.m_ConstantExpression_Source;
+                    //this.m_ConstantExpression_Source = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    //methodcall_param_0 = this.m_ConstantExpression_Source;
+                    methodcall_param_0 = this.m_RegSource;
                 }
                 else
                 {
@@ -476,9 +480,11 @@ namespace QSoft.Registry.Linq
                 {
                     //this.m_IsRegQuery = false;
 #if CreateQuery
-                    methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    //methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    methodcall_param_0 = this.m_RegSource;
 #else
-                    methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    //methodcall_param_0 = Expression.Constant(this.m_RegKeys, typeof(IQueryable<RegistryKey>));
+                    methodcall_param_0 = this.m_RegSource;
 #endif
 
                 }
@@ -514,7 +520,12 @@ namespace QSoft.Registry.Linq
                 }
                 if (this.m_ConstantExpression_Value != null)
                 {
+#if CreateQuery
+                    this.m_MethodCall = Expression.Call(method, expr, this.m_ConstantExpression_Value);
+#else
                     this.m_MethodCall = Expression.Call(method, methodcall_param_0, this.m_ConstantExpression_Value);
+#endif
+
                 }
                 else
                 {
@@ -537,7 +548,7 @@ namespace QSoft.Registry.Linq
 
 
         bool m_IsRegQuery = false;
-        ConstantExpression m_ConstantExpression_Source = null;
+        //ConstantExpression m_ConstantExpression_Source = null;
         Expression m_ConstantExpression_Value = null;
         protected override Expression VisitConstant(ConstantExpression node)
         {
@@ -547,10 +558,10 @@ namespace QSoft.Registry.Linq
             {
                 m_IsRegQuery = true;
                 this.m_DataType = node.Type.GetGenericArguments().FirstOrDefault();
-                if (this.m_RegKeys == null)
-                {
-                    m_ConstantExpression_Source = null;
-                }
+                //if (this.m_RegKeys == null)
+                //{
+                //    m_ConstantExpression_Source = null;
+                //}
             }
             else if (node.Type.Name.Contains("IEnumerable"))
             {

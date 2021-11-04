@@ -521,7 +521,7 @@ namespace QSoft.Registry.Linq
                 if (this.m_ConstantExpression_Value != null)
                 {
 #if CreateQuery
-                    this.m_MethodCall = Expression.Call(method, expr, this.m_ConstantExpression_Value);
+                    this.m_MethodCall = Expression.Call(method, methodcall_param_0, this.m_ConstantExpression_Value);
 #else
                     this.m_MethodCall = Expression.Call(method, methodcall_param_0, this.m_ConstantExpression_Value);
 #endif

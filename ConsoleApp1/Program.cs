@@ -21,7 +21,7 @@ namespace ConsoleApp1
         public int? EstimatedSize { set; get; }
         public InstalledApp()
         {
-            DisplayName = "AA";
+            //DisplayName = "AA";
         }
         public string A()
         {
@@ -173,6 +173,16 @@ namespace ConsoleApp1
             //            x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
             //            x.View = RegistryView.Registry64;
             //        });
+            //var take = regt.Take(10);
+            //foreach (var oo in take)
+            //{
+
+            //}
+            //var takewhile = regt.TakeWhile(x => x.DisplayName == "AA");
+            //foreach (var oo in takewhile)
+            //{
+
+            //}
             //var update_where = regt.Where(x => x.DisplayName == "123456" + "789");
             //var update = update_where.Update(x => new InstalledApp() { DisplayName = "123456789", EstimatedSize = 100 });
             //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
@@ -233,14 +243,18 @@ namespace ConsoleApp1
                     x.Hive = RegistryHive.LocalMachine;
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                 });
-            var update = regt.Where(x => x.DisplayName == "123456789").Update();
+            var update = regt.Where(x => x.DisplayName == "123456789")
+                .Update(() => new InstalledApp()
+                                {
+                                    EstimatedSize = 100,
+                                    DisplayVersion = "123"
+                                });
             //var first1 = regt.Select(x=>x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();
             //var last2 = regt.Last(x => x.DisplayName != "");
 
-            //var take = regt.Take(10);
-            //var takewhile = regt.TakeWhile(x => x.DisplayName == "AA");
+
 
             //var count1 = regt.Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");

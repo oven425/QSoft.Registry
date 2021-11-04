@@ -90,18 +90,51 @@ namespace QSoft.Registry.Linq
 
     public static class RegQueryEx
     {
-        public static int Update<TSource>(this IQueryable<TSource> source)
+        public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TResult>> selector)
         {
+
             var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-            var pps = methods.ElementAt(0).GetParameters();
+            var pps = methods.ElementAt(0).GetGenericArguments();
             var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-            var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource)), source.Expression);
+
+            Expression methdodcall = null;
+            var yutu = source.Expression as MethodCallExpression;
+            if(yutu.Method.ReturnType != typeof(IQueryable<RegistryKey>))
+            {
+                methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(RegistryKey), typeof(TResult)), yutu.Arguments[0], selector);
+            }
+            //else
+            //{
+            //    methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
+            //}
+
+            //var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
             return source.Provider.Execute<int>(methdodcall);
         }
 
-        //public static int Update<TSource>(this IEnumerable<TSource> source)
-        //{
-        //    return source.Count();
-        //}
+        public static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TResult> data)
+        {
+            var regs = source as IEnumerable<RegistryKey>;
+            var obj = data();
+            var pps = obj.GetType().GetProperties().Where(x => x.CanWrite == true);
+            Dictionary<string, object> values = new Dictionary<string, object>();
+            foreach (var pp in pps)
+            {
+                var vv = pp.GetValue(obj);
+                if(vv != null)
+                {
+                    values[pp.Name] = vv;
+                }
+            }
+            foreach(var reg in regs)
+            {
+                foreach (var value in values)
+                {
+                    reg.SetValue(value.Key, value.Value);
+                }
+            }
+            
+            return source.Count();
+        }
     }
 }

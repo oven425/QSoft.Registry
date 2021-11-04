@@ -176,16 +176,16 @@ namespace QSoft.Registry.Linq
                 RegExpressionVisitor regvisitor = new RegExpressionVisitor();
                 //var expr = regvisitor.Visit(expression, this.m_DataType, null, this.m_RegSource);
                 TResult excute = default(TResult);
-                if (this.m_IsWritable == true)
-                {
-                    var yutu = updatemethod.Arguments[0] as MethodCallExpression;
-                    var gg = (yutu.Arguments[0] as MethodCallExpression).Method.ReturnType.GetGenericArguments();
-                    var toupdate = this.GetType().GetMethod("ToUpdate");
-                    var update_expr = MethodCallExpression.Call(Expression.Constant(this), toupdate.MakeGenericMethod(gg), yutu.Arguments[0]);
-                    
-                    excute = tte.Provider.Execute<TResult>(update_expr);
-                }
-                else
+                //if (this.m_IsWritable == true)
+                //{
+                //    var yutu = updatemethod.Arguments[0] as MethodCallExpression;
+                //    var gg = (yutu.Arguments[0] as MethodCallExpression).Method.ReturnType.GetGenericArguments();
+                //    var toupdate = this.GetType().GetMethod("ToUpdate");
+                //    var update_expr = MethodCallExpression.Call(Expression.Constant(this), toupdate.MakeGenericMethod(gg), yutu.Arguments[0]);
+
+                //    excute = tte.Provider.Execute<TResult>(update_expr);
+                //}
+                //else
                 {
                     excute = tte.Provider.Execute<TResult>(expression);
                 }
@@ -205,21 +205,18 @@ namespace QSoft.Registry.Linq
                 {
                     inst = excute;
                 }
-
-                foreach (var oo in this.m_Regs)
+                if(this.m_Regs != null)
                 {
-                    oo.Close();
-                    oo.Dispose();
+                    foreach (var oo in this.m_Regs)
+                    {
+                        oo.Close();
+                        oo.Dispose();
+                    }
                 }
-
+                
+                
                 return_hr = (TResult)inst;
             }
-
-            //foreach (var oo in this.m_Regs)
-            //{
-            //    oo.Close();
-            //    oo.Dispose();
-            //}
 
             return return_hr;
 #else

@@ -294,7 +294,7 @@ namespace QSoft.Registry.Linq
             {
                 var left_args_1 = Expression.Constant(node.Member.Name);
                 var left_args_0 = this.m_Parameters.ElementAt(0).Value;
-                var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+                var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod==true);
                 this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
             }
             else
@@ -490,6 +490,10 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
+                    if(m_MethodCall == null)
+                    {
+                        this.m_MethodCall = expr;
+                    }
                     methodcall_param_0 = m_MethodCall;
                 }
 
@@ -606,7 +610,7 @@ namespace QSoft.Registry.Linq
                 else
                 {
                     name = Expression.Constant(pp.Name, typeof(string));
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(typeof(string)), param, name);
+                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
                     var binding = Expression.Bind(pp, method);
                     bindings.Add(binding);
                 }
@@ -617,42 +621,42 @@ namespace QSoft.Registry.Linq
             return memberinit;
         }
 
-        public int ToUpdate(IEnumerable<RegistryKey> regs)
-        {
-            var assigns = this.m_UpdateBidings.Select(x=>x as MemberAssignment).Where(x=>x!=null);
-            if(assigns.Count() > 0)
-            {
-                Dictionary<string, object> values = new Dictionary<string, object>();
-                foreach (var oo in assigns)
-                {
-                    var objectMember = Expression.Convert(oo.Expression, typeof(object));
+        //public int ToUpdate(IEnumerable<RegistryKey> regs)
+        //{
+        //    var assigns = this.m_UpdateBidings.Select(x=>x as MemberAssignment).Where(x=>x!=null);
+        //    if(assigns.Count() > 0)
+        //    {
+        //        Dictionary<string, object> values = new Dictionary<string, object>();
+        //        foreach (var oo in assigns)
+        //        {
+        //            var objectMember = Expression.Convert(oo.Expression, typeof(object));
 
-                    var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+        //            var getterLambda = Expression.Lambda<Func<object>>(objectMember);
 
-                    var getter = getterLambda.Compile();
-                    object aaa = getter();
-                    values[oo.Member.Name] = aaa;
-                }
-                foreach (var reg in regs)
-                {
-                    foreach (var oo in assigns)
-                    {
-                        //var objectMember = Expression.Convert(oo.Expression, typeof(object));
+        //            var getter = getterLambda.Compile();
+        //            object aaa = getter();
+        //            values[oo.Member.Name] = aaa;
+        //        }
+        //        foreach (var reg in regs)
+        //        {
+        //            foreach (var oo in assigns)
+        //            {
+        //                //var objectMember = Expression.Convert(oo.Expression, typeof(object));
 
-                        //var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+        //                //var getterLambda = Expression.Lambda<Func<object>>(objectMember);
 
-                        //var getter = getterLambda.Compile();
-                        //object aaa = getter();
-                        reg.SetValue(oo.Member.Name, values[oo.Member.Name]);
+        //                //var getter = getterLambda.Compile();
+        //                //object aaa = getter();
+        //                reg.SetValue(oo.Member.Name, values[oo.Member.Name]);
 
 
-                    }
-                }
-            }
+        //            }
+        //        }
+        //    }
             
             
-            return regs.Count();
-        }
+        //    return regs.Count();
+        //}
 
 
     }

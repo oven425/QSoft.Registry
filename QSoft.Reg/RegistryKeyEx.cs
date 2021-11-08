@@ -23,6 +23,14 @@ namespace QSoft.Registry
                     t = (T)str_empty;
                 }
             }
+            else if(typecode == TypeCode.Object && typeof(T) == typeof(Version))
+            {
+                var obj = src.GetValue(name);
+                //var ver = Version.Parse(obj as string);
+                Version ver = null;
+                Version.TryParse(obj as string, out ver);
+                t = (T)Convert.ChangeType(ver, typeof(T));
+            }
             else
             {
                 object obj = src.GetValue(name);

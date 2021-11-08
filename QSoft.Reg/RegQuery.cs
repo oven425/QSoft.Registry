@@ -28,7 +28,9 @@ namespace QSoft.Registry.Linq
         {
             this.Provider = provider;
 #if CreateQuery
-            if(isfirst == true)
+            //if(isfirst == true)
+            MethodCallExpression method1 = expression as MethodCallExpression;
+            if(method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
                 //List<RegistryKey> regs = new List<RegistryKey>();
                 //RegistryKey registry = provider.Setting;

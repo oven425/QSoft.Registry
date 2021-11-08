@@ -17,7 +17,7 @@ namespace ConsoleApp1
     public class InstalledApp
     {
         public string DisplayName { set; get; }
-        public string DisplayVersion { set; get; }
+        public Version DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
         public InstalledApp()
         {
@@ -33,6 +33,8 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            //object str = "2.2.2.2";
+            //Version ver = new Version(str);
             List<AppData> apps = new List<AppData>();
             apps.Add(new AppData() { Name = "A", IsOfficial = true });
             apps.Add(new AppData() { Name = "AA", IsOfficial = false });
@@ -173,7 +175,8 @@ namespace ConsoleApp1
             //            x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
             //            x.View = RegistryView.Registry64;
             //        });
-            //var take = regt.Take(10);
+
+            //var take = regt.Take(1);
             //foreach (var oo in take)
             //{
 
@@ -188,12 +191,22 @@ namespace ConsoleApp1
             //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
             //var oderby = regt.OrderBy(x => x.EstimatedSize);
 
-            //var where = regt.Where(x => x.DisplayName == "A");
+            //var where1 = regt.Where(x => x.DisplayName == "AA").OrderBy(x => x.DisplayVersion);
+            //foreach (var oo in where1)
+            //{
+
+            //}
+            //where1 = regt.Where(x => x.DisplayName == "A").OrderBy(x=>x.DisplayVersion);
+            //foreach (var oo in where1)
+            //{
+
+            //}
             ////.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
             ////.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
             ////.Where(x => x.DisplayName.Contains("A"));
             ////var where = regt.Where(x => x.DisplayName != "").Select(x => x);
             ////var where = regt.Where((x, index) => x.DisplayName != "");
+            //var where = regt.Where(x => x.DisplayName.Contains("AA") == true);
             //foreach (var oo in where)
             //{
 
@@ -242,13 +255,15 @@ namespace ConsoleApp1
                 {
                     x.Hive = RegistryHive.LocalMachine;
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                    x.View = RegistryView.Registry64;
                 });
-            var update = regt.Where(x => x.DisplayName == "123456789")
+            var update = regt.Where(x => x.DisplayName == "AA")
                 .Update(() => new InstalledApp()
-                                {
-                                    EstimatedSize = 100,
-                                    DisplayVersion = "123"
-                                });
+                {
+                    EstimatedSize = 100,
+                    DisplayVersion = new Version("123.123.123.123")
+                });
+            //var first1 = regt.First();
             //var first1 = regt.Select(x=>x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();
@@ -256,7 +271,7 @@ namespace ConsoleApp1
 
 
 
-            //var count1 = regt.Count();
+            //var count1 = regt.Where(x => x.DisplayName == "123456789").Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");
 
             //var all = regt.All(x => x.DisplayName != "");

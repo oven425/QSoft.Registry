@@ -19,6 +19,7 @@ namespace UnitTestProject1
     public class LinqToRegistry
     {
         List<InstallApp> m_Tests = new List<InstallApp>();
+        List<AppData> m_Apps = new List<AppData>();
         public LinqToRegistry()
         {
             this.m_Tests.Add(new InstallApp() { DisplayName = "AA", DisplayVersion = new Version("1.1.1.1"), EstimatedSize = 10, Index = 0 });
@@ -27,6 +28,15 @@ namespace UnitTestProject1
             this.m_Tests.Add(new InstallApp() { DisplayName = "DD", DisplayVersion = new Version("4.4.4.4"), EstimatedSize = 40, Index = 3 });
             this.m_Tests.Add(new InstallApp() { DisplayName = "EE", DisplayVersion = new Version("5.5.5.5"), EstimatedSize = 50, Index = 4 });
             this.m_Tests.Add(new InstallApp() { DisplayName = "FF", DisplayVersion = new Version("6.6.6.6"), EstimatedSize = 60, Index = 5 });
+
+            m_Apps.Add(new AppData() { Name = "A", IsOfficial = true });
+            m_Apps.Add(new AppData() { Name = "AA", IsOfficial = false });
+            //m_Apps.Add(new App() { Name = "B", Offical = true });
+            //m_Apps.Add(new App() { Name = "BB", Offical = false });
+            //m_Apps.Add(new App() { Name = "C", Offical = true });
+            //m_Apps.Add(new App() { Name = "CC", Offical = false });
+            //m_Apps.Add(new App() { Name = "D", Offical = true });
+            //m_Apps.Add(new App() { Name = "DD", Offical = false });
         }
         IQueryable<InstallApp> regt = new RegQuery<InstallApp>()
             .useSetting(x =>
@@ -78,6 +88,17 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")==true), regt.Where(x => x.DisplayName.Contains("AA")==true));
             this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)));
             this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)==true), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)==true));
+        }
+
+        [TestMethod]
+        public void Join()
+        {
+            var join = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (test, app) => new { test, app }).Where(x=>x.app.Name != null);
+            foreach(var oo in join)
+            {
+                Assert.IsTrue(oo.app.Name == oo.test.DisplayName);
+            }
+            
         }
 
         [TestMethod]
@@ -157,6 +178,13 @@ namespace UnitTestProject1
             Assert.IsTrue(this.m_Tests.Sum(x => x.EstimatedSize) == regt.Sum(x => x.EstimatedSize), "Sum fail");
         }
 
+        [TestMethod]
+        [TestCategory("Excute")]
+        public void Average()
+        {
+            Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
+        }
+
 
         void Check(IEnumerable<InstallApp> src, IEnumerable<InstallApp> dst)
         {
@@ -190,5 +218,22 @@ namespace UnitTestProject1
                 }
             }
         }
+    }
+
+    public class AppData
+    {
+        public AppData()
+        {
+
+        }
+
+        public AppData(string name)
+        {
+            this.Name = name;
+        }
+        public string Name { set; get; }
+        public string Ver { set; get; }
+        public string Uninstallstring { set; get; }
+        public bool IsOfficial { set; get; }
     }
 }

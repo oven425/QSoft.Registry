@@ -257,12 +257,12 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
-            var update = regt.Where(x => x.DisplayName == "AA")
-                .Update(() => new InstalledApp()
-                {
-                    EstimatedSize = 100,
-                    DisplayVersion = new Version("123.123.123.123")
-                });
+            //var update = regt.Where(x => x.DisplayName == "AA")
+            //    .Update(() => new InstalledApp()
+            //    {
+            //        EstimatedSize = 100,
+            //        DisplayVersion = new Version("123.123.123.123")
+            //    });
             //var first1 = regt.First();
             //var first1 = regt.Select(x=>x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
@@ -271,7 +271,7 @@ namespace ConsoleApp1
 
 
 
-            //var count1 = regt.Where(x => x.DisplayName == "123456789").Count();
+            var count1 = regt.Where(x => x.DisplayName == "123456789").Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");
 
             //var all = regt.All(x => x.DisplayName != "");

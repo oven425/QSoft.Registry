@@ -16,15 +16,37 @@ namespace QSoft.Registry.Linq
         Expression m_RegSource;
         public Expression Visit(Expression node, Type datatype, IQueryable<RegistryKey> regkeys, Expression regfunc)
         {
+            this.m_DataType = datatype;
             this.m_RegSource = regfunc;
             Type ttupe = regfunc.GetType();
             //this.m_RegKeys = regkeys;
             Expression expr = this.Visit(node);
 
-            if(expr != null)
+            if (expr != null)
             {
-                expr = this.m_New;
+                if(this.m_New!=null)
+                {
+                    expr = this.m_New;
+                }
+                else if (this.m_Unary != null)
+                {
+                    expr = this.m_Unary;
+                }
+                
             }
+#if CreateQuery
+            //var methodcall = expr as MethodCallExpression;
+            //if (methodcall != null && methodcall.Method != null)
+            //{
+            //    if (methodcall.Method.ReturnType == typeof(IQueryable<RegistryKey>) || methodcall.Method.ReturnType == typeof(IOrderedQueryable<RegistryKey>))
+            //    {
+            //        var sd = this.ToSelectData();
+            //        var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
+            //        var select = selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+            //        expr = Expression.Call(select, expr, sd);
+            //    }
+            //}
+#else
             var methodcall = expr as MethodCallExpression;
             if(methodcall != null&& methodcall.Method!=null)
             {
@@ -36,6 +58,7 @@ namespace QSoft.Registry.Linq
                     expr = Expression.Call(select, expr, sd);
                 }
             }
+#endif
             return expr;
         }
 
@@ -336,6 +359,7 @@ namespace QSoft.Registry.Linq
             {
                 this.m_IsUpdate = expr.Method?.Name == "Update";
             }
+
             if (this.m_Unary != null)
             {
                 Expression methodcall_param_0 = null;
@@ -416,7 +440,17 @@ namespace QSoft.Registry.Linq
                 else if (expr.Method.Name.Contains("Select"))
                 {
                     tts1 = methods.ElementAt(0).GetGenericArguments();
-                    tts1[0] = tts1[1] = typeof(RegistryKey);
+                    //tts1[0] = tts1[1] = typeof(RegistryKey);
+                    tts1[0] = typeof(RegistryKey);
+                    if(tts[1] == this.m_DataType)
+                    {
+                        tts1[1] = typeof(RegistryKey);
+                    }
+                    else
+                    {
+                        tts1[1] = tts[1];
+                    }
+                   
                     this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
                 }
                 else
@@ -492,7 +526,10 @@ namespace QSoft.Registry.Linq
                 {
                     if(m_MethodCall == null)
                     {
-                        this.m_MethodCall = expr;
+                        if (node.Method.Name == "CreateRegs")
+                        {
+                            m_MethodCall =  expr;
+                        }
                     }
                     methodcall_param_0 = m_MethodCall;
                 }

@@ -28,27 +28,28 @@ namespace QSoft.Registry.Linq
         {
             this.Provider = provider;
 #if CreateQuery
-            //if(isfirst == true)
-            MethodCallExpression method1 = expression as MethodCallExpression;
-            if(method1.Arguments[0].NodeType == ExpressionType.Constant)
-            {
-                //List<RegistryKey> regs = new List<RegistryKey>();
-                //RegistryKey registry = provider.Setting;
-                //var subkeynames = registry.GetSubKeyNames();
+            ////if(isfirst == true)
+            //MethodCallExpression method1 = expression as MethodCallExpression;
+            ////if(method1.Arguments[0].NodeType == ExpressionType.Constant)
+            //{
+            //    //List<RegistryKey> regs = new List<RegistryKey>();
+            //    //RegistryKey registry = provider.Setting;
+            //    //var subkeynames = registry.GetSubKeyNames();
 
-                //foreach (var subkeyname in subkeynames)
-                //{
-                //    regs.Add(registry.OpenSubKey(subkeyname));
-                //}
-                //var tte = regs.AsQueryable();
+            //    //foreach (var subkeyname in subkeynames)
+            //    //{
+            //    //    regs.Add(registry.OpenSubKey(subkeyname));
+            //    //}
+            //    //var tte = regs.AsQueryable();
 
-                RegExpressionVisitor reg = new RegExpressionVisitor();
-                this.Expression = reg.Visit(expression, typeof(T), null, regsource);
-            }
-            else
-            {
-                this.Expression = expression;
-            }
+            //    RegExpressionVisitor reg = new RegExpressionVisitor();
+            //    this.Expression = reg.Visit(expression, typeof(T), null, regsource);
+            //}
+            ////else
+            ////{
+            ////    this.Expression = expression;
+            ////}
+            this.Expression = expression;
 #else
             
             this.Expression = expression;

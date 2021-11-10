@@ -168,13 +168,13 @@ namespace ConsoleApp1
 
             //}
 
-            //var regt = new RegQuery<InstalledApp>()
-            //    .useSetting(x =>
-            //        {
-            //            x.Hive = RegistryHive.LocalMachine;
-            //            x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-            //            x.View = RegistryView.Registry64;
-            //        });
+            var regt = new RegQuery<InstalledApp>()
+                .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.LocalMachine;
+                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                        x.View = RegistryView.Registry64;
+                    });
 
             //var take = regt.Take(1);
             //foreach (var oo in take)
@@ -234,14 +234,15 @@ namespace ConsoleApp1
             //.Select(x => x.EstimatedSize);
             //var select = regt.Select(x => new { x.DisplayName, x.DisplayVersion });
             //var select = regt.Select(x => new AppData() { Name = x.DisplayName });
-            //.Select(x => new AppData(x.DisplayName));
+            //var select = regt.Select(x => new AppData(x.DisplayName));
+            var select = regt.Select(x => x).Select(x => new { x.DisplayName });
             //var select = regt.Select(x=>x);
-            //.Select(x => new { x.DisplayName});
+            //var select = regt.Select(x=>x).Select(x => new { x.DisplayName}).Select(x=>new InstalledApp() { }).Where(x=>x.DisplayName=="");
             //var select = regt.Select((x, index) =>new { x, index });
-            //foreach (var oo in select)
-            //{
+            foreach (var oo in select)
+            {
 
-            //}
+            }
             //var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
             //foreach (var oo in zip)
             //{
@@ -250,14 +251,14 @@ namespace ConsoleApp1
 
 
 
-            var regt = new RegQuery<InstalledApp>()
-                .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-                    x.View = RegistryView.Registry64;
-                });
-            //var update = regt.Where(x => x.DisplayName == "AA")
+            //var regt = new RegQuery<InstalledApp>()
+            //    .useSetting(x =>
+            //    {
+            //        x.Hive = RegistryHive.LocalMachine;
+            //        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+            //        x.View = RegistryView.Registry64;
+            //    });
+            //var update = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize==10)
             //    .Update(() => new InstalledApp()
             //    {
             //        EstimatedSize = 100,
@@ -271,7 +272,7 @@ namespace ConsoleApp1
 
 
 
-            var count1 = regt.Where(x => x.DisplayName == "123456789").Count();
+            //var count1 = regt.Where(x => x.DisplayName == "123456789").OrderBy(x=>x.EstimatedSize).Count();
             //var count2 = regt.Count(x => x.DisplayName == "AA");
 
             //var all = regt.All(x => x.DisplayName != "");

@@ -32,16 +32,57 @@ namespace QSoft.Registry.Linq
         }
 
         bool m_IsFirst = true;
-        
+
+        Expression m_RegMethod = null;
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             System.Diagnostics.Trace.WriteLine($"CreateQuery {(expression as MethodCallExpression).Method?.Name}");
-            IQueryable <TElement> hr = default(IQueryable<TElement>);
+            IQueryable<TElement> hr = default(IQueryable<TElement>);
             hr = new RegQuery<TElement>(this, expression, this.m_IsFirst, this.m_RegSource);
+            var ttype = typeof(TElement);
+            RegExpressionVisitor reg = new RegExpressionVisitor();
+
+            MethodCallExpression method1 = expression as MethodCallExpression;
+            if (method1.Arguments[0].NodeType == ExpressionType.Constant)
+            {
+                this.m_RegMethod = reg.Visit(expression, typeof(TElement), null, this.m_RegSource);
+            }
+            else
+            {
+                var expr = reg.Visit(method1.Arguments[1], this.m_DataType, null, this.m_RegSource);
+                var methods = method1.Method.ReflectedType.GetMethods().Where(x => x.Name == method1.Method.Name);
+
+                methods = methods.Where(x => x.IsGenericMethod == method1.Method.IsGenericMethod);
+                methods = methods.Where(x => x.GetParameters().Length == method1.Method.GetParameters().Length);
+                var pps = method1.Method.GetGenericArguments();
+                if(pps[0] == this.m_DataType)
+                {
+                    pps[0] = typeof(RegistryKey);
+                }
+                //for(int i=0; i<pps.Length; i++)
+                //{
+                //    if(pps[i] == this.m_DataType)
+                //    {
+                //        pps[i] = typeof(RegistryKey);
+                //    }
+                //}
+                var ooi = methods.ElementAt(0).MakeGenericMethod(pps);
+                this.m_RegMethod = Expression.Call(ooi, this.m_RegMethod, expr);
+                expr = null;
+            }
+               
+
+
+
+
+
+
             this.m_IsFirst = false;
             return hr;
             //return new RegQuery<TElement>(this, expression);
         }
+
+
 
         public object Execute(Expression expression)
         {
@@ -128,7 +169,7 @@ namespace QSoft.Registry.Linq
             //RegistryKey reg = this.Setting;
             //var subkeynames = reg.GetSubKeyNames();
 
-            var updatemethod = expression as MethodCallExpression;
+            var updatemethod = this.m_RegMethod as MethodCallExpression;
             this.m_IsWritable = updatemethod?.Method?.Name == "Update";
             //foreach (var subkeyname in subkeynames)
             //{
@@ -164,9 +205,9 @@ namespace QSoft.Registry.Linq
                         tts1[i] = tts[i];
                     }
                 }
-                tts1[0] = tts[0];
+                //tts1[0] = tts[0];
                 var creatquery = creatquerys.First().MakeGenericMethod(tts1);
-                var excute = creatquery.Invoke(tte.Provider, new object[] { expression });
+                var excute = creatquery.Invoke(tte.Provider, new object[] { updatemethod });
 
                 return_hr = (TResult)excute;
             }

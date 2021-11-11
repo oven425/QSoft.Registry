@@ -27,6 +27,11 @@ namespace ConsoleApp1
         {
             return this.DisplayName;
         }
+
+        public override string ToString()
+        {
+            return $"DisplayName:{DisplayName} DisplayVersion:{DisplayVersion} EstimatedSize:{EstimatedSize}";
+        }
     }
 
     class Program
@@ -65,7 +70,11 @@ namespace ConsoleApp1
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
 
             var rr = queryable.Select(x => x);
-
+            var groupp = queryable.GroupBy(x => x);
+            foreach(var gr in groupp)
+            {
+                
+            }
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
             //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
@@ -176,7 +185,7 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
 
-            //var take = regt.Take(1);
+            //var take = regt.Take(100);
             //foreach (var oo in take)
             //{
 
@@ -191,7 +200,7 @@ namespace ConsoleApp1
             //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
             //var oderby = regt.OrderBy(x => x.EstimatedSize);
 
-            //var where1 = regt.Where(x => x.DisplayName == "AA").OrderBy(x => x.DisplayVersion);
+            //var where1 = regt.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize);
             //foreach (var oo in where1)
             //{
 
@@ -219,12 +228,16 @@ namespace ConsoleApp1
             //.Where(x => x.A() != "");
 
 
+            //var groupby = regt.GroupBy(x => x);
+            var groupby = regt.GroupBy(x => x).Select(x => x.Key);
+            ////.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
+            ////.GroupBy(x => x.EstimatedSize);
+            ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
+            ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
+            foreach (var oo in groupby)
+            {
 
-            //.GroupBy(x => x.DisplayName);
-            //.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-            //.GroupBy(x => x.EstimatedSize);
-            //.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
-            //.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
+            }
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
@@ -235,14 +248,14 @@ namespace ConsoleApp1
             //var select = regt.Select(x => new { x.DisplayName, x.DisplayVersion });
             //var select = regt.Select(x => new AppData() { Name = x.DisplayName });
             //var select = regt.Select(x => new AppData(x.DisplayName));
-            var select = regt.Select(x => x).Select(x => new { x.DisplayName });
-            //var select = regt.Select(x=>x);
+            //var select = regt.Select(x => x).Select(x => new { x.DisplayName }).Select(x => x.DisplayName);
+            //var select = regt.Select(x => x);
             //var select = regt.Select(x=>x).Select(x => new { x.DisplayName}).Select(x=>new InstalledApp() { }).Where(x=>x.DisplayName=="");
             //var select = regt.Select((x, index) =>new { x, index });
-            foreach (var oo in select)
-            {
+            //foreach (var oo in select)
+            //{
 
-            }
+            //}
             //var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
             //foreach (var oo in zip)
             //{
@@ -250,21 +263,13 @@ namespace ConsoleApp1
             //}
 
 
-
-            //var regt = new RegQuery<InstalledApp>()
-            //    .useSetting(x =>
-            //    {
-            //        x.Hive = RegistryHive.LocalMachine;
-            //        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-            //        x.View = RegistryView.Registry64;
-            //    });
             //var update = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize==10)
             //    .Update(() => new InstalledApp()
             //    {
             //        EstimatedSize = 100,
             //        DisplayVersion = new Version("123.123.123.123")
             //    });
-            //var first1 = regt.First();
+            //var first1 = regt.Select(x=>x).First();
             //var first1 = regt.Select(x=>x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();

@@ -293,6 +293,16 @@ namespace QSoft.Registry.Linq
                     this.m_Parameters.Add(parameter.Name, parameter);
                 }
             }
+            else if(true)
+            {
+                var args = node.Type.GetGenericArguments();
+                args.Replace(this.m_DataType, typeof(RegistryKey));
+                var parameter = Expression.Parameter(typeof(IGrouping<, >).MakeGenericType(args), node.Name);
+                if(this.m_Parameters.ContainsKey(parameter.Name) == false)
+                {
+                    this.m_Parameters[parameter.Name]= parameter;
+                }
+            }
             else
             {
                 if (this.m_Parameters.Count ==0)
@@ -311,14 +321,26 @@ namespace QSoft.Registry.Linq
         List<Expression> m_Member2Regs = new List<Expression>();
         protected override Expression VisitMember(MemberExpression node)
         {
+            var ttyp = node.Expression.GetType();
             System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
             var expr = base.VisitMember(node);
             if (this.m_Parameters.Count > 0 && node.Expression.Type == this.m_DataType)
             {
-                var left_args_1 = Expression.Constant(node.Member.Name);
-                var left_args_0 = this.m_Parameters.ElementAt(0).Value;
+                Expression left_args_1 = Expression.Constant(node.Member.Name);
+                Expression left_args_0 = this.m_Parameters.ElementAt(0).Value;
+                if(this.m_Member2Regs.Count > 0)
+                {
+                    left_args_0 = this.m_Member2Regs[0];
+                    this.m_Member2Regs.Clear();
+                }
                 var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod==true);
                 this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
+            }
+            else if (this.m_Parameters.Count > 0)
+            {
+                var mes = typeof(IGrouping<RegistryKey, RegistryKey>).GetMember("Key");
+                var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes.ElementAt(0));
+                this.m_Member2Regs.Add(mm);
             }
             else
             {
@@ -326,6 +348,8 @@ namespace QSoft.Registry.Linq
             }
             return expr;
         }
+
+        
         
         UnaryExpression m_Unary = null;
         protected override Expression VisitUnary(UnaryExpression node)
@@ -399,7 +423,7 @@ namespace QSoft.Registry.Linq
                         var temp = this.m_ParamList.ToList();
                         temp.Reverse();
                         this.m_ParamList.Clear();
-                        this.m_ParamList.Push(Tuple.Create<Type, Expression>(this.m_DataType, this.ToSelectData()));
+                        //this.m_ParamList.Push(Tuple.Create<Type, Expression>(this.m_DataType, this.ToSelectData()));
                         foreach (var oo in temp)
                         {
                             this.m_ParamList.Push(oo);
@@ -470,7 +494,10 @@ namespace QSoft.Registry.Linq
                     else
                     {
                         var param = this.m_ParamList.Select(x => x.Item2).Take(methods.ElementAt(0).GetParameters().Length);
-                        this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
+                        var ggg = methods.ElementAt(0).GetGenericArguments();
+                        var ggg2 = expr.Method.GetGenericArguments();
+                        //this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
+                        this.m_MethodCall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(tts1), param);
                     }
                 }
                 else

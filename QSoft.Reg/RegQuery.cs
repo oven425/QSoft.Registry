@@ -140,4 +140,21 @@ namespace QSoft.Registry.Linq
             return source.Count();
         }
     }
+
+    public static class AA
+    {
+        static public int Replace(this Type[] datas, Type src, Type dst)
+        {
+            int count = 0;
+            for(int i=0; i< datas.Length; i++)
+            {
+                if(datas[i] == src)
+                {
+                    datas[i] = dst;
+                }
+            }
+
+            return count;
+        }
+    }
 }

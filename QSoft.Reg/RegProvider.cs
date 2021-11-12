@@ -49,7 +49,6 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-
                 var expr = expression;
                 bool bb = typeof(IQueryable<RegistryKey>) == this.m_RegMethod.Type;
                 if (bb == false)
@@ -93,7 +92,11 @@ namespace QSoft.Registry.Linq
                     var ooi = methods.ElementAt(0).MakeGenericMethod(pps);
                     var ppps = method1.Method.GetGenericMethodDefinition().GetParameters();
                     ooi = method1.Method.GetGenericMethodDefinition().MakeGenericMethod(pps);
-                    this.m_RegMethod = Expression.Call(ooi, this.m_RegMethod, expr);
+                    if(this.m_RegMethod.Type != ooi.ReturnType)
+                    {
+                        this.m_RegMethod = Expression.Call(ooi, this.m_RegMethod, expr);
+                    }
+                    
                 }
                 else
                 {
@@ -233,7 +236,12 @@ namespace QSoft.Registry.Linq
                         }
                         type3[2] = this.m_DataType;
                         var oo = methods.ElementAt(0).MakeGenericMethod(type3);
-                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], this.ToSelectData(), this.ToSelectData());
+                        Expression arg2 = updatemethod.Arguments[1];
+                        if(type3[1] == this.m_DataType)
+                        {
+                            arg2 = this.ToSelectData();
+                        }
+                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, this.ToSelectData());
 
                     }
                 }

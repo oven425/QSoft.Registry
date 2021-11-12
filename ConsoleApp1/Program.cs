@@ -69,8 +69,8 @@ namespace ConsoleApp1
             //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
 
-            var rr = queryable.Select(x => x);
-            var groupp = queryable.GroupBy(x => x);
+            var rr = queryable.GroupBy(x => x).Select(x => x);
+            var groupp = queryable.GroupBy(x => x, x=>new InstalledApp());
             foreach(var gr in groupp)
             {
                 
@@ -229,9 +229,13 @@ namespace ConsoleApp1
 
 
             //var groupby = regt.GroupBy(x => x);
+            //var groupby = regt.GroupBy(x => x.EstimatedSize);
+            //var groupby = regt.GroupBy(x => x.DisplayVersion);
+            //var groupby = regt.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
+            //var groupby = regt.GroupBy(x => x).Select(x => x);
             var groupby = regt.GroupBy(x => x).Select(x => x.Key);
             ////.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-            ////.GroupBy(x => x.EstimatedSize);
+
             ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
             foreach (var oo in groupby)

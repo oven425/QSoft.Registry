@@ -208,6 +208,7 @@ namespace QSoft.Registry.Linq
         }
 
         LambdaExpression m_Lambda = null;
+        Type igroup1 = typeof(IGrouping<,>).MakeGenericType(typeof(RegistryKey), typeof(RegistryKey));
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
@@ -248,7 +249,7 @@ namespace QSoft.Registry.Linq
                 m_Lambda = Expression.Lambda(this.m_MemberInit, this.m_Parameters.Values);
                 this.m_MemberInit = null;
             }
-            else if (this.m_Parameters.Count > 0 && this.m_Parameters.Values.Any(x=>x.Type == typeof(RegistryKey)))
+            else if (this.m_Parameters.Count > 0 && this.m_Parameters.Values.Any(x => x.Type == typeof(RegistryKey) || x.Type == igroup1))
             {
                 if(lambda.ReturnType == this.m_DataType)
                 {
@@ -293,7 +294,7 @@ namespace QSoft.Registry.Linq
                     this.m_Parameters.Add(parameter.Name, parameter);
                 }
             }
-            else if(true)
+            else if(node.Type.Name.Contains("IGrouping"))
             {
                 var args = node.Type.GetGenericArguments();
                 args.Replace(this.m_DataType, typeof(RegistryKey));
@@ -319,6 +320,7 @@ namespace QSoft.Registry.Linq
         }
 
         List<Expression> m_Member2Regs = new List<Expression>();
+        List<Expression> m_InnerMember2Regs = new List<Expression>();
         protected override Expression VisitMember(MemberExpression node)
         {
             var ttyp = node.Expression.GetType();
@@ -328,11 +330,11 @@ namespace QSoft.Registry.Linq
             {
                 Expression left_args_1 = Expression.Constant(node.Member.Name);
                 Expression left_args_0 = this.m_Parameters.ElementAt(0).Value;
-                if(this.m_Member2Regs.Count > 0)
-                {
-                    left_args_0 = this.m_Member2Regs[0];
-                    this.m_Member2Regs.Clear();
-                }
+                //if(this.m_Member2Regs.Count > 0)
+                //{
+                //    left_args_0 = this.m_Member2Regs[0];
+                //    this.m_Member2Regs.Clear();
+                //}
                 var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod==true);
                 this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
             }

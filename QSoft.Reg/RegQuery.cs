@@ -24,6 +24,12 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
+        public RegQuery(RegProvider provider, Expression expression)
+        {
+            this.Provider = provider;
+            this.Expression = expression;
+        }
+
         public RegQuery(RegProvider provider, Expression expression, bool isfirst, Expression regsource)
         {
             this.Provider = provider;

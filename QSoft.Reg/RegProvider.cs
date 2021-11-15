@@ -105,13 +105,13 @@ namespace QSoft.Registry.Linq
                
                 expr = null;
             }
-               
 
 
 
 
 
 
+            //hr = new RegQuery<TElement>(this, this.m_RegMethod);
             this.m_IsFirst = false;
             return hr;
             //return new RegQuery<TElement>(this, expression);
@@ -279,14 +279,39 @@ namespace QSoft.Registry.Linq
             else
             {
                 object inst = null;
-                RegExpressionVisitor regvisitor = new RegExpressionVisitor();
                 Expression expr = expression;
-                updatemethod = expr as MethodCallExpression;
-                var opop = updatemethod.Arguments[0].Type;
-                if(opop.Name.Contains("RegQuery`1") == true)
+                if (this.m_RegMethod == null)
                 {
-                    expr = regvisitor.Visit(expression, this.m_DataType, null, this.m_RegSource);
+                    updatemethod = expression as MethodCallExpression;
+                    var opop = updatemethod.Arguments[0].Type;
+                    if (opop.Name.Contains("RegQuery`1") == true)
+                    {
+                        RegExpressionVisitor regvisitor = new RegExpressionVisitor();
+                        expr = regvisitor.Visit(expression, this.m_DataType, null, this.m_RegSource);
+                    }
                 }
+                else
+                {
+                    Expression arg1 = null;
+                    updatemethod = expr as MethodCallExpression;
+                    if (updatemethod.Arguments.Count > 1)
+                    {
+                        RegExpressionVisitor regvisitor = new RegExpressionVisitor();
+                        arg1 = regvisitor.Visit(updatemethod.Arguments[1], this.m_DataType, null, this.m_RegSource);
+                    }
+
+                    var mmethod = updatemethod.Method.GetGenericMethodDefinition().MakeGenericMethod(typeof(RegistryKey));
+                    expr = MethodCallExpression.Call(mmethod, this.m_RegMethod, arg1);
+                    //var opop = updatemethod.Arguments[0].Type;
+                    //if (opop.Name.Contains("RegQuery`1") == true)
+                    //{
+                    //    expr = regvisitor.Visit(expression, this.m_DataType, null, this.m_RegSource);
+                    //}
+                }
+                
+                
+
+               
 
                 object excute = null;
 

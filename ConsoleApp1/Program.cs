@@ -185,8 +185,13 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
 
-            //var take = regt.Take(100);
-            //foreach (var oo in take)
+            //var take1 = regt.Take(1);
+            //foreach (var oo in take1)
+            //{
+
+            //}
+            //var take2 = regt.Take(2);
+            //foreach (var oo in take2)
             //{
 
             //}
@@ -233,15 +238,15 @@ namespace ConsoleApp1
             //var groupby = regt.GroupBy(x => x.DisplayVersion);
             //var groupby = regt.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             //var groupby = regt.GroupBy(x => x).Select(x => x);
-            var groupby = regt.GroupBy(x => x).Select(x => x.Key);
-            ////.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
+            //var groupby = regt.GroupBy(x => x).Select(x => x);
+            //var groupby = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
 
-            ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
-            ////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
-            foreach (var oo in groupby)
-            {
+            //////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
+            //////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
+            //foreach (var oo in groupby)
+            //{
 
-            }
+            //}
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
@@ -273,8 +278,10 @@ namespace ConsoleApp1
             //        EstimatedSize = 100,
             //        DisplayVersion = new Version("123.123.123.123")
             //    });
-            //var first1 = regt.Select(x=>x).First();
-            //var first1 = regt.Select(x=>x).First();
+            var first1 = regt.First();
+            var first2 = regt.First(x => x.DisplayName == "BB");
+            //var first3 = regt.Select(x => x).First(x=>x.DisplayName=="AA");
+            //var first4 = regt.Select(x => x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
             //var last1 = regt.Last();
             //var last2 = regt.Last(x => x.DisplayName != "");

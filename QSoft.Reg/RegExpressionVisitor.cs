@@ -32,7 +32,10 @@ namespace QSoft.Registry.Linq
                 {
                     expr = this.m_Unary;
                 }
-                
+                else if(this.m_Lambda != null)
+                {
+                    expr = this.m_Lambda;
+                }
             }
 #if CreateQuery
             //var methodcall = expr as MethodCallExpression;
@@ -143,7 +146,10 @@ namespace QSoft.Registry.Linq
                 }
                 m_NewExpression = Expression.New(node.Constructor, args, expr.Members);
             }
-
+            else if(expr.Arguments.Count == 0)
+            {
+                m_NewExpression = Expression.New(expr.Constructor);
+            }
             return expr;
         }
 
@@ -159,11 +165,23 @@ namespace QSoft.Registry.Linq
             if(this.m_Binarys.Count > 0)
             {
                 List<MemberBinding> bindings = new List<MemberBinding>();
-                var zip = this.m_Binarys.Zip(node.Bindings, (member, binding) => new { member, binding });
-                foreach (var oo in zip)
+                //var zip = this.m_Binarys.Zip(node.Bindings, (member, binding) => new { member, binding });
+                //foreach (var oo in zip)
+                //{
+                //    var binding = Expression.Bind(oo.binding.Member, oo.member);
+                //    bindings.Add(binding);
+                //}
+                for(int i=0; i<node.Bindings.Count; i++)
                 {
-                    var binding = Expression.Bind(oo.binding.Member, oo.member);
-                    bindings.Add(binding);
+                    if(this.m_Binarys.Count >i)
+                    {
+                        var binding = Expression.Bind(node.Bindings[i].Member, this.m_Binarys[i]);
+                        bindings.Add(binding);
+                    }
+                    else
+                    {
+                        bindings.Add(node.Bindings[i]);
+                    }
                 }
                 if (this.m_NewExpression != null)
                 {
@@ -197,7 +215,7 @@ namespace QSoft.Registry.Linq
                 
                 this.m_Member2Regs.Clear();
             }
-            this.m_ParamList.Clear();
+            //this.m_ParamList.Clear();
             return expr;
         }
 
@@ -261,7 +279,8 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        m_Lambda = Expression.Lambda(this.m_Parameters[pp.Name], this.m_Parameters.Values.Reverse());
+
+                        m_Lambda = Expression.Lambda(this.m_Parameters[pp.Name], this.m_Parameters.Values);
                     }
                 }
                 else if(lambda.Body is ParameterExpression)
@@ -341,7 +360,9 @@ namespace QSoft.Registry.Linq
             else if (this.m_Parameters.Count > 0)
             {
                 var mes = typeof(IGrouping<RegistryKey, RegistryKey>).GetMember("Key");
-                var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes.ElementAt(0));
+                
+                //var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes.ElementAt(0));
+                var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, node.Member);
                 this.m_Member2Regs.Add(mm);
             }
             else
@@ -454,6 +475,11 @@ namespace QSoft.Registry.Linq
                     }
                     tts1 = node.Method.GetGenericArguments();
                     tts1[0] = typeof(RegistryKey);
+                    if(tts1[3] == this.m_DataType)
+                    {
+                        tts1[3] = typeof(RegistryKey);
+                    }
+                    
                     this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
                 }
                 else if (expr.Method.Name.Contains("Update"))
@@ -499,7 +525,7 @@ namespace QSoft.Registry.Linq
                         var ggg = methods.ElementAt(0).GetGenericArguments();
                         var ggg2 = expr.Method.GetGenericArguments();
                         //this.m_MethodCall = Expression.Call(methods.ElementAt(0).MakeGenericMethod(tts1), param);
-                        this.m_MethodCall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(tts1), param);
+                        this.m_MethodCall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(tts1), m_ParamList.Select(x=>x.Item2));
                     }
                 }
                 else

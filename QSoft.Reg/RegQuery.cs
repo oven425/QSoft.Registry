@@ -99,7 +99,7 @@ namespace QSoft.Registry.Linq
 
     public static class RegQueryEx
     {
-        public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TResult>> selector)
+        public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource,TResult>> selector)
         {
 
             var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
@@ -108,40 +108,57 @@ namespace QSoft.Registry.Linq
 
             Expression methdodcall = null;
             var yutu = source.Expression as MethodCallExpression;
-            if(yutu.Method.ReturnType != typeof(IQueryable<RegistryKey>))
-            {
-                methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(RegistryKey), typeof(TResult)), yutu.Arguments[0], selector);
-            }
+            //if(yutu.Method.ReturnType != typeof(IQueryable<RegistryKey>))
+            //{
+            //    methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(RegistryKey), typeof(TResult)), yutu.Arguments[0], selector);
+            //}
             //else
             //{
             //    methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
             //}
 
-            //var methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
+            methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
             return source.Provider.Execute<int>(methdodcall);
         }
 
-        public static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TResult> data)
+        public static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> data)
         {
             var regs = source as IEnumerable<RegistryKey>;
-            var obj = data();
-            var pps = obj.GetType().GetProperties().Where(x => x.CanWrite == true);
-            Dictionary<string, object> values = new Dictionary<string, object>();
-            foreach (var pp in pps)
+            var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true);
+            foreach (var oo in source)
             {
-                var vv = pp.GetValue(obj);
-                if(vv != null)
+                RegistryKey reg = oo as RegistryKey;
+                var obj = data(oo);
+                foreach(var pp in pps)
                 {
-                    values[pp.Name] = vv;
+                    object vv = pp.GetValue(obj);
+                    if(vv != null)
+                    {
+                        reg.SetValue(pp.Name, vv);
+                    }
                 }
             }
-            foreach(var reg in regs)
-            {
-                foreach (var value in values)
-                {
-                    reg.SetValue(value.Key, value.Value);
-                }
-            }
+
+            //var regs = source as IEnumerable<RegistryKey>;
+            
+            //var obj = data();
+            //var pps = obj.GetType().GetProperties().Where(x => x.CanWrite == true);
+            //Dictionary<string, object> values = new Dictionary<string, object>();
+            //foreach (var pp in pps)
+            //{
+            //    var vv = pp.GetValue(obj);
+            //    if(vv != null)
+            //    {
+            //        values[pp.Name] = vv;
+            //    }
+            //}
+            //foreach(var reg in regs)
+            //{
+            //    foreach (var value in values)
+            //    {
+            //        reg.SetValue(value.Key, value.Value);
+            //    }
+            //}
             
             return source.Count();
         }

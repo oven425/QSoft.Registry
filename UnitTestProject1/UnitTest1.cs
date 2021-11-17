@@ -82,6 +82,54 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void GroupBy()
+        {
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
+            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
+        }
+
+        void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
+        {
+            if (src.Count() != dst.Count())
+            {
+                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+            }
+
+            for (int i = 0; i < src.Count(); i++)
+            {
+                dynamic key_src = src.ElementAt(i).Key;
+                dynamic key_dst = dst.ElementAt(i).Key;
+                Assert.IsTrue(key_src == key_dst, $"Key fail src:{key_src} dst:{key_dst}");
+                int count_src = src.ElementAt(i).Count();
+                int count_dst = dst.ElementAt(i).Count();
+                Assert.IsTrue(count_src == count_dst, $"Count fail src:{count_src} dst:{count_dst}");
+                for (int j = 0; j < count_src; j++)
+                {
+                    this.Check(src.ElementAt(i).ElementAt(j), dst.ElementAt(i).ElementAt(j));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Take()
+        {
+            this.Check(this.m_Tests.Take(3), regt.Take(3));
+            this.Check(this.m_Tests.Take(100), regt.Take(100));
+        }
+
+        [TestMethod]
+        public void TakeWhile()
+        {
+            this.Check(this.m_Tests.TakeWhile(x=>x.DisplayName=="AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
+        }
+
+        [TestMethod]
+        public void Skip()
+        {
+            this.Check(this.m_Tests.Skip(3), regt.Skip(3));
+        }
+
+        [TestMethod]
         public void Where()
         {
             this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")), regt.Where(x => x.DisplayName.Contains("AA")));
@@ -93,12 +141,16 @@ namespace UnitTestProject1
         [TestMethod]
         public void Join()
         {
-            var join = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (test, app) => new { test, app }).Where(x=>x.app.Name != null);
-            foreach(var oo in join)
-            {
-                Assert.IsTrue(oo.app.Name == oo.test.DisplayName);
-            }
-            
+            var join1 = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (test, app) => test);            
+        }
+
+        [TestMethod]
+        public void Update()
+        {
+            int update_count = regt.Update(x => new InstallApp() {EstimatedSize = x.EstimatedSize+100 });
+            var count1 = regt.Select(x => x.EstimatedSize);
+            var count2 = this.m_Tests.Select(x => x.EstimatedSize+100);
+            this.Check(count1, count2);
         }
 
         [TestMethod]
@@ -108,7 +160,18 @@ namespace UnitTestProject1
             this.Check(this.m_Tests, select);
         }
 
+        [TestMethod]
+        public void OrderBy()
+        {
+            var orderby = regt.OrderBy(x => x.EstimatedSize);
+            this.Check(this.m_Tests.OrderBy(x=>x.EstimatedSize), orderby);
+        }
 
+        [TestMethod]
+        public void OrderByDescending()
+        {
+            this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize), regt.OrderByDescending(x => x.EstimatedSize));
+        }
 
         [TestMethod]
         public void First()
@@ -138,6 +201,7 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.LastOrDefault(), regt.LastOrDefault());
             this.Check(this.m_Tests.LastOrDefault(x => x.DisplayName == "AA"), regt.LastOrDefault(x => x.DisplayName == "AA"));
             this.Check(this.m_Tests.LastOrDefault(x => x.DisplayName.Contains("AA")), regt.LastOrDefault(x => x.DisplayName.Contains("AA")));
+            this.Check(this.m_Tests.LastOrDefault(x => x.DisplayName.Contains("AA") == true), regt.LastOrDefault(x => x.DisplayName.Contains("AA") == true));
         }
 
         [TestMethod]
@@ -186,7 +250,9 @@ namespace UnitTestProject1
         }
 
 
-        void Check(IEnumerable<InstallApp> src, IEnumerable<InstallApp> dst)
+
+
+        void Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
         {
             if(src.Count() != dst.Count())
             {

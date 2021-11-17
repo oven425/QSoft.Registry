@@ -205,11 +205,11 @@ namespace ConsoleApp1
             //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
             //var oderby = regt.OrderBy(x => x.EstimatedSize);
 
-            var where = regt.Where(x => x.DisplayName != "").OrderByDescending(x => x.EstimatedSize);
-            foreach (var oo in where)
-            {
+            //var where = regt.Where(x => x.DisplayName != "").OrderByDescending(x => x.EstimatedSize);
+            //foreach (var oo in where)
+            //{
 
-            }
+            //}
             //where1 = regt.Where(x => x.DisplayName == "A").OrderBy(x=>x.DisplayVersion);
             //foreach (var oo in where1)
             //{
@@ -248,13 +248,13 @@ namespace ConsoleApp1
 
             //}
             //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
-            var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
+            //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
             //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => y);
             //var join3 = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData() { Name = x.DisplayName });
-            foreach (var oo in join)
-            {
+            //foreach (var oo in join)
+            //{
 
-            }
+            //}
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
             //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
 
@@ -288,15 +288,26 @@ namespace ConsoleApp1
             //var update2 = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize == 10)
             //    .Update(x => new InstalledApp()
             //    {
-            //        EstimatedSize = x.EstimatedSize+ 100,
+            //        EstimatedSize = x.EstimatedSize + 100,
             //        DisplayVersion = new Version("123.123.123.123")
             //    });
 
-            //var first1 = regt.First();
+            var update2 = regt.Update(x => new InstalledApp()
+            {
+                EstimatedSize = x.EstimatedSize + 100,
+                DisplayVersion = new Version("123.123.123.123")
+            });
+
+            var first1 = regt.First();
             //var first2 = regt.First(x => x.DisplayName == "BB");
-            //var first3 = regt.Select(x => x).First(x=>x.DisplayName=="AA");
+            //var first3 = regt.Select(x => x).First(x => x.DisplayName == "AA");
             //var first4 = regt.Select(x => x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
+            //var firstordefault1 = regt.FirstOrDefault();
+            //var firstordefault2 = regt.FirstOrDefault(x => x.DisplayName == "BB");
+            //var firstordefault3 = regt.FirstOrDefault(x => x.DisplayName.Contains("BB"));
+            //var firstordefault4 = regt.FirstOrDefault(x => x.DisplayName.Contains("BB")==true);
+            //var firstordefault5 = regt.FirstOrDefault(x => x.DisplayName.Contains("BB") == false);
             //var last1 = regt.Last();
             //var last2 = regt.Last(x => x.DisplayName != "");
 

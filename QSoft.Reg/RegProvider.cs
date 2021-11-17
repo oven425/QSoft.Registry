@@ -45,7 +45,7 @@ namespace QSoft.Registry.Linq
             MethodCallExpression method1 = expression as MethodCallExpression;
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
-                this.m_RegMethod = reg.Visit(expression, typeof(TElement), null, this.m_RegSource);
+                this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
             }
             else
             {
@@ -63,7 +63,7 @@ namespace QSoft.Registry.Linq
                 }
                 if (bb == true)
                 {
-                    expr = reg.Visit(method1.Arguments[1], this.m_DataType, null, this.m_RegSource);
+                    expr = reg.Visit(method1.Arguments[1], this.m_DataType, this.m_RegSource);
                     var methods = method1.Method.ReflectedType.GetMethods().Where(x => x.Name == method1.Method.Name);
 
                     methods = methods.Where(x => x.IsGenericMethod == method1.Method.IsGenericMethod);
@@ -209,7 +209,7 @@ namespace QSoft.Registry.Linq
 
             var updatemethod = this.m_RegMethod as MethodCallExpression;
 
-            this.m_IsWritable = updatemethod?.Method?.Name == "Update";
+            
 
             var type = typeof(TResult);
             Type[] tts = type.GetGenericArguments();
@@ -288,6 +288,7 @@ namespace QSoft.Registry.Linq
             }
             else
             {
+                this.m_IsWritable = (expression as MethodCallExpression)?.Method?.Name == "Update";
                 object inst = null;
                 Expression expr = expression;
                 if (this.m_RegMethod == null)
@@ -297,7 +298,7 @@ namespace QSoft.Registry.Linq
                     if (opop.Name.Contains("RegQuery`1") == true)
                     {
                         RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                        expr = regvisitor.Visit(expression, this.m_DataType, null, this.m_RegSource);
+                        expr = regvisitor.Visit(updatemethod, this.m_DataType, this.m_RegSource);
                     }
                 }
                 else
@@ -307,7 +308,7 @@ namespace QSoft.Registry.Linq
                     if (updatemethod.Arguments.Count > 1)
                     {
                         RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                        arg1 = regvisitor.Visit(updatemethod.Arguments[1], this.m_DataType, null, this.m_RegSource);
+                        arg1 = regvisitor.Visit(updatemethod.Arguments[1], this.m_DataType, this.m_RegSource);
                     }
                     var ggs = updatemethod.Method.GetGenericArguments();
                     ggs[0] = typeof(RegistryKey);

@@ -107,7 +107,7 @@ namespace QSoft.Registry.Linq
             var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
 
             Expression methdodcall = null;
-            var yutu = source.Expression as MethodCallExpression;
+            //var yutu = source.Expression as MethodCallExpression;
             //if(yutu.Method.ReturnType != typeof(IQueryable<RegistryKey>))
             //{
             //    methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(RegistryKey), typeof(TResult)), yutu.Arguments[0], selector);
@@ -138,40 +138,16 @@ namespace QSoft.Registry.Linq
                     }
                 }
             }
-
-            //var regs = source as IEnumerable<RegistryKey>;
-            
-            //var obj = data();
-            //var pps = obj.GetType().GetProperties().Where(x => x.CanWrite == true);
-            //Dictionary<string, object> values = new Dictionary<string, object>();
-            //foreach (var pp in pps)
-            //{
-            //    var vv = pp.GetValue(obj);
-            //    if(vv != null)
-            //    {
-            //        values[pp.Name] = vv;
-            //    }
-            //}
-            //foreach(var reg in regs)
-            //{
-            //    foreach (var value in values)
-            //    {
-            //        reg.SetValue(value.Key, value.Value);
-            //    }
-            //}
             
             return source.Count();
         }
-    }
 
-    public static class AA
-    {
         static public int Replace(this Type[] datas, Type src, Type dst)
         {
             int count = 0;
-            for(int i=0; i< datas.Length; i++)
+            for (int i = 0; i < datas.Length; i++)
             {
-                if(datas[i] == src)
+                if (datas[i] == src)
                 {
                     datas[i] = dst;
                 }

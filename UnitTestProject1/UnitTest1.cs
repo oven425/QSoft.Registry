@@ -13,6 +13,7 @@ namespace UnitTestProject1
         public string DisplayName { set; get; }
         public Version DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
+        public bool? IsOfficial { set; get; }
     }
 
     [TestClass]
@@ -22,12 +23,12 @@ namespace UnitTestProject1
         List<AppData> m_Apps = new List<AppData>();
         public LinqToRegistry()
         {
-            this.m_Tests.Add(new InstallApp() { DisplayName = "AA", DisplayVersion = new Version("1.1.1.1"), EstimatedSize = 10, Index = 0 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "BB", DisplayVersion = new Version("2.2.2.2"), EstimatedSize = 20, Index = 1 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "CC", DisplayVersion = new Version("3.3.3.3"), EstimatedSize = 30, Index = 2 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "DD", DisplayVersion = new Version("4.4.4.4"), EstimatedSize = 40, Index = 3 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "EE", DisplayVersion = new Version("5.5.5.5"), EstimatedSize = 50, Index = 4 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "FF", DisplayVersion = new Version("6.6.6.6"), EstimatedSize = 60, Index = 5 });
+            this.m_Tests.Add(new InstallApp() { DisplayName = "AA", DisplayVersion = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
+            this.m_Tests.Add(new InstallApp() { DisplayName = "BB", DisplayVersion = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
+            this.m_Tests.Add(new InstallApp() { DisplayName = "CC", DisplayVersion = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
+            this.m_Tests.Add(new InstallApp() { DisplayName = "DD", DisplayVersion = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
+            this.m_Tests.Add(new InstallApp() { DisplayName = "EE", DisplayVersion = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
+            this.m_Tests.Add(new InstallApp() { DisplayName = "FF", DisplayVersion = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
 
             m_Apps.Add(new AppData() { Name = "A", IsOfficial = true });
             m_Apps.Add(new AppData() { Name = "AA", IsOfficial = false });
@@ -45,7 +46,7 @@ namespace UnitTestProject1
                 x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
             });
         [TestCategory("Init")]
-        [TestMethod]
+        [TestMethod, Priority(1)]
         public void BuildMockup()
         {
             RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
@@ -124,18 +125,49 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void TakeWhile_Index()
+        {
+            this.Check(this.m_Tests.TakeWhile((x,index) => x.DisplayName == "AA"), regt.TakeWhile((x,index) => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.TakeWhile((x, index) => index==0), regt.TakeWhile((x, index) => index == 0));
+        }
+
+        [TestMethod]
         public void Skip()
         {
             this.Check(this.m_Tests.Skip(3), regt.Skip(3));
         }
 
         [TestMethod]
+        public void SkipWhile()
+        {
+            this.Check(this.m_Tests.SkipWhile(x=>x.EstimatedSize>20), regt.SkipWhile(x => x.EstimatedSize > 20));
+        }
+
+        [TestMethod]
+        public void SkipWhile_Index()
+        {
+            this.Check(this.m_Tests.SkipWhile((x,index) => x.EstimatedSize > 20), regt.SkipWhile((x,index) => x.EstimatedSize > 20));
+        }
+
+        [TestMethod]
         public void Where()
         {
+            this.Check(this.m_Tests.Where(x => x.DisplayName== "AA"), regt.Where(x => x.DisplayName == "AA"));
             this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")), regt.Where(x => x.DisplayName.Contains("AA")));
             this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")==true), regt.Where(x => x.DisplayName.Contains("AA")==true));
             this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)));
             this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)==true), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)==true));
+        }
+
+        [TestMethod]
+        public void Where_Index()
+        {
+            this.Check(this.m_Tests.Where((x, index) => index%2==0), regt.Where((x, index) => index % 2 == 0));
+            this.Check(this.m_Tests.Where((x, index) => x.DisplayName == "AA"), regt.Where((x, index) => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA")), regt.Where((x, index) => x.DisplayName.Contains("AA")));
+            this.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA") == true), regt.Where((x, index) => x.DisplayName.Contains("AA") == true));
+            this.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)));
+            this.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true));
         }
 
         [TestMethod]
@@ -144,13 +176,13 @@ namespace UnitTestProject1
             var join1 = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (test, app) => test);            
         }
 
-        [TestMethod]
+        [TestMethod, Priority(99)]
         public void Update()
         {
-            int update_count = regt.Update(x => new InstallApp() {EstimatedSize = x.EstimatedSize+100 });
-            var count1 = regt.Select(x => x.EstimatedSize);
-            var count2 = this.m_Tests.Select(x => x.EstimatedSize+100);
-            this.Check(count1, count2);
+            //int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
+            //var count1 = regt.Select(x => x.EstimatedSize);
+            //var count2 = this.m_Tests.Select(x => x.EstimatedSize + 100);
+            //this.Check(count1, count2);
         }
 
         [TestMethod]
@@ -158,6 +190,21 @@ namespace UnitTestProject1
         {
             var select = regt.Select(x=>x);
             this.Check(this.m_Tests, select);
+        }
+
+        [TestMethod]
+        public void Select_Index()
+        {
+            var select = regt.Select((x,index) => x);
+            this.Check(this.m_Tests, select);
+        }
+
+        [TestMethod]
+        public void Reverse()
+        {
+            List<InstallApp> reverse = new List<InstallApp>(this.m_Tests);
+            reverse.Reverse();
+            this.Check(reverse, regt.Reverse());
         }
 
         [TestMethod]
@@ -173,9 +220,11 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize), regt.OrderByDescending(x => x.EstimatedSize));
         }
 
-        [TestMethod]
+        [TestMethod, Priority(2)]
         public void First()
         {
+            var first1 = this.m_Tests.First();
+            var first2 = regt.First();
             this.Check(this.m_Tests.First(), regt.First());
             this.Check(this.m_Tests.First(x=>x.DisplayName=="AA"), regt.First(x=>x.DisplayName=="AA"));
         }
@@ -234,6 +283,7 @@ namespace UnitTestProject1
         public void Min()
         {
             Assert.IsTrue(this.m_Tests.Min(x => x.EstimatedSize) == regt.Min(x => x.EstimatedSize), "Min fail");
+            Assert.IsTrue(this.m_Tests.Select(x=>x.DisplayName.Length).Min() == regt.Select(x=>x.DisplayName.Length).Min(), "Min fail");
         }
 
         [TestMethod]

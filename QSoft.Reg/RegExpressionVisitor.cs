@@ -99,9 +99,30 @@ namespace QSoft.Registry.Linq
                 m_Binarys.Clear();
                 m_Binarys.Add(binary);
             }
+            //else if (this.m_Binarys.Count == 1)
+            //{
+            //    var binary = Expression.MakeBinary(node.NodeType, m_Binarys[0], this.m_ParamList.First().Item2);
+            //    this.m_Binarys.Clear();
+            //    this.m_ParamList.Clear();
+            //    this.m_Binarys.Add(binary);
+            //}
             else
             {
-                m_Binarys.Add(expr);
+                switch(expr.NodeType)
+                {
+                    case ExpressionType.Equal:
+                    case ExpressionType.GreaterThan:
+                    case ExpressionType.GreaterThanOrEqual:
+                    case ExpressionType.LessThan:
+                    case ExpressionType.LessThanOrEqual:
+                    case ExpressionType.NotEqual:
+                        {
+                            this.m_Binarys.Add(expr);
+                        }
+                        break;
+                }
+                
+                this.m_ParamList.Clear();
             }
 
             return expr;
@@ -147,6 +168,10 @@ namespace QSoft.Registry.Linq
             else if(expr.Arguments.Count == 0)
             {
                 m_NewExpression = Expression.New(expr.Constructor);
+            }
+            else
+            {
+                this.m_ParamList.Clear();
             }
             return expr;
         }
@@ -234,9 +259,26 @@ namespace QSoft.Registry.Linq
         Dictionary<string, MemberAssignment> m_MemberAssigns = new Dictionary<string, MemberAssignment>();
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
         {
-            //System.Diagnostics.Trace.WriteLine($"VisitMemberAssignment");
-            this.m_MemberAssigns[node.Member.Name] = node;
-            return base.VisitMemberAssignment(node);
+            System.Diagnostics.Trace.WriteLine($"VisitMemberAssignment {node.Member.Name}");
+            var expr = base.VisitMemberAssignment(node);
+            if(this.m_MethodCall_Member != null)
+            {
+                var binding = Expression.Bind(expr.Member, this.m_MethodCall_Member);
+                this.m_MemberAssigns[node.Member.Name] = binding;
+                this.m_MethodCall_Member = null;
+            }
+            else if(this.m_Binarys.Count > 0)
+            {
+                var binding = Expression.Bind(expr.Member, this.m_Binarys[0]);
+                this.m_MemberAssigns[node.Member.Name] = binding;
+                this.m_Binarys.Clear();
+            }
+            else
+            {
+                this.m_MemberAssigns[node.Member.Name] = node;
+            }
+            
+            return expr;
         }
 
         LambdaExpression m_Lambda = null;
@@ -248,8 +290,12 @@ namespace QSoft.Registry.Linq
 
             var lambda = expr as LambdaExpression;
             Type type = lambda.Body.GetType();
-
-            if(this.m_Binarys.Count > 0)
+            ParameterExpression[] parameters = new ParameterExpression[lambda.Parameters.Count];
+            for(int i=0; i<parameters.Length; i++)
+            {
+                parameters[i] = this.m_Parameters[lambda.Parameters[i].Name];
+            }
+            if (this.m_Binarys.Count > 0)
             {
                 if(this.m_Parameters.Count == 0)
                 {
@@ -257,7 +303,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    m_Lambda = Expression.Lambda(this.m_Binarys[0], this.m_Parameters.Values);
+                    m_Lambda = Expression.Lambda(this.m_Binarys[0], parameters);
                 }
             }
             else if(m_Member2Regs.Count>0)
@@ -370,6 +416,12 @@ namespace QSoft.Registry.Linq
                 //}
                 var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod==true);
                 this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
+            }
+            else if(this.m_Member2Regs.Count > 0)
+            {
+                var mm = Expression.MakeMemberAccess(this.m_Member2Regs[0], node.Member);
+                this.m_Member2Regs.Clear();
+                this.m_Member2Regs.Add(mm);
             }
             else if (this.m_Parameters.Count > 0)
             {
@@ -570,7 +622,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    this.m_MethodCall_Member = Expression.Call(m_Member2Regs[0], node.Method, this.m_ConstantExpression_Value);
+                    this.m_MethodCall_Member = Expression.Call(m_Member2Regs[0], node.Method, this.m_ParamList.Select(x => x.Item2));
                 }
                 this.m_ParamList.Clear();
                 m_Member2Regs.Clear();

@@ -51,6 +51,10 @@ namespace QSoft.Registry.Linq
             {
                 var expr = expression;
                 bool bb = typeof(IQueryable<RegistryKey>) == this.m_RegMethod.Type;
+                if(bb == false)
+                {
+                    bb = typeof(IOrderedQueryable<RegistryKey>) == this.m_RegMethod.Type;
+                }
                 if (bb == false)
                 {
                     var aaaa = this.m_RegMethod.Type.GetGenericArguments();
@@ -257,31 +261,6 @@ namespace QSoft.Registry.Linq
                 }
 
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
-                //var tts1 = new Type[tts.Length];
-                //for (int i = 0; i < tts.Length; i++)
-                //{
-                //    if (tts[i] == this.m_DataType)
-                //    {
-                //        tts1[i] = typeof(RegistryKey);
-                //    }
-                //    else if (tts[i].GenericTypeArguments.Length > 1)
-                //    {
-                //        if (tts[i].Name.Contains("IGrouping"))
-                //        {
-                //            tts1[i] = typeof(IGrouping<,>).MakeGenericType(tts[i].GenericTypeArguments[0], typeof(RegistryKey));
-
-                //        }
-                //        else if (tts[i].Name.Contains("AnonymousType"))
-                //        {
-                //            tts1[i] = tts[i];
-                //        }
-                //    }
-                //    else
-                //    {
-                //        tts1[i] = tts[i];
-                //    }
-                //}
-                //tts1[0] = tts[0];
                 var creatquery = creatquerys.First().MakeGenericMethod(tts);
                 var excute = creatquery.Invoke(tte.Provider, new object[] { updatemethod });
                 return_hr = (TResult)excute;
@@ -305,20 +284,24 @@ namespace QSoft.Registry.Linq
                 {
                     Expression arg1 = null;
                     updatemethod = expr as MethodCallExpression;
-                    if (updatemethod.Arguments.Count > 1)
+                    List<Expression> args = new List<Expression>();
+                    args.Add(this.m_RegMethod);
+                    for (int i=1; i< updatemethod.Arguments.Count; i++)
                     {
                         RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                        arg1 = regvisitor.Visit(updatemethod.Arguments[1], this.m_DataType, this.m_RegSource);
+                        arg1 = regvisitor.Visit(updatemethod.Arguments[i], this.m_DataType, this.m_RegSource);
+                        args.Add(arg1);
                     }
+
                     var ggs = updatemethod.Method.GetGenericArguments();
-                    ggs[0] = typeof(RegistryKey);
+                    if(ggs[0] == this.m_DataType)
+                    {
+                        ggs[0] = typeof(RegistryKey);
+                    }
+                    
                     var mmethod = updatemethod.Method.GetGenericMethodDefinition().MakeGenericMethod(ggs);
-                    expr = MethodCallExpression.Call(mmethod, this.m_RegMethod, arg1);
-                    //var opop = updatemethod.Arguments[0].Type;
-                    //if (opop.Name.Contains("RegQuery`1") == true)
-                    //{
-                    //    expr = regvisitor.Visit(expression, this.m_DataType, null, this.m_RegSource);
-                    //}
+                    expr = MethodCallExpression.Call(mmethod, args);
+
                 }
                 
                 

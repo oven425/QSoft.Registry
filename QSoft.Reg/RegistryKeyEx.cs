@@ -11,7 +11,9 @@ namespace QSoft.Registry
         public static T GetValue<T>(this RegistryKey src, string name)
         {
             T t = default(T);
-            TypeCode typecode = Type.GetTypeCode(typeof(T));
+            Type type = typeof(T);
+           
+            TypeCode typecode = Type.GetTypeCode(type);
 
             if (typecode == TypeCode.String)
             {
@@ -26,7 +28,6 @@ namespace QSoft.Registry
             else if(typecode == TypeCode.Object && typeof(T) == typeof(Version))
             {
                 var obj = src.GetValue(name);
-                //var ver = Version.Parse(obj as string);
                 Version ver = null;
                 Version.TryParse(obj as string, out ver);
                 t = (T)Convert.ChangeType(ver, typeof(T));
@@ -34,7 +35,104 @@ namespace QSoft.Registry
             else
             {
                 object obj = src.GetValue(name);
-                t = (T)obj;
+                if(obj is string)
+                {
+                    if(typecode == TypeCode.Object)
+                    {
+                        if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        {
+                            var typecode_null = Type.GetTypeCode(type.GetGenericArguments().FirstOrDefault());
+                            object obj_null = null;
+                            switch (typecode_null)
+                            {
+                                case TypeCode.Boolean:
+                                    {
+                                        obj_null = Convert.ToBoolean(obj);
+                                    }
+                                    break;
+                                case TypeCode.Byte:
+                                    {
+                                        obj_null = Convert.ToByte(obj);
+                                    }
+                                    break;
+                                case TypeCode.Char:
+                                    {
+                                        obj_null = Convert.ToChar(obj);
+                                    }
+                                    break;
+                                case TypeCode.DateTime:
+                                    {
+                                        obj_null = Convert.ToDateTime(obj);
+                                    }
+                                    break;
+                                case TypeCode.Decimal:
+                                    {
+                                        obj_null = Convert.ToDecimal(obj);
+                                    }
+                                    break;
+                                case TypeCode.Double:
+                                    {
+                                        obj_null = Convert.ToDouble(obj);
+                                    }
+                                    break;
+                                case TypeCode.Int16:
+                                    {
+                                        obj_null = Convert.ToInt16(obj);
+                                    }
+                                    break;
+                                case TypeCode.Int32:
+                                    {
+                                        obj_null = Convert.ToInt32(obj);
+                                    }
+                                    break;
+                                case TypeCode.Int64:
+                                    {
+                                        obj_null = Convert.ToInt64(obj);
+                                    }
+                                    break;
+                                case TypeCode.SByte:
+                                    {
+                                        obj_null = Convert.ToSByte(obj);
+                                    }
+                                    break;
+                                case TypeCode.Single:
+                                    {
+                                        obj_null = Convert.ToSingle(obj);
+                                    }
+                                    break;
+                                case TypeCode.String:
+                                    {
+                                        obj_null = obj;
+                                    }
+                                    break;
+                                case TypeCode.UInt16:
+                                    {
+                                        obj_null = Convert.ToUInt16(obj);
+                                    }
+                                    break;
+                                case TypeCode.UInt32:
+                                    {
+                                        obj_null = Convert.ToUInt32(obj);
+                                    }
+                                    break;
+                                case TypeCode.UInt64:
+                                    {
+                                        obj_null = Convert.ToUInt64(obj);
+                                    }
+                                    break;
+                            }
+                            t = (T)obj_null;
+                        }
+                    }
+                    else
+                    {
+                        t = (T)Convert.ChangeType(obj, typeof(T));
+                    }
+                }
+                else
+                {
+                    t = (T)obj;
+                }
             }
             return t;
         }

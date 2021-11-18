@@ -19,14 +19,12 @@ namespace ConsoleApp1
         public string DisplayName { set; get; }
         public Version DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
+        public bool? IsOfficial { set; get; }
         public InstalledApp()
         {
             //DisplayName = "AA";
         }
-        public string A()
-        {
-            return this.DisplayName;
-        }
+
 
         public override string ToString()
         {
@@ -185,6 +183,7 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
 
+
             //var take1 = regt.Take(1).Select(x => new InstalledApp()).Where(x => x.DisplayName != "");
             //foreach (var oo in take1)
             //{
@@ -206,6 +205,10 @@ namespace ConsoleApp1
             //var oderby = regt.OrderBy(x => x.EstimatedSize);
 
             //var where = regt.Where(x => x.DisplayName != "").OrderByDescending(x => x.EstimatedSize);
+            //var where = regt.OrderBy(x=>x.EstimatedSize).Where((x, index) => index%2==0);
+            //var where = regt.Where((x, index) => x.DisplayName == "AA");
+            //var where = regt.Where((x, index) => index % 2 == 0);
+            //var where = regt.Where((x, index) => x.DisplayName == "AA" && index % 2 == 0);
             //foreach (var oo in where)
             //{
 
@@ -292,14 +295,15 @@ namespace ConsoleApp1
             //        DisplayVersion = new Version("123.123.123.123")
             //    });
 
-            var update2 = regt.Update(x => new InstalledApp()
-            {
-                EstimatedSize = x.EstimatedSize + 100,
-                DisplayVersion = new Version("123.123.123.123")
-            });
-
+            //var update3 = regt.Update(x => new InstalledApp()
+            //{
+            //    EstimatedSize = x.EstimatedSize + 100,
+            //    DisplayVersion = new Version("123.123.123.123"),
+            //    DisplayName = x.DisplayVersion.ToString()
+            //});
+            var min = regt.Select(x => x.DisplayName.Length).Min();
             var first1 = regt.First();
-            //var first2 = regt.First(x => x.DisplayName == "BB");
+            var first2 = regt.First(x => x.DisplayName == "BB");
             //var first3 = regt.Select(x => x).First(x => x.DisplayName == "AA");
             //var first4 = regt.Select(x => x).First();
             //var first2 = regt.First(x => x.DisplayName != "");

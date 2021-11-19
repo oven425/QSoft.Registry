@@ -23,22 +23,25 @@ namespace UnitTestProject1
         List<AppData> m_Apps = new List<AppData>();
         public LinqToRegistry()
         {
-            this.m_Tests.Add(new InstallApp() { DisplayName = "AA", DisplayVersion = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "BB", DisplayVersion = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "CC", DisplayVersion = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "DD", DisplayVersion = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "EE", DisplayVersion = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
-            this.m_Tests.Add(new InstallApp() { DisplayName = "FF", DisplayVersion = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
+            this.m_Tests = this.InstallApp_org();
 
             m_Apps.Add(new AppData() { Name = "A", IsOfficial = true });
             m_Apps.Add(new AppData() { Name = "AA", IsOfficial = false });
-            //m_Apps.Add(new App() { Name = "B", Offical = true });
-            //m_Apps.Add(new App() { Name = "BB", Offical = false });
-            //m_Apps.Add(new App() { Name = "C", Offical = true });
-            //m_Apps.Add(new App() { Name = "CC", Offical = false });
-            //m_Apps.Add(new App() { Name = "D", Offical = true });
-            //m_Apps.Add(new App() { Name = "DD", Offical = false });
         }
+
+        List<InstallApp> InstallApp_org()
+        {
+            List<InstallApp> datas = new List<InstallApp>();
+            datas.Add(new InstallApp() { DisplayName = "AA", DisplayVersion = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
+            datas.Add(new InstallApp() { DisplayName = "BB", DisplayVersion = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
+            datas.Add(new InstallApp() { DisplayName = "CC", DisplayVersion = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
+            datas.Add(new InstallApp() { DisplayName = "DD", DisplayVersion = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
+            datas.Add(new InstallApp() { DisplayName = "EE", DisplayVersion = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
+            datas.Add(new InstallApp() { DisplayName = "FF", DisplayVersion = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
+
+            return datas;
+        }
+
         IQueryable<InstallApp> regt = new RegQuery<InstallApp>()
             .useSetting(x =>
             {
@@ -46,7 +49,7 @@ namespace UnitTestProject1
                 x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
             });
         [TestCategory("Init")]
-        [TestMethod, Priority(1)]
+        [TestMethod]
         public void BuildMockup()
         {
             RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
@@ -86,8 +89,16 @@ namespace UnitTestProject1
         public void GroupBy()
         {
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
-            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
-        }
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayVersion), regt.GroupBy(x => x.DisplayVersion));
+            this.Check(this.m_Tests.GroupBy(x => x.IsOfficial), regt.GroupBy(x => x.IsOfficial));
+            this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
+            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
+            this.Check(this.m_Tests.GroupBy(x=>x), regt.GroupBy(x => x));
+            this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x), regt.GroupBy(x => x).Select(x => x));
+            this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
+        }        
 
         void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
         {
@@ -100,7 +111,8 @@ namespace UnitTestProject1
             {
                 dynamic key_src = src.ElementAt(i).Key;
                 dynamic key_dst = dst.ElementAt(i).Key;
-                Assert.IsTrue(key_src == key_dst, $"Key fail src:{key_src} dst:{key_dst}");
+                Check(key_src, key_dst);
+                
                 int count_src = src.ElementAt(i).Count();
                 int count_dst = dst.ElementAt(i).Count();
                 Assert.IsTrue(count_src == count_dst, $"Count fail src:{count_src} dst:{count_dst}");
@@ -172,31 +184,39 @@ namespace UnitTestProject1
 
         [TestMethod]
         public void Join()
+
         {
-            var join1 = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (test, app) => test);            
+            var j1 = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install);
+            var j2 = this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install);
+            this.Check(this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install), regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install));
         }
 
-        [TestMethod, Priority(99)]
-        public void Update()
-        {
-            //int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
-            //var count1 = regt.Select(x => x.EstimatedSize);
-            //var count2 = this.m_Tests.Select(x => x.EstimatedSize + 100);
-            //this.Check(count1, count2);
-        }
+        //[TestMethod]
+        //public void GroupJoin()
+        //{
+        //    //this.Check(this.m_Apps.GroupJoin(regt, x => x.Name, y => y.DisplayName, (test, install) => install), regt.GroupJoin(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install));
+        //}
 
         [TestMethod]
         public void Select()
         {
-            var select = regt.Select(x=>x);
-            this.Check(this.m_Tests, select);
+            this.Check(this.m_Tests.Select(x => x), regt.Select(x => x));
+            this.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
+            this.Check(this.m_Tests.Select(x => x.DisplayVersion), regt.Select(x => x.DisplayVersion));
+            this.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
+            this.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
+            this.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
+            this.Check(this.m_Tests.Select(x => new { Version = x.DisplayVersion }), regt.Select(x => new { Version = x.DisplayVersion }));
+            this.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
+            this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
         }
 
         [TestMethod]
         public void Select_Index()
         {
             var select = regt.Select((x,index) => x);
-            this.Check(this.m_Tests, select);
+            this.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
+            //this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }
 
         [TestMethod]
@@ -220,7 +240,35 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize), regt.OrderByDescending(x => x.EstimatedSize));
         }
 
-        [TestMethod, Priority(2)]
+        [TestMethod]
+        public void Zip()
+        {
+            //var zip = regt.Zip(apps, (reg, app) => new { reg, app });
+            //var zip = regt.Zip(apps, (reg, app) => reg);
+            //var zip = regt.Zip(apps, (reg, app) => app);
+            //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
+            //var zip = regt.Zip(this.m_Tests, (reg, app) => new { Name=app.DisplayName, reg.DisplayName });
+            //var dd1 = regt.Zip(this.m_Apps, (reg, app) => reg);
+            //var dd2 = this.m_Tests.Zip(regt, (app, reg) => reg);
+            this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
+        }
+
+        [TestMethod]
+        public void ToList()
+        {
+            this.Check(this.m_Tests, regt.ToList());
+            this.Check(this.m_Tests.Where(x=>x.DisplayName=="AA"), regt.Where(x => x.DisplayName == "AA").ToList());
+            regt.ToArray();
+        }
+
+        [TestMethod]
+        public void ToArray()
+        {
+            this.Check(this.m_Tests.ToArray(), regt.ToArray());
+            this.Check(this.m_Tests.Where(x => x.DisplayName == "AA").ToArray(), regt.Where(x => x.DisplayName == "AA").ToArray());
+        }
+
+        [TestMethod]
         public void First()
         {
             var first1 = this.m_Tests.First();
@@ -274,9 +322,36 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void LongCount()
+        {
+            Assert.IsTrue(this.m_Tests.LongCount() == regt.LongCount(), "LongCount fail");
+            Assert.IsTrue(this.m_Tests.LongCount(x => x.EstimatedSize > 30) == regt.LongCount(x => x.EstimatedSize > 30), "LongCount fail");
+            Assert.IsTrue(this.m_Tests.LongCount(x => x.EstimatedSize >= 40 && x.DisplayName == "") == regt.LongCount(x => x.EstimatedSize >= 40 && x.DisplayName == ""), "LongCount fail");
+        }
+
+        [TestMethod]
+        public void ElementAt()
+        {
+            this.Check(this.m_Tests.ElementAt(0), regt.ElementAt(0));
+            this.Check(this.m_Tests.ElementAt(1), regt.ElementAt(1));
+            this.Check(this.m_Tests.ElementAt(2), regt.ElementAt(2));
+        }
+
+        [TestMethod]
+        public void ElementAtOrDefault()
+        {
+            this.Check(this.m_Tests.ElementAtOrDefault(0), regt.ElementAtOrDefault(0));
+            this.Check(this.m_Tests.ElementAtOrDefault(1), regt.ElementAtOrDefault(1));
+            this.Check(this.m_Tests.ElementAtOrDefault(2), regt.ElementAtOrDefault(2));
+            this.Check(this.m_Tests.ElementAtOrDefault(200), regt.ElementAtOrDefault(200));
+            this.Check(this.m_Tests.ElementAtOrDefault(-1), regt.ElementAtOrDefault(-1));
+        }
+
+        [TestMethod]
         public void Max()
         {
             Assert.IsTrue(this.m_Tests.Max(x=>x.EstimatedSize) == regt.Max(x => x.EstimatedSize), "Max fail");
+            Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
         }
 
         [TestMethod]
@@ -299,7 +374,14 @@ namespace UnitTestProject1
             Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
         }
 
-
+        [TestMethod]
+        public void Update()
+        {
+            int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
+            var count1 = regt.Select(x => x.EstimatedSize);
+            var count2 = this.m_Tests.Select(x => x.EstimatedSize + 100);
+            this.Check(count1, count2);
+        }
 
 
         void Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
@@ -314,11 +396,45 @@ namespace UnitTestProject1
             }
         }
 
+        void Check<T>(T[] src, T[] dst)
+        {
+            if (src.Count() != dst.Count())
+            {
+                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+            }
+            for (int i = 0; i < src.Count(); i++)
+            {
+                this.Check(src.ElementAt(i), dst.ElementAt(i));
+            }
+        }
+
+        void Check<T>(List<T> src, List<T> dst)
+        {
+            if (src.Count() != dst.Count())
+            {
+                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+            }
+            for (int i = 0; i < src.Count(); i++)
+            {
+                this.Check(src.ElementAt(i), dst.ElementAt(i));
+            }
+        }
+
         void Check<T>(T src, T dst)
         {
+            var typecode = Type.GetTypeCode(typeof(T));
             if(src==null && dst==null)
             {
 
+            }
+            else if(typecode == TypeCode.String)
+            {
+                string str_src = src as string;
+                string str_dst = dst as string;
+                if (str_src != str_dst)
+                {
+                    Assert.Fail($"fail src:{str_src} dst:{str_dst}");
+                }
             }
             else
             {

@@ -210,13 +210,38 @@ namespace QSoft.Registry.Linq
             TResult return_hr = default(TResult);
 
 
-
+            var expr_org = expression as MethodCallExpression;
             var updatemethod = this.m_RegMethod as MethodCallExpression;
+
+
 
             
 
+
+
             var type = typeof(TResult);
             Type[] tts = type.GetGenericArguments();
+
+
+            if (expression is ConstantExpression && tts[0] == this.m_DataType)
+            {
+                //var mi = typeof(RegProvider).GetMethod("Enumerable");
+                //var fooRef = mi.MakeGenericMethod(tts[0]);
+                //return (TResult)fooRef.Invoke(this, new object[] { tte });
+                var expr = expression;
+                var sd = this.ToSelectData();
+                var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
+                var select = selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                updatemethod = Expression.Call(select, this.m_RegSource, sd);
+                var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
+                var creatquery = creatquerys.First().MakeGenericMethod(tts);
+                var excute = creatquery.Invoke(tte.Provider, new object[] { updatemethod });
+                return (TResult)excute;
+            }
+
+
+
+
             if (type.Name == "IEnumerable`1")
             {
                
@@ -270,15 +295,20 @@ namespace QSoft.Registry.Linq
                 this.m_IsWritable = (expression as MethodCallExpression)?.Method?.Name == "Update";
                 object inst = null;
                 Expression expr = expression;
-                if (this.m_RegMethod == null)
+                //if (this.m_RegMethod == null)
+                //{
+                //    updatemethod = expression as MethodCallExpression;
+                //    var opop = updatemethod.Arguments[0].Type;
+                //    if (opop.Name.Contains("RegQuery`1") == true)
+                //    {
+                //        RegExpressionVisitor regvisitor = new RegExpressionVisitor();
+                //        expr = regvisitor.Visit(updatemethod, this.m_DataType, this.m_RegSource);
+                //    }
+                //}
+                if(expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                 {
-                    updatemethod = expression as MethodCallExpression;
-                    var opop = updatemethod.Arguments[0].Type;
-                    if (opop.Name.Contains("RegQuery`1") == true)
-                    {
-                        RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                        expr = regvisitor.Visit(updatemethod, this.m_DataType, this.m_RegSource);
-                    }
+                    RegExpressionVisitor regvisitor = new RegExpressionVisitor();
+                    expr = regvisitor.Visit(expr_org, this.m_DataType, this.m_RegSource);
                 }
                 else
                 {

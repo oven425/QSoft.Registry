@@ -319,7 +319,7 @@ namespace QSoft.Registry.Linq
             }
             else if(this.m_NewExpression != null)
             {
-                m_Lambda = Expression.Lambda(this.m_NewExpression, this.m_Parameters.Values);
+                m_Lambda = Expression.Lambda(this.m_NewExpression, parameters);
                 this.m_NewExpression = null;
             }
             else if (m_MemberInit != null)
@@ -404,11 +404,17 @@ namespace QSoft.Registry.Linq
         {
             var ttyp = node.Expression.GetType();
             System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
-            var expr = base.VisitMember(node);
-            if (this.m_Parameters.Count > 0 && node.Expression.Type == this.m_DataType)
+            var expr = base.VisitMember(node) as MemberExpression;
+            if (this.m_Parameters.Count > 0 && expr.Expression.Type == this.m_DataType)
             {
                 Expression left_args_1 = Expression.Constant(node.Member.Name);
+                string pp_name = (expr.Expression as ParameterExpression)?.Name;
+
                 Expression left_args_0 = this.m_Parameters.ElementAt(0).Value;
+                if(string.IsNullOrEmpty(pp_name)==false)
+                {
+                    left_args_0 = this.m_Parameters[pp_name];
+                }
                 //if(this.m_Member2Regs.Count > 0)
                 //{
                 //    left_args_0 = this.m_Member2Regs[0];
@@ -423,12 +429,18 @@ namespace QSoft.Registry.Linq
                 this.m_Member2Regs.Clear();
                 this.m_Member2Regs.Add(mm);
             }
+            else if(this.m_MethodCall_Member != null)
+            {
+                var mm = Expression.MakeMemberAccess(this.m_MethodCall_Member, node.Member);
+                this.m_Member2Regs.Add(mm);
+                this.m_MethodCall_Member = null;
+            }
             else if (this.m_Parameters.Count > 0)
             {
                 var mes = typeof(IGrouping<RegistryKey, RegistryKey>).GetMember("Key");
-                
-                //var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes.ElementAt(0));
-                var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, node.Member);
+                var mes1 = this.m_Parameters.ElementAt(0).Value.Type.GetMember(expr.Member.Name);
+                var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes1.ElementAt(0));
+                //var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, node.Member);
                 this.m_Member2Regs.Add(mm);
             }
             else
@@ -499,6 +511,7 @@ namespace QSoft.Registry.Linq
 
                 methods = methods.Where(x => x.MakeGenericMethod(expr.Method.GetGenericArguments()).GetParameters().Except(dst).Count() == 0);
                 pps1 = methods.ElementAt(0).GetParameters();
+                var pps12 = methods.ElementAt(0).GetGenericArguments();
                 var tts = expr.Method.GetGenericArguments();
                 
                 Type[] tts1 = null;
@@ -529,7 +542,7 @@ namespace QSoft.Registry.Linq
                     tts1 = this.m_ParamList.Select(x => x.Item1).Take(methods.ElementAt(0).GetGenericArguments().Length).ToArray();
                     
                 }
-                else if(expr.Method.Name.Contains("Join")|| expr.Method.Name.Contains("GroupJoin")||expr.Method.Name == "Zip")
+                else if(expr.Method.Name.Contains("Join")|| expr.Method.Name.Contains("GroupJoin"))
                 {
                     var temp = this.m_ParamList.ToList();
                     this.m_ParamList.Clear();
@@ -539,12 +552,33 @@ namespace QSoft.Registry.Linq
                     }
                     tts1 = node.Method.GetGenericArguments();
                     tts1[0] = typeof(RegistryKey);
-                    if(tts1[3] == this.m_DataType)
+                    if (tts1[3] == this.m_DataType)
                     {
                         tts1[3] = typeof(RegistryKey);
                     }
-                    
+
                     this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
+                    
+                }
+                else if(expr.Method.Name == "Zip")
+                {
+                    var g1 = expr.Method.GetGenericArguments();
+                    var g2 = expr.Method.GetGenericMethodDefinition();
+                    var temp = this.m_ParamList.ToList();
+                    this.m_ParamList.Clear();
+                    foreach (var oo in temp)
+                    {
+                        this.m_ParamList.Push(oo);
+                    }
+                    tts1 = node.Method.GetGenericArguments();
+                    tts1[0] = typeof(RegistryKey);
+                    if (tts1[tts1.Length - 1] == this.m_DataType)
+                    {
+                        tts1[tts1.Length - 1] = typeof(RegistryKey);
+                    }
+
+                    this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
+                    //tts1 = this.m_ParamList.Select(x => x.Item1).ToArray();
                 }
                 else if (expr.Method.Name.Contains("Update"))
                 {
@@ -701,8 +735,10 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        this.m_MethodCall = Expression.Call(node.Object, method, methodcall_param_0);
+                        this.m_MethodCall = Expression.Call(node.Object, method, this.m_ParamList.Select(x=>x.Item2));
+                        //this.m_MethodCall = Expression.Call(node.Object, method, methodcall_param_0);
                     }
+                    this.m_ParamList.Clear();
                 }
                 this.m_ConstantExpression_Value = null;
 
@@ -721,6 +757,11 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Trace.WriteLine($"VisitConstant {node.Type.Name}");
             var expr = base.VisitConstant(node);
             if (node.Type.Name == "RegQuery`1")
+            {
+                m_IsRegQuery = true;
+                this.m_DataType = node.Type.GetGenericArguments().FirstOrDefault();
+            }
+            else if (node.Type.Name == "RegProvider")
             {
                 m_IsRegQuery = true;
                 this.m_DataType = node.Type.GetGenericArguments().FirstOrDefault();

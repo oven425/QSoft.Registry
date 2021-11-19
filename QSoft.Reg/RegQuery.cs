@@ -101,29 +101,18 @@ namespace QSoft.Registry.Linq
     {
         public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource,TResult>> selector)
         {
-
-            var methods = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-            var pps = methods.ElementAt(0).GetGenericArguments();
-            var first = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
-
-            Expression methdodcall = null;
-            //var yutu = source.Expression as MethodCallExpression;
-            //if(yutu.Method.ReturnType != typeof(IQueryable<RegistryKey>))
-            //{
-            //    methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(RegistryKey), typeof(TResult)), yutu.Arguments[0], selector);
-            //}
-            //else
-            //{
-            //    methdodcall = Expression.Call(first.First().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
-            //}
-
-            methdodcall = Expression.Call(first.Last().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
+            var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
             return source.Provider.Execute<int>(methdodcall);
         }
 
         public static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> data)
         {
             var regs = source as IEnumerable<RegistryKey>;
+            if(regs == null)
+            {
+                throw new Exception("source must be RegistryKey");
+            }
             var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true);
             foreach (var oo in source)
             {

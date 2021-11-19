@@ -36,8 +36,10 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            //object str = "2.2.2.2";
-            //Version ver = new Version(str);
+            var zip_method = typeof(Queryable).GetMember("Zip").First();
+            //var g1 = zip_method.GetType().GetGenericArguments();
+            ////var g2 = zip_method.GetType().GetGenericParameterConstraints();
+            //var g3 = zip_method.GetType().GetGenericTypeDefinition();
             List<AppData> apps = new List<AppData>();
             apps.Add(new AppData() { Name = "A", IsOfficial = true });
             apps.Add(new AppData() { Name = "AA", IsOfficial = false });
@@ -48,8 +50,11 @@ namespace ConsoleApp1
             //apps.Add(new App() { Name = "D", Offical = true });
             //apps.Add(new App() { Name = "DD", Offical = false });
 
+            List<InstalledApp> installs = new List<InstalledApp>();
+            installs.Add(new InstalledApp() { DisplayName = "A", IsOfficial = true });
+            installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
-        var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
+            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
             List<RegistryKey> ll = new List<RegistryKey>();
             foreach (var subkeyname in queryreg.GetSubKeyNames())
             {
@@ -237,13 +242,14 @@ namespace ConsoleApp1
 
 
             //var groupby = regt.GroupBy(x => x);
+            //var groupby = regt.GroupBy(x => x).Select(x => x.Key);
+            //var groupby = regt.GroupBy(x => x.DisplayName);
             //var groupby = regt.GroupBy(x => x.EstimatedSize);
             //var groupby = regt.GroupBy(x => x.DisplayVersion);
             //var groupby = regt.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             //var groupby = regt.GroupBy(x => x).Select(x => x);
             //var groupby = regt.GroupBy(x => x).Select(x => x);
             //var groupby = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-
             //////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
             //////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
             //foreach (var oo in groupby)
@@ -254,12 +260,20 @@ namespace ConsoleApp1
             //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
             //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => y);
             //var join3 = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData() { Name = x.DisplayName });
+            //var join = regt.Join(installs, x => x.DisplayName, y => y.DisplayName, (x, y) => x);
             //foreach (var oo in join)
             //{
 
             //}
             //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
-            //.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
+            //var groupjoin = regt.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
+            //foreach(var oo in groupjoin)
+            //{
+
+            //}
+
+            //var element = regt.ElementAt(0);
+            //var elementatordefault = regt.ElementAtOrDefault(100);
 
             //var select = regt.Select(x => x);
             //.Select(x => x.EstimatedSize);
@@ -274,11 +288,24 @@ namespace ConsoleApp1
             //{
 
             //}
-            //var zip = regt.Zip(apps, (reg, app) => new { reg.DisplayName, app.Name });
-            //foreach (var oo in zip)
+
+
+            //var zip = regt.Zip(apps, (reg, app) => new { reg, app });
+            var zip = regt.Zip(installs, (reg, app) => reg);
+            //var zip = regt.Zip(apps, (reg, app) => app);
+            //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
+            //var dd2 = apps.Zip(regt, (app, reg) => reg);
+            //foreach(var oo in dd2)
             //{
 
             //}
+            //var zip = regt.Zip(apps, (reg, app) => new { app.Name, reg.DisplayName });
+            foreach (var oo in zip)
+            {
+
+            }
+
+            apps.Zip(regt, (app, reg) => reg);
 
 
             //var update1 = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize == 10)
@@ -301,9 +328,10 @@ namespace ConsoleApp1
             //    DisplayVersion = new Version("123.123.123.123"),
             //    DisplayName = x.DisplayVersion.ToString()
             //});
-            var min = regt.Select(x => x.DisplayName.Length).Min();
-            var first1 = regt.First();
-            var first2 = regt.First(x => x.DisplayName == "BB");
+            //var min1 = regt.Select(x => x.DisplayName.Length).Min();
+            //var min2 = regt.Select(x => x.EstimatedSize).Min();
+            //var first1 = regt.First();
+            //var first2 = regt.First(x => x.DisplayName == "BB");
             //var first3 = regt.Select(x => x).First(x => x.DisplayName == "AA");
             //var first4 = regt.Select(x => x).First();
             //var first2 = regt.First(x => x.DisplayName != "");
@@ -329,7 +357,9 @@ namespace ConsoleApp1
             //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
             //var min = regt.Min(x => x.EstimatedSize);
             //var max = regt.Max(x => x.EstimatedSize);
-
+            var vers = regt.Select(x => x.DisplayVersion.ToString());
+            
+            var max = regt.Max(x => x.DisplayVersion.ToString().Length);
             //var loopup = regt.ToLookup(x => x.DisplayName);
             //var tolist = regt.ToList();
             //var toarray = regt.ToArray();

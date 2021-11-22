@@ -291,14 +291,11 @@ namespace ConsoleApp1
 
 
             //var zip = regt.Zip(apps, (reg, app) => new { reg, app });
-            var zip = regt.Zip(installs, (reg, app) => reg);
+            //var zip = regt.Zip(installs, (reg, app) => reg);
             //var zip = regt.Zip(apps, (reg, app) => app);
             //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
-            //var dd2 = apps.Zip(regt, (app, reg) => reg);
-            //foreach(var oo in dd2)
-            //{
-
-            //}
+            //var zip = apps.Zip(regt, (app, reg) => reg);
+            var zip = installs.Zip(regt, (app, reg) => reg);
             //var zip = regt.Zip(apps, (reg, app) => new { app.Name, reg.DisplayName });
             foreach (var oo in zip)
             {

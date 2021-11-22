@@ -282,10 +282,16 @@ namespace QSoft.Registry.Linq
         }
 
         LambdaExpression m_Lambda = null;
+        string m_DataTypeName = "";
         Type igroup1 = typeof(IGrouping<,>).MakeGenericType(typeof(RegistryKey), typeof(RegistryKey));
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
+            if(this.m_DataTypeInfos?.Count>0)
+            {
+                this.m_DataTypeName = node.Parameters[this.m_DataTypeInfos[0].Position].Name;
+            }
+            
             var expr = base.VisitLambda(node);
 
             var lambda = expr as LambdaExpression;
@@ -365,7 +371,8 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitParameter(ParameterExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
-            if(node.Type == this.m_DataType)
+            //if(node.Type == this.m_DataType)
+            if(node.Name == this.m_DataTypeName)
             {
                 if (this.m_Parameters.ContainsKey(node.Name) == false)
                 {
@@ -474,11 +481,26 @@ namespace QSoft.Registry.Linq
         MethodCallExpression m_MethodCall_Member = null;
         MethodCallExpression m_MethodCall = null;
         Stack<Tuple<Type, Expression>> m_ParamList = new Stack<Tuple<Type, Expression>>();
+        List<ParameterInfo> m_DataTypeInfos = new List<ParameterInfo>();
+        //string m_DataTypeName = "";
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
+            //var t1 = node.Method.GetGenericArguments();
+            //var t2 = node.Method.GetGenericMethodDefinition().GetGenericArguments();
+            //var t3 = node.Method.GetParameters();
+            var t4 = node.Method.GetGenericMethodDefinition().GetParameters();
+            string datatypename = t4.First().ParameterType.GenericTypeArguments[0].Name;
+            //var unary = node.Arguments[2] as UnaryExpression;
+            //var ff = unary.Operand as LambdaExpression;
+            //var tyu = ff.Type.GenericTypeArguments;
+            //var com = ff.Compile().GetMethodInfo().GetParameters();
+            //Type func = typeof(Func<,,>);
+            var td = t4[2].ParameterType.GenericTypeArguments[0].GetMethods();
+            var rt = td[0].GetParameters();
+            m_DataTypeInfos = rt.Where(x => x.ParameterType.Name == datatypename).ToList();
             
-            
+
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
             //if (this.m_IsUpdate == false)
             //{

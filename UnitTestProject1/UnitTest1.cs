@@ -250,7 +250,9 @@ namespace UnitTestProject1
             //var zip = regt.Zip(this.m_Tests, (reg, app) => new { Name=app.DisplayName, reg.DisplayName });
             //var dd1 = regt.Zip(this.m_Apps, (reg, app) => reg);
             //var dd2 = this.m_Tests.Zip(regt, (app, reg) => reg);
-            this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
+            this.Check(regt.Zip(this.m_Tests, (reg, app) => reg), this.m_Tests.Zip(regt, (app, reg) => reg));
+            //this.Check(regt.Zip(this.m_Tests, (reg, app) => app), this.m_Tests.Zip(regt, (app, reg) => app));
+            //this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
         }
 
         [TestMethod]

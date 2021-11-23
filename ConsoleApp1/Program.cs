@@ -289,13 +289,17 @@ namespace ConsoleApp1
 
             //}
 
-
-            //var zip = regt.Zip(apps, (reg, app) => new { reg, app });
+            //var fff = regt.All(x=>x.DisplayName == "");
+            //var zip = regt.Zip(installs, (reg, app) => new { reg, app });
+            //var zip = regt.Zip(installs, (reg, app) => app);
             //var zip = regt.Zip(installs, (reg, app) => reg);
+            //var zip = regt.Zip(installs, (reg, app) => app.DisplayName);
+            //var zip = regt.Zip(installs, (reg, app) => reg.DisplayName);
+            var zip = regt.Zip(installs, (reg, app) => new { reg.DisplayName, Name=app.DisplayName });
             //var zip = regt.Zip(apps, (reg, app) => app);
             //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
             //var zip = apps.Zip(regt, (app, reg) => reg);
-            var zip = installs.Zip(regt, (app, reg) => reg);
+            //var zip = installs.Zip(regt, (app, reg) => reg);
             //var zip = regt.Zip(apps, (reg, app) => new { app.Name, reg.DisplayName });
             foreach (var oo in zip)
             {

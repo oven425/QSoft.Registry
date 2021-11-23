@@ -155,7 +155,8 @@ namespace QSoft.Registry.Linq
                     ParameterExpression parameter = args[i] as ParameterExpression;
                     if(parameter != null)
                     {
-                        if(parameter.Type == this.m_DataType)
+                        //if(parameter.Type == this.m_DataType)
+                        if(parameter.Name == this.m_DataTypeName)
                         {
                             var param = this.m_Parameters[parameter.Name];
                             var todata = this.ToData(param);
@@ -314,7 +315,7 @@ namespace QSoft.Registry.Linq
             }
             else if(m_Member2Regs.Count>0)
             {
-                m_Lambda = Expression.Lambda(this.m_Member2Regs[0], this.m_Parameters.Values);
+                m_Lambda = Expression.Lambda(this.m_Member2Regs[0], parameters);
                 m_Member2Regs.Clear();
                 //this.m_Parameters.Clear();
             }
@@ -337,7 +338,6 @@ namespace QSoft.Registry.Linq
             {
                 if(lambda.ReturnType == this.m_DataType)
                 {
-                    
                     var pp = lambda.Body as ParameterExpression;
                     if(pp== null)
                     {
@@ -346,7 +346,7 @@ namespace QSoft.Registry.Linq
                     else
                     {
 
-                        m_Lambda = Expression.Lambda(this.m_Parameters[pp.Name], this.m_Parameters.Values);
+                        m_Lambda = Expression.Lambda(this.m_Parameters[pp.Name], parameters);
                     }
                 }
                 else if(lambda.Body is ParameterExpression)
@@ -364,8 +364,11 @@ namespace QSoft.Registry.Linq
                 m_Lambda = lambda;
             }
             this.m_Parameters.Clear();
+            this.m_ReturnType = this.m_Lambda.ReturnType;
             return expr;
         }
+
+        Type m_ReturnType = null;
 
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
@@ -378,6 +381,21 @@ namespace QSoft.Registry.Linq
                 {
                     var parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
                     this.m_Parameters.Add(parameter.Name, parameter);
+                }
+            }
+            else if (node.Type == this.m_DataType)
+            {
+                if (this.m_Parameters.ContainsKey(node.Name) == false)
+                {
+                    if(string.IsNullOrEmpty(this.m_DataTypeName))
+                    {
+                        var parameter = Expression.Parameter(typeof(RegistryKey), node.Name);
+                        this.m_Parameters.Add(parameter.Name, parameter);
+                    }
+                    else
+                    {
+                        this.m_Parameters.Add(node.Name, node);
+                    }
                 }
             }
             else if(node.Type.Name.Contains("IGrouping"))
@@ -412,43 +430,51 @@ namespace QSoft.Registry.Linq
             var ttyp = node.Expression.GetType();
             System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
             var expr = base.VisitMember(node) as MemberExpression;
-            if (this.m_Parameters.Count > 0 && expr.Expression.Type == this.m_DataType)
+            if ((expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName)
             {
-                Expression left_args_1 = Expression.Constant(node.Member.Name);
-                string pp_name = (expr.Expression as ParameterExpression)?.Name;
-
-                Expression left_args_0 = this.m_Parameters.ElementAt(0).Value;
-                if(string.IsNullOrEmpty(pp_name)==false)
+                //if (this.m_Parameters.Count > 0 && expr.Expression.Type == this.m_DataType)
+                if (this.m_Parameters.Count > 0 && (expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName)
                 {
-                    left_args_0 = this.m_Parameters[pp_name];
+                    Expression left_args_1 = Expression.Constant(node.Member.Name);
+                    string pp_name = (expr.Expression as ParameterExpression)?.Name;
+
+                    Expression left_args_0 = this.m_Parameters.ElementAt(0).Value;
+                    if (string.IsNullOrEmpty(pp_name) == false)
+                    {
+                        left_args_0 = this.m_Parameters[pp_name];
+                    }
+                    //if(this.m_Member2Regs.Count > 0)
+                    //{
+                    //    left_args_0 = this.m_Member2Regs[0];
+                    //    this.m_Member2Regs.Clear();
+                    //}
+                    var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                    this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
                 }
-                //if(this.m_Member2Regs.Count > 0)
-                //{
-                //    left_args_0 = this.m_Member2Regs[0];
-                //    this.m_Member2Regs.Clear();
-                //}
-                var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod==true);
-                this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
-            }
-            else if(this.m_Member2Regs.Count > 0)
-            {
-                var mm = Expression.MakeMemberAccess(this.m_Member2Regs[0], node.Member);
-                this.m_Member2Regs.Clear();
-                this.m_Member2Regs.Add(mm);
-            }
-            else if(this.m_MethodCall_Member != null)
-            {
-                var mm = Expression.MakeMemberAccess(this.m_MethodCall_Member, node.Member);
-                this.m_Member2Regs.Add(mm);
-                this.m_MethodCall_Member = null;
-            }
-            else if (this.m_Parameters.Count > 0)
-            {
-                var mes = typeof(IGrouping<RegistryKey, RegistryKey>).GetMember("Key");
-                var mes1 = this.m_Parameters.ElementAt(0).Value.Type.GetMember(expr.Member.Name);
-                var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes1.ElementAt(0));
-                //var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, node.Member);
-                this.m_Member2Regs.Add(mm);
+                else if (this.m_Member2Regs.Count > 0)
+                {
+                    var mm = Expression.MakeMemberAccess(this.m_Member2Regs[0], node.Member);
+                    this.m_Member2Regs.Clear();
+                    this.m_Member2Regs.Add(mm);
+                }
+                else if (this.m_MethodCall_Member != null)
+                {
+                    var mm = Expression.MakeMemberAccess(this.m_MethodCall_Member, node.Member);
+                    this.m_Member2Regs.Add(mm);
+                    this.m_MethodCall_Member = null;
+                }
+                else if (this.m_Parameters.Count > 0)
+                {
+                    var mes = typeof(IGrouping<RegistryKey, RegistryKey>).GetMember("Key");
+                    var mes1 = this.m_Parameters.ElementAt(0).Value.Type.GetMember(expr.Member.Name);
+                    var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, mes1.ElementAt(0));
+                    //var mm = Expression.MakeMemberAccess(this.m_Parameters.ElementAt(0).Value, node.Member);
+                    this.m_Member2Regs.Add(mm);
+                }
+                else
+                {
+                    this.m_Member2Regs.Add(expr);
+                }
             }
             else
             {
@@ -482,30 +508,37 @@ namespace QSoft.Registry.Linq
         MethodCallExpression m_MethodCall = null;
         Stack<Tuple<Type, Expression>> m_ParamList = new Stack<Tuple<Type, Expression>>();
         List<ParameterInfo> m_DataTypeInfos = new List<ParameterInfo>();
-        //string m_DataTypeName = "";
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
-            //var t1 = node.Method.GetGenericArguments();
-            //var t2 = node.Method.GetGenericMethodDefinition().GetGenericArguments();
-            //var t3 = node.Method.GetParameters();
-            var t4 = node.Method.GetGenericMethodDefinition().GetParameters();
-            string datatypename = t4.First().ParameterType.GenericTypeArguments[0].Name;
-            //var unary = node.Arguments[2] as UnaryExpression;
-            //var ff = unary.Operand as LambdaExpression;
-            //var tyu = ff.Type.GenericTypeArguments;
-            //var com = ff.Compile().GetMethodInfo().GetParameters();
-            //Type func = typeof(Func<,,>);
-            var td = t4[2].ParameterType.GenericTypeArguments[0].GetMethods();
-            var rt = td[0].GetParameters();
-            m_DataTypeInfos = rt.Where(x => x.ParameterType.Name == datatypename).ToList();
+            if (node.Method.ReturnType.IsGenericType == true)
+            {
+                var return1 = node.Method.ReturnType.GetGenericTypeDefinition();
+                if (return1 == typeof(IQueryable<>))
+                {
+                    
+                    var t4 = node.Method.GetGenericMethodDefinition().GetParameters();
+                    string datatypename = t4.First().ParameterType.GenericTypeArguments[0].Name;
+                    int select = -1;
+                    if(node.Method.Name == "Zip")
+                    {
+                        select = 2;
+                    }
+                    if(select >=0)
+                    {
+                        var td = t4[select].ParameterType.GenericTypeArguments[0].GetMethods();
+                        var rt = td[0].GetParameters();
+
+                        m_DataTypeInfos = rt.Where(x => x.ParameterType.Name == datatypename).ToList();
+                    }
+                }
+            }
+            
+            
             
 
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
-            //if (this.m_IsUpdate == false)
-            //{
-            //    this.m_IsUpdate = expr.Method?.Name == "Update";
-            //}
+
 
             if (this.m_Unary != null)
             {
@@ -585,7 +618,11 @@ namespace QSoft.Registry.Linq
                 else if(expr.Method.Name == "Zip")
                 {
                     var g1 = expr.Method.GetGenericArguments();
-                    var g2 = expr.Method.GetGenericMethodDefinition();
+                    var g2 = expr.Method.GetGenericMethodDefinition().GetGenericArguments();
+                    //var input1 = expr.Method.GetGenericMethodDefinition().GetParameters()[0].ParameterType.GenericTypeArguments[0].Name;
+                    //var return4 = expr.Method.GetGenericMethodDefinition().ReturnType.GenericTypeArguments[0].Name;
+
+                    var return4 = this.m_ReturnType;
                     var temp = this.m_ParamList.ToList();
                     this.m_ParamList.Clear();
                     foreach (var oo in temp)
@@ -594,7 +631,8 @@ namespace QSoft.Registry.Linq
                     }
                     tts1 = node.Method.GetGenericArguments();
                     tts1[0] = typeof(RegistryKey);
-                    if (tts1[tts1.Length - 1] == this.m_DataType)
+                    //if (tts1[tts1.Length - 1] == this.m_DataType)
+                    if(this.m_ReturnType == typeof(RegistryKey))
                     {
                         tts1[tts1.Length - 1] = typeof(RegistryKey);
                     }

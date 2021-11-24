@@ -295,18 +295,18 @@ namespace ConsoleApp1
             //var zip = regt.Zip(installs, (reg, app) => reg);
             //var zip = regt.Zip(installs, (reg, app) => app.DisplayName);
             //var zip = regt.Zip(installs, (reg, app) => reg.DisplayName);
-            var zip = regt.Zip(installs, (reg, app) => new { reg.DisplayName, Name=app.DisplayName });
+            //var zip = regt.Zip(installs, (reg, app) => new { reg.DisplayName, Name=app.DisplayName });
             //var zip = regt.Zip(apps, (reg, app) => app);
             //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
             //var zip = apps.Zip(regt, (app, reg) => reg);
             //var zip = installs.Zip(regt, (app, reg) => reg);
             //var zip = regt.Zip(apps, (reg, app) => new { app.Name, reg.DisplayName });
-            foreach (var oo in zip)
-            {
+            //foreach (var oo in zip)
+            //{
 
-            }
+            //}
 
-            apps.Zip(regt, (app, reg) => reg);
+            //apps.Zip(regt, (app, reg) => reg);
 
 
             //var update1 = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize == 10)
@@ -358,9 +358,10 @@ namespace ConsoleApp1
             //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
             //var min = regt.Min(x => x.EstimatedSize);
             //var max = regt.Max(x => x.EstimatedSize);
+            var max = regt.Max(x => x.DisplayName.Length);
             var vers = regt.Select(x => x.DisplayVersion.ToString());
             
-            var max = regt.Max(x => x.DisplayVersion.ToString().Length);
+            //var max = regt.Max(x => x.DisplayVersion.ToString().Length);
             //var loopup = regt.ToLookup(x => x.DisplayName);
             //var tolist = regt.ToList();
             //var toarray = regt.ToArray();

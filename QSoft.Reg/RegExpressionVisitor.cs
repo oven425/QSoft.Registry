@@ -430,10 +430,10 @@ namespace QSoft.Registry.Linq
             var ttyp = node.Expression.GetType();
             System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
             var expr = base.VisitMember(node) as MemberExpression;
-            if ((expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName)
+            if ((expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName || this.m_DataTypeName=="")
             {
-                //if (this.m_Parameters.Count > 0 && expr.Expression.Type == this.m_DataType)
-                if (this.m_Parameters.Count > 0 && (expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName)
+                if (this.m_Parameters.Count > 0 && expr.Expression.Type == this.m_DataType)
+                //if (this.m_Parameters.Count > 0)
                 {
                     Expression left_args_1 = Expression.Constant(node.Member.Name);
                     string pp_name = (expr.Expression as ParameterExpression)?.Name;
@@ -607,9 +607,13 @@ namespace QSoft.Registry.Linq
                     }
                     tts1 = node.Method.GetGenericArguments();
                     tts1[0] = typeof(RegistryKey);
-                    if (tts1[3] == this.m_DataType)
+                    //if (tts1[3] == this.m_DataType)
+                    //{
+                    //    tts1[3] = typeof(RegistryKey);
+                    //}
+                    if (this.m_ReturnType == typeof(RegistryKey))
                     {
-                        tts1[3] = typeof(RegistryKey);
+                        tts1[tts1.Length - 1] = typeof(RegistryKey);
                     }
 
                     this.m_ParamList.Push(Tuple.Create<Type, Expression>(typeof(RegistryKey), methodcall_param_0));
@@ -622,7 +626,6 @@ namespace QSoft.Registry.Linq
                     //var input1 = expr.Method.GetGenericMethodDefinition().GetParameters()[0].ParameterType.GenericTypeArguments[0].Name;
                     //var return4 = expr.Method.GetGenericMethodDefinition().ReturnType.GenericTypeArguments[0].Name;
 
-                    var return4 = this.m_ReturnType;
                     var temp = this.m_ParamList.ToList();
                     this.m_ParamList.Clear();
                     foreach (var oo in temp)

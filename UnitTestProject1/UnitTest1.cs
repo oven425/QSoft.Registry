@@ -14,6 +14,17 @@ namespace UnitTestProject1
         public Version DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
         public bool? IsOfficial { set; get; }
+
+        public InstallApp() { }
+
+        public InstallApp(InstallApp data)
+        {
+            var pps = typeof(InstallApp).GetProperties().Where(x => x.CanRead == true && x.CanWrite == true);
+            foreach(var pp in pps)
+            {
+                pp.SetValue(this, pp.GetValue(data));
+            }
+        }
     }
 
     [TestClass]
@@ -184,7 +195,6 @@ namespace UnitTestProject1
 
         [TestMethod]
         public void Join()
-
         {
             var j1 = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install);
             var j2 = this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install);
@@ -353,7 +363,7 @@ namespace UnitTestProject1
         public void Max()
         {
             Assert.IsTrue(this.m_Tests.Max(x=>x.EstimatedSize) == regt.Max(x => x.EstimatedSize), "Max fail");
-            Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
+            //Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
         }
 
         [TestMethod]
@@ -380,9 +390,10 @@ namespace UnitTestProject1
         public void Update()
         {
             int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
-            var count1 = regt.Select(x => x.EstimatedSize);
-            var count2 = this.m_Tests.Select(x => x.EstimatedSize + 100);
+            var count1 = regt;
+            var count2 = this.m_Tests.Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize + 100 });
             this.Check(count1, count2);
+
         }
 
 

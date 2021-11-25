@@ -260,7 +260,7 @@ namespace ConsoleApp1
             //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
             //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => y);
             //var join3 = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData() { Name = x.DisplayName });
-            //var join = regt.Join(installs, x => x.DisplayName, y => y.DisplayName, (x, y) => x);
+            //var join = regt.Join(installs, x => x.DisplayName, y => y.DisplayName, (x, y) => y);
             //foreach (var oo in join)
             //{
 
@@ -357,10 +357,14 @@ namespace ConsoleApp1
             //var skip1 = regt.Skip(1);
             //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
             //var min = regt.Min(x => x.EstimatedSize);
-            //var max = regt.Max(x => x.EstimatedSize);
-            var max = regt.Max(x => x.DisplayName.Length);
-            var vers = regt.Select(x => x.DisplayVersion.ToString());
-            
+            var max = regt.Max(x => x.EstimatedSize);
+            //var max = regt.Max(x => x.DisplayName.Length);
+            //var vers = regt.Select(x => x.DisplayVersion.ToString());
+            var vers = regt.Select((x, index) => x);
+            foreach(var oo in vers)
+            {
+
+            }
             //var max = regt.Max(x => x.DisplayVersion.ToString().Length);
             //var loopup = regt.ToLookup(x => x.DisplayName);
             //var tolist = regt.ToList();

@@ -225,6 +225,10 @@ namespace UnitTestProject1
         public void Select_Index()
         {
             var select = regt.Select((x,index) => x);
+            foreach(var oo in select)
+            {
+
+            }
             this.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
             //this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }
@@ -363,7 +367,7 @@ namespace UnitTestProject1
         public void Max()
         {
             Assert.IsTrue(this.m_Tests.Max(x=>x.EstimatedSize) == regt.Max(x => x.EstimatedSize), "Max fail");
-            //Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
+            Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
         }
 
         [TestMethod]

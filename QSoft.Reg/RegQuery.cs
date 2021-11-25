@@ -144,11 +144,5 @@ namespace QSoft.Registry.Linq
 
             return count;
         }
-
-        static public void GetReturn(this MethodInfo src)
-        {
-            var gargs = src.GetGenericArguments();
-            var gargs_def = src.GetGenericMethodDefinition();
-        }
     }
 }

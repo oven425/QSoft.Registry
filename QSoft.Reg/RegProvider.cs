@@ -230,8 +230,8 @@ namespace QSoft.Registry.Linq
                 //return (TResult)fooRef.Invoke(this, new object[] { tte });
                 var expr = expression;
                 var sd = this.ToSelectData();
-                var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
-                var select = selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                //var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
+                var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
                 updatemethod = Expression.Call(select, this.m_RegSource, sd);
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
                 var creatquery = creatquerys.First().MakeGenericMethod(tts);
@@ -239,18 +239,13 @@ namespace QSoft.Registry.Linq
                 return (TResult)excute;
             }
 
-
-
-
             if (type.Name == "IEnumerable`1")
             {
-               
                 if (updatemethod.Type == typeof(IQueryable<RegistryKey>) || updatemethod.Type == typeof(IOrderedQueryable<RegistryKey>))
                 {
                     var expr = expression;
                     var sd = this.ToSelectData();
-                    var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
-                    var select = selects.ElementAt(0).MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                    var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
                     updatemethod = Expression.Call(select, updatemethod, sd);
 
                 }
@@ -475,7 +470,6 @@ namespace QSoft.Registry.Linq
 
         public Expression ToSelectData()
         {
-            var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
             var pp = Expression.Parameter(typeof(RegistryKey), "x");
             var todata = ToData(pp);
             var lambda = Expression.Lambda(todata, pp);
@@ -493,7 +487,7 @@ namespace QSoft.Registry.Linq
             foreach (var pp in pps)
             {
                 Expression name = null;
-                if (pp.PropertyType.Name.Contains("Nullable"))
+                if (pp.PropertyType.IsGenericTypeDefinition == true&&pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     name = Expression.Constant(pp.Name, typeof(string));
                     var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
@@ -514,7 +508,32 @@ namespace QSoft.Registry.Linq
 
             return memberinit;
         }
+
+        MethodInfo SelectMethod()
+        {
+            var select_method = typeof(Queryable).GetMethods().FirstOrDefault(x =>
+            {
+                bool hr = false;
+                if (x.Name == "Select")
+                {
+                    var pps = x.GetParameters();
+                    if (pps.Length == 2)
+                    {
+                        var ssss = pps[1].ParameterType.GenericTypeArguments[0].GenericTypeArguments.Length;
+                        if (ssss == 2)
+                        {
+                            hr = true;
+                        }
+                    }
+                }
+                return hr;
+            });
+            return select_method;
+        }
+
     }
 
+
+   
 
 }

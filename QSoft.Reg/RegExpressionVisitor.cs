@@ -288,10 +288,24 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
-            if(this.m_DataTypeInfos?.Count>0)
+            if(m_PP != null)
             {
-                this.m_DataTypeName = node.Parameters[this.m_DataTypeInfos[0].Position].Name;
+                var pps = m_PP.Item2.GetParameters();
+                var iiii = pps.FirstOrDefault(x => x.ParameterType.Name == m_PP.Item3);
+                if(iiii == null)
+                {
+                    this.m_DataTypeName = node.Parameters[0].Name+"KK";
+                }
+                else
+                {
+                    this.m_DataTypeName = node.Parameters[iiii.Position].Name;
+                }
+                
             }
+            //if(this.m_DataTypeInfos?.Count>0)
+            //{
+            //    this.m_DataTypeName = node.Parameters[this.m_DataTypeInfos[0].Position].Name;
+            //}
             
             var expr = base.VisitLambda(node);
 
@@ -486,8 +500,18 @@ namespace QSoft.Registry.Linq
         
         
         UnaryExpression m_Unary = null;
+        Tuple<ParameterInfo, MethodInfo, string> m_PP;
         protected override Expression VisitUnary(UnaryExpression node)
         {
+            if(m_PPs.ContainsKey(node) == true)
+            {
+                m_PP = m_PPs[node];
+            }
+            else
+            {
+                m_PP = null;
+            }
+            
             System.Diagnostics.Trace.WriteLine($"VisitUnary");
             var expr = base.VisitUnary(node);
             if(this.m_Lambda != null)
@@ -507,36 +531,78 @@ namespace QSoft.Registry.Linq
         MethodCallExpression m_MethodCall_Member = null;
         MethodCallExpression m_MethodCall = null;
         Stack<Tuple<Type, Expression>> m_ParamList = new Stack<Tuple<Type, Expression>>();
-        List<ParameterInfo> m_DataTypeInfos = new List<ParameterInfo>();
+        //List<ParameterInfo> m_DataTypeInfos = new List<ParameterInfo>();
+        Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>> m_PPs = new Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>>();
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
             if (node.Method.ReturnType.IsGenericType == true)
             {
                 var return1 = node.Method.ReturnType.GetGenericTypeDefinition();
+                
                 if (return1 == typeof(IQueryable<>))
                 {
                     
                     var t4 = node.Method.GetGenericMethodDefinition().GetParameters();
                     string datatypename = t4.First().ParameterType.GenericTypeArguments[0].Name;
-                    int select = -1;
-                    if(node.Method.Name == "Zip")
+                    for (int i = 0; i < t4.Length; i++)
                     {
-                        select = 2;
+                        var gss = t4[i].ParameterType.GenericTypeArguments;
+                        MethodInfo invoke = null;
+                        if (gss.Length > 0)
+                        {
+                            invoke = gss[0].GetMethod("Invoke");
+                        }
+                        if (invoke != null)
+                        {
+                            m_PPs[node.Arguments[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                        }
                     }
-                    if(select >=0)
-                    {
-                        var td = t4[select].ParameterType.GenericTypeArguments[0].GetMethods();
-                        var rt = td[0].GetParameters();
+                    //int select = -1;
+                    //if(node.Method.Name == "Zip")
+                    //{
+                    //    //select = 2;
+                    //    for (int i = 0; i < t4.Length; i++)
+                    //    {
+                    //        var gss = t4[i].ParameterType.GenericTypeArguments;
+                    //        MethodInfo invoke = null;
+                    //        if (gss.Length > 0)
+                    //        {
+                    //            invoke = gss[0].GetMethod("Invoke");
+                    //        }
+                    //        if (invoke != null)
+                    //        {
+                    //            m_PPs[node.Arguments[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                    //        }
+                    //    }
+                    //}
+                    //else if(node.Method.Name == "Join")
+                    //{
+                    //    //select = 4;
+                    //    for(int i=0; i< t4.Length; i++)
+                    //    {
+                    //        var gss = t4[i].ParameterType.GenericTypeArguments;
+                    //        MethodInfo invoke = null;
+                    //        if(gss.Length >0)
+                    //        {
+                    //            invoke = gss[0].GetMethod("Invoke");
+                    //        }
+                    //        if(invoke != null)
+                    //        {
+                    //            m_PPs[node.Arguments[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                    //        }
+                    //    }
+                    //}
+                    //if(select >=0)
+                    //{
+                    //    var td = t4[select].ParameterType.GenericTypeArguments[0].GetMethods();
+                    //    var rt = td[0].GetParameters();
 
-                        m_DataTypeInfos = rt.Where(x => x.ParameterType.Name == datatypename).ToList();
-                    }
+                    //    //m_DataTypeInfos = rt.Where(x => x.ParameterType.Name == datatypename).ToList();
+                    //}
                 }
             }
             
-            
-            
-
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
 
@@ -840,7 +906,8 @@ namespace QSoft.Registry.Linq
             }
             return expr;
         }
-
+#if CreateQuery
+#else
         public Expression ToSelectData()
         {
             var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
@@ -851,6 +918,7 @@ namespace QSoft.Registry.Linq
 
             return unary;
         }
+#endif
 
         public Expression ToData(ParameterExpression param)
         {

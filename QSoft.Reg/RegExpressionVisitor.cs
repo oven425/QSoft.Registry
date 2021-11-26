@@ -72,9 +72,25 @@ namespace QSoft.Registry.Linq
             
 
             var expr = base.VisitBinary(node) as BinaryExpression;
-            if(expr.Method != null)
+            if(expr.Method != null&& this.m_Member2Regs.Count==1)
             {
-                var binary = Expression.MakeBinary(node.NodeType, m_Member2Regs[0], node.Right, expr.IsLiftedToNull, expr.Method);
+                if(this.m_MethodCall_Member == null)
+                {
+                    var binary = Expression.MakeBinary(node.NodeType, m_Member2Regs[0], node.Right, expr.IsLiftedToNull, expr.Method);
+                    m_Binarys.Add(binary);
+                }
+                else
+                {
+                    var binary = Expression.MakeBinary(node.NodeType, this.m_MethodCall_Member, node.Right, expr.IsLiftedToNull, expr.Method);
+                    m_Binarys.Add(binary);
+                    this.m_MethodCall_Member = null;
+                }
+                this.m_Member2Regs.Clear();
+                this.m_ParamList.Clear();
+            }
+            else if (this.m_Member2Regs.Count ==2)
+            {
+                var binary = Expression.MakeBinary(node.NodeType, m_Member2Regs[0], m_Member2Regs[1]);
                 m_Binarys.Add(binary);
                 this.m_Member2Regs.Clear();
                 this.m_ParamList.Clear();
@@ -166,7 +182,7 @@ namespace QSoft.Registry.Linq
                 }
                 m_NewExpression = Expression.New(node.Constructor, args, expr.Members);
             }
-            else if(expr.Arguments.Count == 0)
+            else if(expr.Arguments.Count == 0 && expr.Constructor !=null)
             {
                 m_NewExpression = Expression.New(expr.Constructor);
             }
@@ -463,7 +479,8 @@ namespace QSoft.Registry.Linq
                     //    this.m_Member2Regs.Clear();
                     //}
                     var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                    this.m_Member2Regs.Add(Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1));
+                    var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), left_args_0, left_args_1);
+                    this.m_Member2Regs.Add(member);
                 }
                 else if (this.m_Member2Regs.Count > 0)
                 {
@@ -492,25 +509,31 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-                this.m_Member2Regs.Add(expr);
+                if (this.m_Member2Regs.Count > 0)
+                {
+                    var mm = Expression.MakeMemberAccess(this.m_Member2Regs[0], node.Member);
+                    this.m_Member2Regs.Clear();
+                    this.m_Member2Regs.Add(mm);
+                }
+                else
+                {
+                    this.m_Member2Regs.Add(expr);
+                }
+                
             }
             return expr;
         }
-
-        
         
         UnaryExpression m_Unary = null;
         Tuple<ParameterInfo, MethodInfo, string> m_PP;
         protected override Expression VisitUnary(UnaryExpression node)
         {
-            if(m_PPs.ContainsKey(node) == true)
+            m_PP = null;
+            if (m_PPs.ContainsKey(node) == true)
             {
                 m_PP = m_PPs[node];
             }
-            else
-            {
-                m_PP = null;
-            }
+
             
             System.Diagnostics.Trace.WriteLine($"VisitUnary");
             var expr = base.VisitUnary(node);
@@ -781,14 +804,65 @@ namespace QSoft.Registry.Linq
             {
                 if(node.Method.IsStatic == true)
                 {
-                    this.m_MethodCall_Member = Expression.Call(node.Method, m_Member2Regs[0]);
+                    var args = this.m_ParamList.Select(x => x.Item2).ToList();
+                    var members = this.m_Member2Regs.ToList();
+                    members.Reverse();
+                    var ppslen =node.Method.GetParameters().Length;
+                    if(ppslen > 1)
+                    {
+                        ppslen = ppslen - 1;
+                    }
+                    var member_args = members.Take(ppslen);
+                    args.AddRange(member_args);
+                    this.m_MethodCall_Member = Expression.Call(node.Method, args);
+                    foreach(var oo in member_args)
+                    {
+                        this.m_Member2Regs.Remove(oo);
+                    }
                 }
                 else
                 {
-                    this.m_MethodCall_Member = Expression.Call(m_Member2Regs[0], node.Method, this.m_ParamList.Select(x => x.Item2));
+                    if (node.Object is ConstantExpression)
+                    {
+                        var ppslen = node.Method.GetParameters().Length;
+                        var member_args = this.m_ParamList.Select(x => x.Item2).Take(ppslen);
+                        this.m_MethodCall_Member = Expression.Call(this.m_ConstantExpression_Value, node.Method, member_args);
+                    }
+                    else if (node.Object is MemberExpression)
+                    {
+                        this.m_MethodCall_Member = Expression.Call(m_Member2Regs[0], node.Method, this.m_ParamList.Select(x => x.Item2));
+                        m_Member2Regs.Clear();
+                    }
+                    else
+                    {
+                        System.Diagnostics.Trace.WriteLine(node.Object.GetType());
+                    }
+
+                    //if(this.m_ConstantExpression_Value == null)
+                    //{
+                    //    this.m_MethodCall_Member = Expression.Call(m_Member2Regs[0], node.Method, this.m_ParamList.Select(x => x.Item2));
+                    //    m_Member2Regs.Clear();
+                    //}
+                    //else
+                    //{
+                    //    var ppslen = node.Method.GetParameters().Length;
+                    //    var member_args = this.m_ParamList.Select(x => x.Item2).Take(ppslen);
+                    //    if (this.m_Member2Regs.Count > 1)
+                    //    {
+
+                    //    }
+                    //    else
+                    //    {
+                    //        this.m_MethodCall_Member = Expression.Call(this.m_ConstantExpression_Value, node.Method, member_args);
+                    //    }
+                    //}
+
                 }
                 this.m_ParamList.Clear();
-                m_Member2Regs.Clear();
+                
+                m_Member2Regs.Add(this.m_MethodCall_Member);
+                this.m_ConstantExpression_Value = null;
+                this.m_MethodCall_Member = null;
             }
             else
             {
@@ -835,7 +909,8 @@ namespace QSoft.Registry.Linq
                 
                 if (methods.ElementAt(0).IsGenericMethod==true)
                 {
-                    method = methods.ElementAt(0).MakeGenericMethod(tts1);
+                    //method = methods.ElementAt(0).MakeGenericMethod(tts1);
+                    method = node.Method.GetGenericMethodDefinition().MakeGenericMethod(tts1);
                 }
                 else
                 {
@@ -850,7 +925,33 @@ namespace QSoft.Registry.Linq
                 else if (this.m_ConstantExpression_Value != null)
                 {
 #if CreateQuery
-                    this.m_MethodCall = Expression.Call(method, methodcall_param_0, this.m_ConstantExpression_Value);
+                    
+
+
+
+                    switch (expr.Method.Name)
+                    {
+                        case "Except":
+                        case "Union":
+                        case "Intersect":
+                        case "Distinct":
+                            {
+                                var sd = this.m_DataType.ToSelectData();
+                                var select = this.m_DataType.SelectMethod();
+                                var selectexpr = Expression.Call(select, methodcall_param_0, sd);
+
+                                var args = this.m_ParamList.Reverse().ToList().Select(x => x.Item2).ToList();
+                                args.Insert(0, selectexpr);
+                                this.m_MethodCall = Expression.Call(expr.Method, args);
+                            }
+                            break;
+                        default:
+                            {
+                                this.m_MethodCall = Expression.Call(method, methodcall_param_0, this.m_ConstantExpression_Value);
+                            }
+                            break;
+                    }
+
 #else
                     this.m_MethodCall = Expression.Call(method, methodcall_param_0, this.m_ConstantExpression_Value);
 #endif
@@ -860,7 +961,42 @@ namespace QSoft.Registry.Linq
                 {
                     if(method.IsStatic == true)
                     {
-                        this.m_MethodCall = Expression.Call(method, methodcall_param_0);
+                        switch(expr.Method.Name)
+                        {
+                            case "Except":
+                            case "Union":
+                            case "Intersect":
+                            case "Distinct":
+                                {
+                                    var sd = this.m_DataType.ToSelectData();
+                                    var select = this.m_DataType.SelectMethod();
+                                    var selectexpr = Expression.Call(select, methodcall_param_0, sd);
+                                    List<Expression> args = new List<Expression>();
+                                    args.Add(selectexpr);
+                                    args.AddRange(expr.Arguments.Skip(1));
+   
+                                    this.m_MethodCall = Expression.Call(expr.Method, args);
+                                }
+                                break;
+                            default:
+                                {
+                                    this.m_MethodCall = Expression.Call(method, methodcall_param_0);
+                                }
+                                break;
+                        }
+                        ////Union
+                        //if (expr.Method.Name == "Except")
+                        //{
+                        //    var sd = this.m_DataType.ToSelectData();
+                        //    var select = this.m_DataType.SelectMethod();
+                        //    var selectexpr = Expression.Call(select, methodcall_param_0, sd);
+                        //    this.m_MethodCall = Expression.Call(expr.Method, selectexpr, expr.Arguments[1]);
+                        //}
+                        //else
+                        //{
+                        //    this.m_MethodCall = Expression.Call(method, methodcall_param_0);
+                        //}
+                        
                     }
                     else
                     {

@@ -225,13 +225,10 @@ namespace QSoft.Registry.Linq
 
             if (expression is ConstantExpression && tts[0] == this.m_DataType)
             {
-                //var mi = typeof(RegProvider).GetMethod("Enumerable");
-                //var fooRef = mi.MakeGenericMethod(tts[0]);
-                //return (TResult)fooRef.Invoke(this, new object[] { tte });
                 var expr = expression;
-                var sd = this.ToSelectData();
-                //var selects = typeof(Queryable).GetMethods().Where(x => x.Name == "Select");
-                var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                var sd = this.m_DataType.ToSelectData();
+                //var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                var select = this.m_DataType.SelectMethod();
                 updatemethod = Expression.Call(select, this.m_RegSource, sd);
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
                 var creatquery = creatquerys.First().MakeGenericMethod(tts);
@@ -244,8 +241,10 @@ namespace QSoft.Registry.Linq
                 if (updatemethod.Type == typeof(IQueryable<RegistryKey>) || updatemethod.Type == typeof(IOrderedQueryable<RegistryKey>))
                 {
                     var expr = expression;
-                    var sd = this.ToSelectData();
-                    var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                    //var sd = this.ToSelectData();
+                    //var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
+                    var sd = this.m_DataType.ToSelectData();
+                    var select = this.m_DataType.SelectMethod();
                     updatemethod = Expression.Call(select, updatemethod, sd);
 
                 }
@@ -267,9 +266,10 @@ namespace QSoft.Registry.Linq
                         Expression arg2 = updatemethod.Arguments[1];
                         if(type3[1] == this.m_DataType)
                         {
-                            arg2 = this.ToSelectData();
+                            //arg2 = this.ToSelectData();
+                            arg2 = this.m_DataType.ToSelectData();
                         }
-                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, this.ToSelectData());
+                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, this.m_DataType.ToSelectData());
 
                     }
                 }
@@ -468,68 +468,68 @@ namespace QSoft.Registry.Linq
 #endif
         }
 
-        public Expression ToSelectData()
-        {
-            var pp = Expression.Parameter(typeof(RegistryKey), "x");
-            var todata = ToData(pp);
-            var lambda = Expression.Lambda(todata, pp);
-            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+        //public Expression ToSelectData()
+        //{
+        //    var pp = Expression.Parameter(typeof(RegistryKey), "x");
+        //    var todata = ToData(pp);
+        //    var lambda = Expression.Lambda(todata, pp);
+        //    var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
 
-            return unary;
-        }
+        //    return unary;
+        //}
 
-        public Expression ToData(ParameterExpression param)
-        {
-            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-            var pps = m_DataType.GetProperties().Where(x => x.CanWrite == true);
-            var ccs = m_DataType.GetConstructors();
-            List<MemberAssignment> bindings = new List<MemberAssignment>();
-            foreach (var pp in pps)
-            {
-                Expression name = null;
-                if (pp.PropertyType.IsGenericTypeDefinition == true&&pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    name = Expression.Constant(pp.Name, typeof(string));
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                    UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-                    var binding = Expression.Bind(pp, unary1);
-                    bindings.Add(binding);
-                }
-                else
-                {
-                    name = Expression.Constant(pp.Name, typeof(string));
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                    var binding = Expression.Bind(pp, method);
-                    bindings.Add(binding);
-                }
-            }
+        //public Expression ToData(ParameterExpression param)
+        //{
+        //    var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+        //    var pps = m_DataType.GetProperties().Where(x => x.CanWrite == true);
+        //    var ccs = m_DataType.GetConstructors();
+        //    List<MemberAssignment> bindings = new List<MemberAssignment>();
+        //    foreach (var pp in pps)
+        //    {
+        //        Expression name = null;
+        //        if (pp.PropertyType.IsGenericTypeDefinition == true&&pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+        //        {
+        //            name = Expression.Constant(pp.Name, typeof(string));
+        //            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+        //            UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+        //            var binding = Expression.Bind(pp, unary1);
+        //            bindings.Add(binding);
+        //        }
+        //        else
+        //        {
+        //            name = Expression.Constant(pp.Name, typeof(string));
+        //            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+        //            var binding = Expression.Bind(pp, method);
+        //            bindings.Add(binding);
+        //        }
+        //    }
 
-            var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
+        //    var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
 
-            return memberinit;
-        }
+        //    return memberinit;
+        //}
 
-        MethodInfo SelectMethod()
-        {
-            var select_method = typeof(Queryable).GetMethods().FirstOrDefault(x =>
-            {
-                bool hr = false;
-                if (x.Name == "Select")
-                {
-                    var pps = x.GetParameters();
-                    if (pps.Length == 2)
-                    {
-                        var ssss = pps[1].ParameterType.GenericTypeArguments[0].GenericTypeArguments.Length;
-                        if (ssss == 2)
-                        {
-                            hr = true;
-                        }
-                    }
-                }
-                return hr;
-            });
-            return select_method;
-        }
+        //MethodInfo SelectMethod()
+        //{
+        //    var select_method = typeof(Queryable).GetMethods().FirstOrDefault(x =>
+        //    {
+        //        bool hr = false;
+        //        if (x.Name == "Select")
+        //        {
+        //            var pps = x.GetParameters();
+        //            if (pps.Length == 2)
+        //            {
+        //                var ssss = pps[1].ParameterType.GenericTypeArguments[0].GenericTypeArguments.Length;
+        //                if (ssss == 2)
+        //                {
+        //                    hr = true;
+        //                }
+        //            }
+        //        }
+        //        return hr;
+        //    });
+        //    return select_method;
+        //}
 
     }
 

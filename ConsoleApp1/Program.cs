@@ -14,6 +14,22 @@ using QSoft.Registry.Linq;
 
 namespace ConsoleApp1
 {
+    public class InstallAppCompare : IEqualityComparer<InstalledApp>
+    {
+        public bool Equals(InstalledApp x, InstalledApp y)
+        {
+            if (Object.ReferenceEquals(x, y)) return true;
+            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null))
+                return false;
+            return x.DisplayName == y.DisplayName;
+        }
+
+        public int GetHashCode(InstalledApp obj)
+        {
+            if (object.ReferenceEquals(obj, null)) return 0;
+            return obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
+        }
+    }
     public class InstalledApp
     {
         public string DisplayName { set; get; }
@@ -25,10 +41,13 @@ namespace ConsoleApp1
             //DisplayName = "AA";
         }
 
-
+        public int FC()
+        {
+            return 100;
+        }
         public override string ToString()
         {
-            return $"DisplayName:{DisplayName} DisplayVersion:{DisplayVersion} EstimatedSize:{EstimatedSize}";
+            return $"DisplayName:{DisplayName} DisplayVersion:{DisplayVersion} EstimatedSize:{EstimatedSize} IsOfficial:{IsOfficial}";
         }
     }
 
@@ -72,11 +91,26 @@ namespace ConsoleApp1
             //var rr = queryable.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => y);
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), x => new { DisplayName =x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
 
-            var rr = queryable.GroupBy(x => x).Select(x => x);
+            List<int> src1 = new List<int> { 1, 2, 3 };
+            List<int> src2 = new List<int>() { 1,10 };
+            var except1 = src1.Except(src2);
+            var rr = queryable.Select(x => new DateTime(2021,10,10));
+            //var rr = queryable.Select(x => new InstalledApp()
+            //{
+            //    DisplayName = x.GetValue<string>("DisplayName"),
+            //    DisplayVersion = x.GetValue<Version>("DisplayVersion"),
+            //    EstimatedSize = x.GetValue<int>("EstimatedSize"),
+            //    IsOfficial = x.GetValue<bool>("IsOfficial")
+            //}).Except(installs.Take(2), new InstallAppCompare());
+            foreach (var ppp in rr)
+            {
+
+            }
+
             //var groupp = queryable.Join(apps, x => x.GetValue<string>(""), x => x.Name, (x, y) => new { a=x.GetValue<int>(""), b=y.IsOfficial});
             //foreach(var gr in groupp)
             //{
-                
+
             //}
             //var groupbys = typeof(Queryable).GetMethods(BindingFlags.Public | BindingFlags.Static).Where(x => x.Name == "GroupBy");
 
@@ -86,7 +120,9 @@ namespace ConsoleApp1
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
             var unary = methodcall.Arguments[1] as UnaryExpression;
             var lambda = unary.Operand as LambdaExpression;
-            //var newexpr = lambda.Body as NewExpression;
+            
+            ttype = lambda.Body.GetType();
+            var newexpr = lambda.Body as NewExpression;
             //var binary = newexpr.Arguments[0] as BinaryExpression;
             //ttype = newexpr.Arguments[0].GetType();
             //ttype = lambda.Body.GetType();
@@ -214,10 +250,32 @@ namespace ConsoleApp1
             //var where = regt.Where((x, index) => x.DisplayName == "AA");
             //var where = regt.Where((x, index) => index % 2 == 0);
             //var where = regt.Where((x, index) => x.DisplayName == "AA" && index % 2 == 0);
-            //foreach (var oo in where)
+            //var where = regt.Where(x => x.DisplayVersion.ToString() != "" && string.IsNullOrEmpty(x.DisplayName)==true)
+            //    . Select(x=> new InstalledApp()).OrderBy(x=>x.EstimatedSize);
+            //var where = regt.Where(x => string.IsNullOrEmpty(x.DisplayName));
+            //var where = regt.Where((x, index) => x.DisplayName == $"{x.DisplayName}");
+            //var where = regt.Where(x => x.DisplayVersion.ToString() == "1.1.1.1".ToString());
+            //var where = regt.Where(x => x.DisplayName.Contains("AA"));
+            var where = regt.Where(x => x.EstimatedSize == 100);
+            foreach (var oo in where)
+            {
+
+            }
+            //Distinct()、Except()、Intersect
+
+            var tests = installs.Take(2);
+            //var except = regt.Except(tests, new InstallAppCompare());
+            //foreach (var oo in except)
             //{
 
             //}
+
+            //var discinct = regt.Update(x=> $"{x.DisplayName}{x.DisplayName}");
+            //foreach(var oo in discinct)
+            //{
+
+            //}
+
             //where1 = regt.Where(x => x.DisplayName == "A").OrderBy(x=>x.DisplayVersion);
             //foreach (var oo in where1)
             //{
@@ -357,6 +415,7 @@ namespace ConsoleApp1
             //var skip1 = regt.Skip(1);
             //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
             //var min = regt.Min(x => x.EstimatedSize);
+            var min = regt.Select(x => x.DisplayName.Length).Min();
             var max = regt.Max(x => x.EstimatedSize);
             //var max = regt.Max(x => x.DisplayName.Length);
             //var vers = regt.Select(x => x.DisplayVersion.ToString());
@@ -372,11 +431,7 @@ namespace ConsoleApp1
             //var dictonary = regt.ToDictionary(x => x.EstimatedSize);
             //var single = regt.Single(x => x.DisplayName == "A");
             //var singledefault = regt.SingleOrDefault(x => x.DisplayName == "A");
-            List<InstalledApp> tests = new List<InstalledApp>();
-            for(int i=0; i<3; i++)
-            {
-                tests.Add(new ConsoleApp1.InstalledApp() { EstimatedSize = i, DisplayName = i.ToString() });
-            }
+
 #else
 
             //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}

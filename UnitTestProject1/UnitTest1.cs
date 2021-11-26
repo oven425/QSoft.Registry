@@ -7,6 +7,23 @@ using QSoft.Registry.Linq;
 
 namespace UnitTestProject1
 {
+    public class InstallAppCompare : IEqualityComparer<InstallApp>
+    {
+        public bool Equals(InstallApp x, InstallApp y)
+        {
+            if (Object.ReferenceEquals(x, y)) return true;
+            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null))
+                return false;
+            return x.DisplayName == y.DisplayName;
+        }
+
+        public int GetHashCode(InstallApp obj)
+        {
+            if (object.ReferenceEquals(obj, null)) return 0;
+            return obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
+        }
+    }
+
     public class InstallApp
     {
         public int? Index { set; get; }
@@ -14,6 +31,11 @@ namespace UnitTestProject1
         public Version DisplayVersion { set; get; }
         public int? EstimatedSize { set; get; }
         public bool? IsOfficial { set; get; }
+
+        public int FC()
+        {
+            return 100;
+        }
 
         public InstallApp() { }
 
@@ -145,6 +167,8 @@ namespace UnitTestProject1
         public void TakeWhile()
         {
             this.Check(this.m_Tests.TakeWhile(x=>x.DisplayName=="AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.TakeWhile(x => x.EstimatedSize.ToString() == "10"), regt.TakeWhile(x => x.EstimatedSize.ToString() == "10"));
+            this.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA".ToString()), regt.TakeWhile(x => x.DisplayName == "AA".ToString()));
         }
 
         [TestMethod]
@@ -175,11 +199,18 @@ namespace UnitTestProject1
         [TestMethod]
         public void Where()
         {
-            this.Check(this.m_Tests.Where(x => x.DisplayName== "AA"), regt.Where(x => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.Where(x => x.DisplayName.ToString() == "AA".ToString()), regt.Where(x => x.DisplayName.ToString() == "AA".ToString()));
+            this.Check(this.m_Tests.Where(x => x.DisplayName == "AA"), regt.Where(x => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.Where(x => x.DisplayName == $"{x.DisplayName}"), regt.Where(x => x.DisplayName == $"{x.DisplayName}"));
+            this.Check(this.m_Tests.Where(x => x.DisplayName == $"{x.DisplayName}{x.DisplayName}"), regt.Where(x => x.DisplayName == $"{x.DisplayName}{x.DisplayName}"));
             this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")), regt.Where(x => x.DisplayName.Contains("AA")));
-            this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")==true), regt.Where(x => x.DisplayName.Contains("AA")==true));
+            this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA") == true), regt.Where(x => x.DisplayName.Contains("AA") == true));
             this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)));
-            this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)==true), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)==true));
+            this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where(x => string.IsNullOrEmpty(x.DisplayName) == true));
+
+            this.Check(this.m_Tests.Where(x => x.EstimatedSize > 0), regt.Where(x => x.EstimatedSize > 0));
+            this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == "10"), regt.Where(x => x.EstimatedSize.ToString() == "10"));
+            //this.Check(this.m_Tests.Where(x => x.FC() == 100), regt.Where(x => x.FC() == 100));
         }
 
         [TestMethod]
@@ -187,10 +218,35 @@ namespace UnitTestProject1
         {
             this.Check(this.m_Tests.Where((x, index) => index%2==0), regt.Where((x, index) => index % 2 == 0));
             this.Check(this.m_Tests.Where((x, index) => x.DisplayName == "AA"), regt.Where((x, index) => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.Where((x, index) => x.DisplayName == $"{x.DisplayName}"), regt.Where((x, index) => x.DisplayName == $"{x.DisplayName}"));
             this.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA")), regt.Where((x, index) => x.DisplayName.Contains("AA")));
             this.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA") == true), regt.Where((x, index) => x.DisplayName.Contains("AA") == true));
             this.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)));
             this.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true));
+        }
+
+        [TestMethod]
+        public void Except()
+        {
+            var tests = this.m_Tests.Take(2).Select(x=>new InstallApp(x));
+            this.Check(this.m_Tests.Except(tests), regt.Except(tests));
+            this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
+        }
+
+        [TestMethod]
+        public void Intersect()
+        {
+            var tests = this.m_Tests.Take(2).Select(x => new InstallApp(x));
+            this.Check(this.m_Tests.Intersect(tests), regt.Intersect(tests));
+            this.Check(this.m_Tests.Intersect(tests, new InstallAppCompare()), regt.Intersect(tests, new InstallAppCompare()));
+        }
+
+        [TestMethod]
+        public void Union()
+        {
+            var tests = this.m_Tests.Take(2).Select(x => new InstallApp(x));
+            this.Check(this.m_Tests.Union(tests), regt.Union(tests));
+            this.Check(this.m_Tests.Union(tests, new InstallAppCompare()), regt.Union(tests, new InstallAppCompare()));
         }
 
         [TestMethod]
@@ -396,6 +452,10 @@ namespace UnitTestProject1
             int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
             var count1 = regt;
             var count2 = this.m_Tests.Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize + 100 });
+            this.Check(count1, count2);
+            regt.Where(x => x.EstimatedSize > 130).Update(x => new InstallApp() {EstimatedSize= x.EstimatedSize-100 });
+            count1 = regt.Where(x => x.EstimatedSize > 130);
+            count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize - 100 });
             this.Check(count1, count2);
 
         }

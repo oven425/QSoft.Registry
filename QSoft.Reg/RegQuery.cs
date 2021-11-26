@@ -16,9 +16,11 @@ namespace QSoft.Registry.Linq
             this.Expression = Expression.Constant(this);
         }
 
+        
         public RegQuery<T> useSetting(Action<RegSetting> data)
         {
             var provider = new RegProvider(typeof(T));
+            
             data(provider.Setting);
             this.Provider = provider;
             return this;
@@ -117,6 +119,7 @@ namespace QSoft.Registry.Linq
             foreach (var oo in source)
             {
                 RegistryKey reg = oo as RegistryKey;
+                Type ddd = data.GetType();
                 var obj = data(oo);
                 foreach(var pp in pps)
                 {
@@ -143,6 +146,70 @@ namespace QSoft.Registry.Linq
             }
 
             return count;
+        }
+
+        static public MethodInfo SelectMethod(this Type datatype)
+        {
+            var select_method = typeof(Queryable).GetMethods().FirstOrDefault(x =>
+            {
+                bool hr = false;
+                if (x.Name == "Select")
+                {
+                    var pps = x.GetParameters();
+                    if (pps.Length == 2)
+                    {
+                        var ssss = pps[1].ParameterType.GenericTypeArguments[0].GenericTypeArguments.Length;
+                        if (ssss == 2)
+                        {
+                            hr = true;
+                        }
+                    }
+                }
+                return hr;
+            });
+            return select_method?.MakeGenericMethod(typeof(RegistryKey), datatype);
+        }
+
+
+        static public Expression ToSelectData(this Type datatype)
+        {
+            var pp = Expression.Parameter(typeof(RegistryKey), "x");
+            var todata = datatype.ToData(pp);
+            var lambda = Expression.Lambda(todata, pp);
+            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+
+            return unary;
+        }
+
+        static public Expression ToData(this Type datatype, ParameterExpression param)
+        {
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
+            var pps = datatype.GetProperties().Where(x => x.CanWrite == true);
+            var ccs = datatype.GetConstructors();
+            List<MemberAssignment> bindings = new List<MemberAssignment>();
+            foreach (var pp in pps)
+            {
+                Expression name = null;
+                if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    name = Expression.Constant(pp.Name, typeof(string));
+                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+                    UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+                    var binding = Expression.Bind(pp, unary1);
+                    bindings.Add(binding);
+                }
+                else
+                {
+                    name = Expression.Constant(pp.Name, typeof(string));
+                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+                    var binding = Expression.Bind(pp, method);
+                    bindings.Add(binding);
+                }
+            }
+
+            var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
+
+            return memberinit;
         }
     }
 }

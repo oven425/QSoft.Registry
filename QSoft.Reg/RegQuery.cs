@@ -211,5 +211,10 @@ namespace QSoft.Registry.Linq
 
             return memberinit;
         }
+
+        public static string ToString1(this string src, string str)
+        {
+            return str;
+        }
     }
 }

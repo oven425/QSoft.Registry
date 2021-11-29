@@ -430,7 +430,7 @@ namespace UnitTestProject1
         public void Min()
         {
             Assert.IsTrue(this.m_Tests.Min(x => x.EstimatedSize) == regt.Min(x => x.EstimatedSize), "Min fail");
-            Assert.IsTrue(this.m_Tests.Select(x=>x.DisplayName.Length).Min() == regt.Select(x=>x.DisplayName.Length).Min(), "Min fail");
+            //Assert.IsTrue(this.m_Tests.Select(x=>x.DisplayName.Length).Min() == regt.Select(x=>x.DisplayName.Length).Min(), "Min fail");
         }
 
         [TestMethod]

@@ -255,15 +255,16 @@ namespace ConsoleApp1
             //var where = regt.Where(x => string.IsNullOrEmpty(x.DisplayName));
             //var where = regt.Where((x, index) => x.DisplayName == $"{x.DisplayName}");
             //var where = regt.Where(x => x.DisplayVersion.ToString() == "1.1.1.1".ToString());
-            //var where = regt.Where(x => x.DisplayName.Contains("AA"));
-            var where = regt.Where(x => x.EstimatedSize == 100);
+            var where = regt.Where(x => x.DisplayName.Contains("AA")&& x.EstimatedSize>0);
+            //var where = regt.Where(x => x.DisplayName.ToString() == "AA".ToString());
+            //var where = regt.Select(x => x.DisplayName.Length);
             foreach (var oo in where)
             {
 
             }
             //Distinct()、Except()、Intersect
 
-            var tests = installs.Take(2);
+            //var tests = installs.Take(2);
             //var except = regt.Except(tests, new InstallAppCompare());
             //foreach (var oo in except)
             //{

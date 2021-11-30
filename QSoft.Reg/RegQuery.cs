@@ -35,7 +35,7 @@ namespace QSoft.Registry.Linq
         public RegQuery(RegProvider provider, Expression expression, bool isfirst, Expression regsource)
         {
             this.Provider = provider;
-#if CreateQuery
+
             ////if(isfirst == true)
             //MethodCallExpression method1 = expression as MethodCallExpression;
             ////if(method1.Arguments[0].NodeType == ExpressionType.Constant)
@@ -58,10 +58,7 @@ namespace QSoft.Registry.Linq
             ////    this.Expression = expression;
             ////}
             this.Expression = expression;
-#else
-            
-            this.Expression = expression;
-#endif
+
         }
 
 
@@ -96,6 +93,25 @@ namespace QSoft.Registry.Linq
                 return reg;
             }
             return reg_base;
+        }
+    }
+
+    public class Typeee : IEqualityComparer<ParameterInfo>
+    {
+        public bool Equals(ParameterInfo x, ParameterInfo y)
+        {
+            bool bb = x.ParameterType.GetGenericTypeDefinition() == y.ParameterType.GetGenericTypeDefinition();
+            return bb;
+        }
+
+        public int GetHashCode(ParameterInfo obj)
+        {
+            return obj.ParameterType.GetHashCode();
+            //if (object.ReferenceEquals(obj, null))
+            //{
+            //    return 0;
+            //}
+            //return obj.ParameterType == null ? 0 : obj.ParameterType.GetHashCode();
         }
     }
 
@@ -212,9 +228,88 @@ namespace QSoft.Registry.Linq
             return memberinit;
         }
 
+        public static Type[] GetTypes(this IEnumerable<Expression> src, MethodInfo method)
+        {
+            List<Type> types = new List<Type>();
+            var args = method.GetGenericArguments();
+            var args1 = method.GetGenericMethodDefinition().GetGenericArguments().Select(x=>x.Name);
+            var args2 = method.GetGenericMethodDefinition().GetParameters().ToList();
+            
+            var aaa = args2.Distinct(new Typeee());
+
+            Dictionary<string, ParameterInfo> infos = new Dictionary<string, ParameterInfo>();
+            foreach(var oo in args2)
+            {
+                var paramtype = oo.ParameterType.GetGenericTypeDefinition();
+                if(paramtype == typeof(IQueryable<>) || paramtype == typeof(IEnumerable<>))
+                {
+                    infos[oo.ParameterType.GetGenericArguments()[0].Name] = oo;
+                }
+                else
+                {
+                    var func = oo.ParameterType.GetGenericArguments()[0].GetGenericArguments().Last().Name;
+                    infos[func] = oo;
+                }
+
+            }
+
+            foreach(var oo in infos.Select(x => x.Value.Position))
+            {
+                if (src.ElementAt(oo).Type.IsGenericType == true)
+                {
+                    if (src.ElementAt(oo).Type.GetGenericTypeDefinition() == typeof(IQueryable<>))
+                    {
+                        types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
+                    }
+                    else if (src.ElementAt(oo).Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    {
+                        types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
+                    }
+                    else
+                    {
+                        var uu = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericTypeDefinition();
+                        if (uu == typeof(Func<>) || uu == typeof(Func<,>) || uu == typeof(Func<,,>))
+                        {
+                            types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
+                        }
+                    }
+                }
+            }
+
+
+            //foreach (var oo in src)
+            //{
+            //    if(oo.Type.IsGenericType == true)
+            //    {
+            //        if (oo.Type.GetGenericTypeDefinition() == typeof(IQueryable<>))
+            //        {
+            //            types.Add(oo.Type.GetGenericArguments()[0]);
+            //        }
+            //        else if(oo.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            //        {
+            //            types.Add(oo.Type.GetGenericArguments()[0]);
+            //        }
+            //        else
+            //        {
+            //            var uu = oo.Type.GetGenericArguments()[0].GetGenericTypeDefinition();
+            //            if (uu == typeof(Func<>)||uu == typeof(Func<,>) || uu == typeof(Func<,,>))
+            //            {
+            //                types.Add(oo.Type.GetGenericArguments()[0].GetGenericArguments().Last());
+            //            }
+            //        }
+            //    }
+                
+                
+            //}
+            
+            return types.Take(args.Length).ToArray();
+        }
+
         public static string ToString1(this string src, string str)
         {
             return str;
         }
     }
+
+    
 }

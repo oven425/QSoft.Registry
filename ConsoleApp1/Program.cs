@@ -223,205 +223,25 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-
-
-            //var take1 = regt.Take(1).Select(x => new InstalledApp()).Where(x => x.DisplayName != "");
-            //foreach (var oo in take1)
-            //{
-
-            //}
-            //var take2 = regt.Take(2);
-            //foreach (var oo in take2)
-            //{
-
-            //}
-            //var takewhile = regt.TakeWhile(x => x.DisplayName == "AA");
-            //foreach (var oo in takewhile)
-            //{
-
-            //}
-            //var update_where = regt.Where(x => x.DisplayName == "123456" + "789");
-            //var update = update_where.Update(x => new InstalledApp() { DisplayName = "123456789", EstimatedSize = 100 });
-            //var orderbydesc = regt.Where(x => x.DisplayName != "123456789").OrderByDescending(x => x.EstimatedSize).Count();
-            //var oderby = regt.OrderBy(x => x.EstimatedSize);
-
-            //var where = regt.Where(x => x.DisplayName != "").OrderByDescending(x => x.EstimatedSize);
-            //var where = regt.OrderBy(x=>x.EstimatedSize).Where((x, index) => index%2==0);
-            //var where = regt.Where((x, index) => x.DisplayName == "AA");
-            //var where = regt.Where((x, index) => index % 2 == 0);
-            //var where = regt.Where((x, index) => x.DisplayName == "AA" && index % 2 == 0);
-            //var where = regt.Where(x => x.DisplayVersion.ToString() != "" && string.IsNullOrEmpty(x.DisplayName)==true)
-            //    . Select(x=> new InstalledApp()).OrderBy(x=>x.EstimatedSize);
-            //var where = regt.Where(x => string.IsNullOrEmpty(x.DisplayName));
-            //var where = regt.Where((x, index) => x.DisplayName == $"{x.DisplayName}");
-            //var where = regt.Where(x => x.DisplayVersion.ToString() == "1.1.1.1".ToString());
-            var where = regt.Where(x => x.DisplayName.Contains("AA")&& x.EstimatedSize>0);
-            //var where = regt.Where(x => x.DisplayName.ToString() == "AA".ToString());
-            //var where = regt.Select(x => x.DisplayName.Length);
-            foreach (var oo in where)
+            //var select = regt.Select(x => new { x, x.DisplayName });
+            var select = regt.Zip(installs, (reg, app) => app);
+            foreach (var oo in select)
             {
 
             }
-            //Distinct()、Except()、Intersect
-
-            //var tests = installs.Take(2);
-            //var except = regt.Except(tests, new InstallAppCompare());
-            //foreach (var oo in except)
+            //regt.Except(installs.Take(1));
+            var all = regt.All(x => x.DisplayName == "");
+            //var group = regt.GroupBy(x => x);
+            //foreach(var item in group)
             //{
 
             //}
 
-            //var discinct = regt.Update(x=> $"{x.DisplayName}{x.DisplayName}");
-            //foreach(var oo in discinct)
-            //{
-
-            //}
-
-            //where1 = regt.Where(x => x.DisplayName == "A").OrderBy(x=>x.DisplayVersion);
-            //foreach (var oo in where1)
-            //{
-
-            //}
-            ////.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion));
-            ////.Where(x => string.IsNullOrWhiteSpace(x.DisplayVersion) == true);
-            ////.Where(x => x.DisplayName.Contains("A"));
-            ////var where = regt.Where(x => x.DisplayName != "").Select(x => x);
-            ////var where = regt.Where((x, index) => x.DisplayName != "");
-            //var where = regt.Where(x => x.DisplayName.Contains("AA") == true);
-            //foreach (var oo in where)
-            //{
-
-            //}
-            //foreach (var oo in where)
-            //{
-
-            //}
-            //no support
-            //.Where(x => x.A() != "");
-
-
-            //var groupby = regt.GroupBy(x => x);
-            //var groupby = regt.GroupBy(x => x).Select(x => x.Key);
-            //var groupby = regt.GroupBy(x => x.DisplayName);
-            //var groupby = regt.GroupBy(x => x.EstimatedSize);
-            //var groupby = regt.GroupBy(x => x.DisplayVersion);
-            //var groupby = regt.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
-            //var groupby = regt.GroupBy(x => x).Select(x => x);
-            //var groupby = regt.GroupBy(x => x).Select(x => x);
-            //var groupby = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-            //////.GroupBy(x => new { x.DisplayName, x.DisplayVersion });
-            //////.GroupBy(x => new { x.DisplayName, x.DisplayVersion }, x => x.DisplayName);
-            //foreach (var oo in groupby)
-            //{
-
-            //}
-            //.Where(x => x.DisplayName != "").OrderBy(x => x.EstimatedSize).GroupBy(x => x.DisplayVersion, x => x.EstimatedSize);
-            //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
-            //var join = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => y);
-            //var join3 = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData() { Name = x.DisplayName });
-            //var join = regt.Join(installs, x => x.DisplayName, y => y.DisplayName, (x, y) => y);
-            //foreach (var oo in join)
-            //{
-
-            //}
-            //.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new AppData { Name=x.DisplayName, IsOfficial= y.IsOfficial });
-            //var groupjoin = regt.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
-            //foreach(var oo in groupjoin)
-            //{
-
-            //}
-
-            //var element = regt.ElementAt(0);
-            //var elementatordefault = regt.ElementAtOrDefault(100);
-
-            //var select = regt.Select(x => x);
-            //.Select(x => x.EstimatedSize);
-            //var select = regt.Select(x => new { x.DisplayName, x.DisplayVersion });
-            //var select = regt.Select(x => new AppData() { Name = x.DisplayName });
-            //var select = regt.Select(x => new AppData(x.DisplayName));
-            //var select = regt.Select(x => x).Select(x => new { x.DisplayName }).Select(x => x.DisplayName);
-            //var select = regt.Select(x => x);
-            //var select = regt.Select(x=>x).Select(x => new { x.DisplayName}).Select(x=>new InstalledApp() { }).Where(x=>x.DisplayName=="");
-            //var select = regt.Select((x, index) =>new { x, index });
-            //foreach (var oo in select)
-            //{
-
-            //}
-
-            //var fff = regt.All(x=>x.DisplayName == "");
-            //var zip = regt.Zip(installs, (reg, app) => new { reg, app });
-            //var zip = regt.Zip(installs, (reg, app) => app);
+            //var select = regt.Select(x => new InstalledApp() { DisplayName = x.DisplayName, EstimatedSize=x.EstimatedSize });
+            //var zip = regt.Zip(installs, (reg, app) => new { Name = app.DisplayName, reg.DisplayName });
             //var zip = regt.Zip(installs, (reg, app) => reg);
-            //var zip = regt.Zip(installs, (reg, app) => app.DisplayName);
-            //var zip = regt.Zip(installs, (reg, app) => reg.DisplayName);
-            //var zip = regt.Zip(installs, (reg, app) => new { reg.DisplayName, Name=app.DisplayName });
-            //var zip = regt.Zip(apps, (reg, app) => app);
-            //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
-            //var zip = apps.Zip(regt, (app, reg) => reg);
-            //var zip = installs.Zip(regt, (app, reg) => reg);
-            //var zip = regt.Zip(apps, (reg, app) => new { app.Name, reg.DisplayName });
-            //foreach (var oo in zip)
-            //{
-
-            //}
-
-            //apps.Zip(regt, (app, reg) => reg);
-
-
-            //var update1 = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize == 10)
-            //    .Update(x => new InstalledApp()
-            //    {
-            //        EstimatedSize = 100,
-            //        DisplayVersion = new Version("123.123.123.123")
-            //    });
-
-            //var update2 = regt.Where(x => x.DisplayName == "AA").Where(x => x.EstimatedSize == 10)
-            //    .Update(x => new InstalledApp()
-            //    {
-            //        EstimatedSize = x.EstimatedSize + 100,
-            //        DisplayVersion = new Version("123.123.123.123")
-            //    });
-
-            //var update3 = regt.Update(x => new InstalledApp()
-            //{
-            //    EstimatedSize = x.EstimatedSize + 100,
-            //    DisplayVersion = new Version("123.123.123.123"),
-            //    DisplayName = x.DisplayVersion.ToString()
-            //});
-            //var min1 = regt.Select(x => x.DisplayName.Length).Min();
-            //var min2 = regt.Select(x => x.EstimatedSize).Min();
-            //var first1 = regt.First();
-            //var first2 = regt.First(x => x.DisplayName == "BB");
-            //var first3 = regt.Select(x => x).First(x => x.DisplayName == "AA");
-            //var first4 = regt.Select(x => x).First();
-            //var first2 = regt.First(x => x.DisplayName != "");
-            //var firstordefault1 = regt.FirstOrDefault();
-            //var firstordefault2 = regt.FirstOrDefault(x => x.DisplayName == "BB");
-            //var firstordefault3 = regt.FirstOrDefault(x => x.DisplayName.Contains("BB"));
-            //var firstordefault4 = regt.FirstOrDefault(x => x.DisplayName.Contains("BB")==true);
-            //var firstordefault5 = regt.FirstOrDefault(x => x.DisplayName.Contains("BB") == false);
-            //var last1 = regt.Last();
-            //var last2 = regt.Last(x => x.DisplayName != "");
-
-
-
-            //var count1 = regt.Where(x => x.DisplayName == "123456789").OrderBy(x=>x.EstimatedSize).Count();
-            //var count2 = regt.Count(x => x.DisplayName == "AA");
-
-            //var all = regt.All(x => x.DisplayName != "");
-            //var any = regt.Any(x => x.EstimatedSize > 0);
-            //var reverse = regt.Reverse();
-            //var average = regt.Average(x => x.EstimatedSize);
-            //var sum = regt.Sum(x => x.EstimatedSize);
-            //var skip1 = regt.Skip(1);
-            //var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
-            //var min = regt.Min(x => x.EstimatedSize);
-            var min = regt.Select(x => x.DisplayName.Length).Min();
-            var max = regt.Max(x => x.EstimatedSize);
-            //var max = regt.Max(x => x.DisplayName.Length);
-            //var vers = regt.Select(x => x.DisplayVersion.ToString());
-            var vers = regt.Select((x, index) => x);
-            foreach(var oo in vers)
+            var j1 = regt.Join(installs, x=>x.DisplayName, y => y.DisplayName, (install, app) => install);
+            foreach (var oo in j1)
             {
 
             }

@@ -147,38 +147,6 @@ namespace QSoft.Registry.Linq
 
         }
 
-
-#if CreateQuery
-        //public int ToUpdate<T>(IEnumerable<T> datas)
-        //{
-        //    if (datas.Count() > 0 && this.m_Regs.Count() > 0)
-        //    {
-        //        var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
-        //        Dictionary<string, object> values = new Dictionary<string, object>();
-        //        foreach (var data in datas)
-        //        {
-        //            if(values.Count == 0)
-        //            {
-        //                foreach(var pp in pps)
-        //                {
-        //                    values[pp.Name] = pp.GetValue(data);
-        //                }
-        //            }
-        //            foreach (var reg in this.m_Regs)
-        //            {
-        //                foreach(var value in values)
-        //                {
-        //                    reg.SetValue(value.Key, value.Value);
-        //                }
-        //            }
-        //            values.Clear();
-        //        }
-
-        //    }
-        //    return datas.Count();
-        //}
-#endif
-
         bool m_IsWritable = false;
         IQueryable<RegistryKey> m_Regs;
         public IQueryable<RegistryKey> CreateRegs()
@@ -205,7 +173,7 @@ namespace QSoft.Registry.Linq
 
         public TResult Execute<TResult>(Expression expression)
         {
-#if CreateQuery
+
             var tte = new List<RegistryKey>().AsQueryable();
             TResult return_hr = default(TResult);
 
@@ -369,103 +337,6 @@ namespace QSoft.Registry.Linq
             }
 
             return return_hr;
-#else
-            List<RegistryKey> regs = new List<RegistryKey>();
-            RegistryKey reg = this.Setting;
-            var subkeynames = reg.GetSubKeyNames();
-
-            var updatemethod = expression as MethodCallExpression;
-            foreach (var subkeyname in subkeynames)
-            {
-                regs.Add(reg.OpenSubKey(subkeyname, updatemethod?.Method.Name=="Update"));
-            }
-            var tte = regs.AsQueryable();
-            
-            var type = typeof(TResult);
-            Type[] tts = type.GetGenericArguments();
-            if (expression is ConstantExpression && tts[0] == this.m_DataType)
-            {
-                var mi = typeof(RegProvider).GetMethod("Enumerable");
-                var fooRef = mi.MakeGenericMethod(tts[0]);
-                return (TResult)fooRef.Invoke(this, new object[] { tte });
-            }
-
-
-
-            RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-            var methods = typeof(RegProvider).GetMethods();
-            var method = typeof(RegProvider).GetMethod("CreateRegs");
-            var createregs = Expression.Call(Expression.Constant(this), method);
-            var expr = regvisitor.Visit(expression, this.m_DataType, reg, tte, createregs);
-
-            var methodcall_param_0 = Expression.Constant(tte);
-
-            TResult return_hr;
-            if (type.Name == "IEnumerable`1")
-            {
-                var creatquerys = typeof(IQueryProvider).GetMethods().Where(x=>x.Name== "CreateQuery" && x.IsGenericMethod==true);
-                var tts1 = new Type[tts.Length];
-                for(int i=0; i<tts.Length; i++)
-                {
-                    if(tts[i]==this.m_DataType)
-                    {
-                        tts1[i] = typeof(RegistryKey);
-                    }
-                    else if(tts[i].GetGenericArguments().Length > 1)
-                    {
-                        if(tts[i].Name.Contains("IGrouping"))
-                        {
-                            tts1[i] = typeof(IGrouping<,>).MakeGenericType(tts[i].GetGenericArguments()[0], typeof(RegistryKey));
-
-                        }
-                        else if(tts[i].Name.Contains("AnonymousType"))
-                        {
-                            tts1[i] = tts[i];
-                        }
-                    }
-                    else
-                    {
-                        tts1[i] = tts[i];
-                    }
-                }
-                tts1[0] = tts[0];
-                var creatquery = creatquerys.First().MakeGenericMethod(tts1);
-                var excute = creatquery.Invoke(tte.Provider, new object[] { expr });
-
-                return_hr = (TResult)excute;
-            }
-            else
-            {
-                object inst = null;
-                
-                var excute = tte.Provider.Execute(expr);
-                var excute_reg = excute as RegistryKey;
-                if (excute_reg !=null)
-                {
-                    var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true);
-                    inst = Activator.CreateInstance(typeof(TResult));
-                    foreach (var pp in pps)
-                    {
-                        pp.SetValue(inst, excute_reg.GetValue(pp.Name),null);
-                    }
-
-                }
-                else
-                {
-                    inst = excute;
-                }
-
-                foreach(var oo in regs)
-                {
-                    oo.Close();
-                    oo.Dispose();
-                }
-
-                return_hr = (TResult)inst;
-            }
-
-            return return_hr;
-#endif
         }
 
         //public Expression ToSelectData()

@@ -125,12 +125,12 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.GroupBy(x => x.DisplayVersion), regt.GroupBy(x => x.DisplayVersion));
             this.Check(this.m_Tests.GroupBy(x => x.IsOfficial), regt.GroupBy(x => x.IsOfficial));
             this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
-            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
-            this.Check(this.m_Tests.GroupBy(x=>x), regt.GroupBy(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x), regt.GroupBy(x => x).Select(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
+            //this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
+            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
+            //this.Check(this.m_Tests.GroupBy(x=>x), regt.GroupBy(x => x));
+            //this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x), regt.GroupBy(x => x).Select(x => x));
+            //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }        
 
         void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
@@ -317,11 +317,13 @@ namespace UnitTestProject1
             //var zip = regt.Zip(apps, (reg, app) => reg);
             //var zip = regt.Zip(apps, (reg, app) => app);
             //var zip = regt.Zip(apps, (reg, app) => reg.DisplayName);
-            //var zip = regt.Zip(this.m_Tests, (reg, app) => new { Name=app.DisplayName, reg.DisplayName });
+            //var zip = regt.Zip(this.m_Tests, (reg, app) => new { Name = app.DisplayName, reg.DisplayName });
             //var dd1 = regt.Zip(this.m_Apps, (reg, app) => reg);
             //var dd2 = this.m_Tests.Zip(regt, (app, reg) => reg);
             this.Check(regt.Zip(this.m_Tests, (reg, app) => reg), this.m_Tests.Zip(regt, (app, reg) => reg));
-            //this.Check(regt.Zip(this.m_Tests, (reg, app) => app), this.m_Tests.Zip(regt, (app, reg) => app));
+            this.Check(regt.Zip(this.m_Tests, (reg, app) => app), this.m_Tests.Zip(regt, (app, reg) => app));
+            //this.Check(regt.Zip(this.m_Tests, (reg, app) => app.DisplayName), this.m_Tests.Zip(regt, (app, reg) => app.DisplayName));
+            //this.Check(regt.Zip(this.m_Tests, (reg, app) => new { reg, app }), this.m_Tests.Zip(regt, (app, reg) => new { reg, app }));
             //this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
         }
 
@@ -430,7 +432,7 @@ namespace UnitTestProject1
         public void Min()
         {
             Assert.IsTrue(this.m_Tests.Min(x => x.EstimatedSize) == regt.Min(x => x.EstimatedSize), "Min fail");
-            //Assert.IsTrue(this.m_Tests.Select(x=>x.DisplayName.Length).Min() == regt.Select(x=>x.DisplayName.Length).Min(), "Min fail");
+            Assert.IsTrue(this.m_Tests.Select(x => x.DisplayName.Length).Min() == regt.Select(x => x.DisplayName.Length).Min(), "Min fail");
         }
 
         [TestMethod]
@@ -453,7 +455,7 @@ namespace UnitTestProject1
             var count1 = regt;
             var count2 = this.m_Tests.Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize + 100 });
             this.Check(count1, count2);
-            regt.Where(x => x.EstimatedSize > 130).Update(x => new InstallApp() {EstimatedSize= x.EstimatedSize-100 });
+            regt.Where(x => x.EstimatedSize > 130).Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize - 100 });
             count1 = regt.Where(x => x.EstimatedSize > 130);
             count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize - 100 });
             this.Check(count1, count2);

@@ -125,12 +125,12 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.GroupBy(x => x.DisplayVersion), regt.GroupBy(x => x.DisplayVersion));
             this.Check(this.m_Tests.GroupBy(x => x.IsOfficial), regt.GroupBy(x => x.IsOfficial));
             this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
-            //this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
-            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
-            //this.Check(this.m_Tests.GroupBy(x=>x), regt.GroupBy(x => x));
-            //this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x), regt.GroupBy(x => x).Select(x => x));
-            //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
-            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
+            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
+            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
+            this.Check(this.m_Tests.GroupBy(x => x).Select(x => x), regt.GroupBy(x => x).Select(x => x));
+            this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }        
 
         void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
@@ -210,6 +210,10 @@ namespace UnitTestProject1
 
             this.Check(this.m_Tests.Where(x => x.EstimatedSize > 0), regt.Where(x => x.EstimatedSize > 0));
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == "10"), regt.Where(x => x.EstimatedSize.ToString() == "10"));
+            this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
+            this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
+
+
             //this.Check(this.m_Tests.Where(x => x.FC() == 100), regt.Where(x => x.FC() == 100));
         }
 
@@ -275,6 +279,9 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.Select(x => new { Version = x.DisplayVersion }), regt.Select(x => new { Version = x.DisplayVersion }));
             this.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
             this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
+            this.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
+            //this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.DisplayVersion.ToString(), IsOfficial=(bool)x.IsOfficial });
+            this.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.DisplayVersion.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.DisplayVersion.ToString() }));
         }
 
         [TestMethod]
@@ -451,6 +458,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void Update()
         {
+           
             int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
             var count1 = regt;
             var count2 = this.m_Tests.Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize + 100 });
@@ -460,6 +468,9 @@ namespace UnitTestProject1
             count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize - 100 });
             this.Check(count1, count2);
 
+            //update_count = regt.Update(x => new InstallApp() { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
+            //count2 = this.m_Tests.Select(x => new InstallApp(x) { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
+            //this.Check(count1, count2);
         }
 
 

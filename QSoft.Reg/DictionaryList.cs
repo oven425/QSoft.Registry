@@ -73,33 +73,40 @@ namespace QSoft.Registry
         public DictionaryList<TKey, TValue> Clone(TKey key)
         {
             List<KeyValuePair<TKey, TValue>> keyvalues = new List<KeyValuePair<TKey, TValue>>();
-            //Dictionary<TKey, TValue> exprs = new Dictionary<TKey, TValue>();
             List<int> indexs = new List<int>();
-            for (int i = this.Count-1; i >=0; i--)
+            DictionaryList<TKey, TValue> dd = new DictionaryList<TKey, TValue>();
+            if (this.Count == 1)
             {
-                if (this[i].Key.Equals(key))
+                if(this[0].Key.Equals(key) == true)
                 {
-                    break;
+                    dd.Add(this[0].Key, this[0].Value);
+                    this.RemoveAt(0);
                 }
-                //if (exprs != null)
+            }
+            else
+            {
+                for (int i = this.Count - 1; i >= 0; i--)
                 {
+                    if (this[i].Key.Equals(key))
+                    {
+                        break;
+                    }
                     indexs.Add(i);
                     keyvalues.Insert(0, this.ElementAt(i));
-                    //exprs[this.ElementAt(i).Key] = this.ElementAt(i).Value;
+                }
+                foreach (var oo in indexs)
+                {
+                    this.RemoveAt(oo);
+                }
+
+                
+                foreach (var oo in keyvalues)
+                {
+                    dd.Add(oo.Key, oo.Value);
                 }
             }
-            foreach(var oo in indexs)
-            {
-                this.RemoveAt(oo);
-            }
-
-            DictionaryList<TKey, TValue> dd = new DictionaryList<TKey, TValue>();
-            foreach (var oo in keyvalues)
-            {
-                dd.Add(oo.Key, oo.Value);
-            }
+            
             return dd;
-            //return keyvalues.ToDictionary(x=>x.Key, x=>x.Value);
         }
 
 

@@ -293,7 +293,7 @@ namespace UnitTestProject1
 
             }
             this.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
-            //this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
+            this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }
 
         [TestMethod]
@@ -392,6 +392,7 @@ namespace UnitTestProject1
         public void All()
         {
             Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "") == regt.All(x => x.DisplayName == ""), "All(x => x.DisplayName == ) fail");
+            Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "" && x.EstimatedSize > 10) == regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10), "All fail");
         }
 
         [TestMethod]
@@ -453,6 +454,8 @@ namespace UnitTestProject1
         public void Average()
         {
             Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
+            Assert.IsTrue(this.m_Tests.Average(x => x.DisplayName.Length) == regt.Average(x => x.DisplayName.Length), "Average fail");
+            Assert.IsTrue(this.m_Tests.Average(x => x.DisplayVersion.ToString().Length) == regt.Average(x => x.DisplayVersion.ToString().Length), "Average fail");
         }
 
         [TestMethod]
@@ -533,10 +536,19 @@ namespace UnitTestProject1
                 {
                     dynamic s = pp.GetValue(src);
                     dynamic d = pp.GetValue(dst);
-                    if(s != d)
+                    if (pp.PropertyType == typeof(InstallApp))
                     {
-                        Assert.Fail($"{pp.Name} fail src:{s} dst:{d}");
+                        this.Check(s, d);
                     }
+                    else
+                    {
+                        if (s != d)
+                        {
+                            Assert.Fail($"{pp.Name} fail src:{s} dst:{d}");
+                        }
+                    }
+                    
+                    
                 }
             }
         }

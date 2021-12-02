@@ -120,7 +120,7 @@ namespace QSoft.Registry.Linq
                 var obj = data(oo);
                 foreach(var pp in pps)
                 {
-                    object vv = pp.GetValue(obj);
+                    object vv = pp.GetValue(obj, null);
                     if(vv != null)
                     {
                         reg.SetValue(pp.Name, vv);
@@ -155,7 +155,29 @@ namespace QSoft.Registry.Linq
                     var pps = x.GetParameters();
                     if (pps.Length == 2)
                     {
-                        var ssss = pps[1].ParameterType.GenericTypeArguments[0].GenericTypeArguments.Length;
+                        var ssss = pps[1].ParameterType.GetGenericArguments()[0].GetGenericArguments().Length;
+                        if (ssss == 2)
+                        {
+                            hr = true;
+                        }
+                    }
+                }
+                return hr;
+            });
+            return select_method?.MakeGenericMethod(typeof(RegistryKey), datatype);
+        }
+
+        static public MethodInfo SelectMethod_Enumerable(this Type datatype)
+        {
+            var select_method = typeof(Enumerable).GetMethods().FirstOrDefault(x =>
+            {
+                bool hr = false;
+                if (x.Name == "Select")
+                {
+                    var pps = x.GetParameters();
+                    if (pps.Length == 2)
+                    {
+                        var ssss = pps[1].ParameterType.GetGenericArguments().Length;
                         if (ssss == 2)
                         {
                             hr = true;
@@ -168,14 +190,30 @@ namespace QSoft.Registry.Linq
         }
 
 
-        static public Expression ToSelectData(this Type datatype)
+
+        static public Expression ToSelectData(this Type datatype, ParameterExpression pp=null)
         {
-            var pp = Expression.Parameter(typeof(RegistryKey), "x");
+            //var pp = Expression.Parameter(typeof(RegistryKey), "x");
+            if(pp==null)
+            {
+                pp = Expression.Parameter(typeof(RegistryKey), "x");
+            }
             var todata = datatype.ToData(pp);
             var lambda = Expression.Lambda(todata, pp);
             var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
 
             return unary;
+        }
+
+        public static Expression ToLambdaData(this Type datatype, ParameterExpression pp = null)
+        {
+            if (pp == null)
+            {
+                pp = Expression.Parameter(typeof(RegistryKey), "x");
+            }
+            var todata = datatype.ToData(pp);
+            var lambda = Expression.Lambda(todata, pp);
+            return lambda;
         }
 
         static public Expression ToData(this Type datatype, ParameterExpression param)

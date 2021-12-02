@@ -85,19 +85,22 @@ namespace ConsoleApp1
             List<int> src1 = new List<int> { 1, 2, 3 };
             List<int> src2 = new List<int>() { 1,10 };
             var except1 = src1.Except(src2);
-            var rr = queryable.Select(x => new DateTime(2021,10,10));
-
+            //var rr = queryable.Select(x => new DateTime(2021,10,10));
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
 
 
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var unary = methodcall.Arguments[1] as UnaryExpression;
+            var unary = methodcall.Arguments[2] as UnaryExpression;
             var lambda = unary.Operand as LambdaExpression;
-            
-            ttype = lambda.Body.GetType();
-            var newexpr = lambda.Body as NewExpression;
 
+
+            var newexpr = lambda.Body as NewExpression;
+            methodcall = newexpr.Arguments[1] as MethodCallExpression;
+            var ggw = methodcall.Method.GetGenericArguments();
+            lambda = methodcall.Arguments[1] as LambdaExpression;
+            ttype = methodcall.Arguments[1].GetType();
 
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
@@ -109,9 +112,12 @@ namespace ConsoleApp1
             
             //var group1 = regt.GroupBy(x => x.DisplayName);
             //var group2 = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-            var group3 = regt.GroupBy(x => x.DisplayName, (x,y)=>x);
+            var group3 = regt.GroupBy(x => x, (x,y)=>y);
+            foreach(var oo in group3)
+            {
 
-            var select  = regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.DisplayVersion.ToString() });
+            }
+            var select = regt.Select((x, index) => new { x, index });
             var any = regt.Any(x => x.EstimatedSize > 0);
             var first1 = regt.First();
             var first2 = regt.First(x => x.DisplayName != "");

@@ -208,9 +208,6 @@ namespace QSoft.Registry.Linq
             {
                 if (updatemethod.Type == typeof(IQueryable<RegistryKey>) || updatemethod.Type == typeof(IOrderedQueryable<RegistryKey>))
                 {
-                    var expr = expression;
-                    //var sd = this.ToSelectData();
-                    //var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
                     var sd = this.m_DataType.ToSelectData();
                     var select = this.m_DataType.SelectMethod();
                     updatemethod = Expression.Call(select, updatemethod, sd);
@@ -315,7 +312,7 @@ namespace QSoft.Registry.Linq
                     foreach (var pp in pps)
                     {
                         var yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, pp.Name });
-                        pp.SetValue(inst, yyy);
+                        pp.SetValue(inst, yyy, null);
                     }
 
                 }

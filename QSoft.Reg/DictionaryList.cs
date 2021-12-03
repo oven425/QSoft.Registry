@@ -14,6 +14,10 @@ namespace QSoft.Registry
             get
             {
                 int index = this.FindLastIndex(x => x.Key.Equals(key));
+                if(index < 0)
+                {
+                    return default(TValue);
+                }
                 return this.ElementAt(index).Value;
             }
             set

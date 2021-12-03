@@ -1,17 +1,14 @@
-
-
 # Use Linq style read registry(Linq to Registry)
 ## Use Queryable read data
-* Full Linq support
-   provide Queryable function
-* Auto control Registry resource
-   no control resource create and dispose
-## sample code
+* Support Queryable function
+* Auto control Registry resource no control resource create and dispose
+* Support Update RegistryKey
+## Sample code
 Create definition
 ```csharp
 public class InstalledApp
 {
-    public string DisplayName { set; get; }
+	public string DisplayName { set; get; }
     public string DisplayVersion { set; get; }
     public int? EstimatedSize { set; get; }
 }
@@ -19,20 +16,20 @@ public class InstalledApp
 Create Query
 ```csharp
 var regt = new RegQuery<InstalledApp>()
-	.useSetting(x =>
-	{
-	    x.Hive = RegistryHive.LocalMachine;
-	    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-	});
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.LocalMachine;
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+                    x.View = RegistryView.Registry64;
+                });
 ```
-Query data
+Get data
 ```csharp
 var first1 = regt.First();
 var first2 = regt.First(x => x.DisplayName != "");
 var last1 = regt.Last();
 var last2 = regt.Last(x => x.DisplayName != "");
-var take = regt.Take(10);
-var takewhile = regt.TakeWhile(x => x.DisplayName == "AA");
+
 
 var count1 = regt.Count();
 var count2 = regt.Count(x => x.DisplayName == "AA");
@@ -41,8 +38,6 @@ var any = regt.Any(x => x.EstimatedSize > 0);
 var reverse = regt.Reverse();
 var average = regt.Average(x => x.EstimatedSize);
 var sum = regt.Sum(x => x.EstimatedSize);
-var skip1 = regt.Skip(1);
-var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
 var min = regt.Min(x => x.EstimatedSize);
 var max = regt.Max(x => x.EstimatedSize);
 
@@ -51,39 +46,20 @@ var tolist = regt.ToList();
 var toarray = regt.ToArray();
 var dictonary = regt.ToDictionary(x => x.EstimatedSize);
 ```
+Query data
 ```csharp
-var orderbydesc = regt.OrderByDescending(x => x.EstimatedSize);
+var take = regt.Take(10);
+var takewhile = regt.TakeWhile(x => x.DisplayVersion <= new Version(2,2,2,2));
+var orderbydesc = regt.OrderByDescending(x => x.DisplayVersion);
 var oderby = regt.OrderBy(x => x.EstimatedSize);
-var where1 = regt.Where(x => x.DisplayName != "");
+var where = regt.Where(x => x.DisplayName != "" && x.DisplayVersion > new Version(3,3,3,3));
 ```
-Join data definition and create
+GroupBy Data
 ```csharp
-public class AppData
-{
-    public AppData()
-    {
+var group1 = regt.GroupBy(x => x.DisplayName);
+var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
+```
 
-    }
-
-    public AppData(string name)
-    {
-        this.Name = name;
-    }
-    public string Name { set; get; }
-    public string Ver { set; get; }
-    public string Uninstallstring { set; get; }
-    public bool IsOfficial { set; get; }
-}
-```
-```csharp
-List<AppData> apps = new List<AppData>();
-apps.Add(new AppData() { Name = "A", IsOfficial = true });
-apps.Add(new AppData() { Name = "AA", IsOfficial = false });
-```
-```csharp
-var join1 = regt.Join(apps, x => x.DisplayName, y => y.Name, (x, y) => new { x.DisplayName, x.EstimatedSize, y.IsOfficial });
-var groupjoin = regt.GroupJoin(apps, x => x.DisplayName, y => y.Name, (x, y) => x);
-```
 
 
 

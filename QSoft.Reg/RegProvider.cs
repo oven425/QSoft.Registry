@@ -67,7 +67,7 @@ namespace QSoft.Registry.Linq
                 }
                 if (bb == true)
                 {
-                    expr = reg.Visit(method1.Arguments[1], this.m_DataType, this.m_RegSource);
+                    expr = reg.Visit(this.m_DataType, method1.Method, method1.Arguments[0], method1.Arguments[1]);
                     var methods = method1.Method.ReflectedType.GetMethods().Where(x => x.Name == method1.Method.Name);
 
                     methods = methods.Where(x => x.IsGenericMethod == method1.Method.IsGenericMethod);
@@ -76,6 +76,7 @@ namespace QSoft.Registry.Linq
                     if (pps[0] == this.m_DataType)
                     {
                         pps[0] = typeof(RegistryKey);
+                        pps[pps.Length-1] = reg.ReturnType;
                     }
                     if (pps[0].Name.Contains("IGrouping"))
                     {
@@ -100,7 +101,7 @@ namespace QSoft.Registry.Linq
                     var ooi = methods.ElementAt(0).MakeGenericMethod(pps);
                     var ppps = method1.Method.GetGenericMethodDefinition().GetParameters();
                     ooi = method1.Method.GetGenericMethodDefinition().MakeGenericMethod(pps);
-                    if(this.m_RegMethod.Type != ooi.ReturnType)
+                    //if(this.m_RegMethod.Type != ooi.ReturnType)
                     {
                         this.m_RegMethod = Expression.Call(ooi, this.m_RegMethod, expr);
                     }
@@ -279,7 +280,8 @@ namespace QSoft.Registry.Linq
                     for (int i=1; i< updatemethod.Arguments.Count; i++)
                     {
                         RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                        arg1 = regvisitor.Visit(updatemethod.Arguments[i], this.m_DataType, this.m_RegSource);
+                        //arg1 = regvisitor.Visit(updatemethod.Arguments[i], this.m_DataType, this.m_RegSource);
+                        arg1 = regvisitor.Visit(this.m_DataType, updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
                         args.Add(arg1);
                     }
 

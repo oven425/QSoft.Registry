@@ -17,8 +17,20 @@ namespace QSoft.Registry.Linq
             this.m_ExpressionSaves[node] = null;
             this.m_DataType = datatype;
             this.m_RegSource = regfunc;
-            Type ttupe = regfunc.GetType();
             Expression expr = this.Visit(node);
+
+            var exprs = this.m_ExpressionSaves.Clone(expr);
+            expr = exprs.First().Value;
+            return expr;
+        }
+
+        public Expression Visit(Type datatype, MethodInfo method, params Expression[] nodes)
+        {
+            System.Diagnostics.Trace.WriteLine($"Visit {method?.Name}");
+            this.PreparMethod(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
+            this.m_DataType = datatype;
+
+            Expression expr = this.Visit(nodes[1]);
 
             var exprs = this.m_ExpressionSaves.Clone(expr);
             expr = exprs.First().Value;
@@ -58,7 +70,7 @@ namespace QSoft.Registry.Linq
                 {
                     if (parameter.Name == this.m_DataTypeName)
                     {
-                        if (parameter.Type.IsGenericType == true && parameter.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                        if (parameter.Type.IsGenericType == true)
                         {
                             var param = this.m_Parameters[parameter.Name];
                             var select_method = this.m_DataType.SelectMethod_Enumerable();
@@ -72,6 +84,16 @@ namespace QSoft.Registry.Linq
                             var todata = this.m_DataType.ToData(param);
                             exprs[exprs.ElementAt(i).Key] = todata;
                         }
+                    }
+                    else
+                    {
+                        var param = this.m_Parameters[parameter.Name];
+                        if(param.Type == this.m_DataType)
+                        {
+                            var todata = this.m_DataType.ToData(param);
+                            exprs[exprs.ElementAt(i).Key] = todata;
+                        }
+                        
                     }
                 }
             }
@@ -133,6 +155,24 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
             this.m_ExpressionSaves[node] = null;
+            if(this.m_ExpressionSaves1.Count == 0)
+            {
+                //var pps1 = pp1.GetGenericArguments();
+                //for (int i = 0; i < node.Parameters.Count; i++)
+                //{
+                //    this.m_ExpressionSaves1[node.Parameters[i]] = pps1[i];
+                //}
+            }
+            else
+            {
+                var pp1 = this.m_ExpressionSaves1[node];
+                var pps1 = pp1.GetGenericArguments();
+                for (int i = 0; i < node.Parameters.Count; i++)
+                {
+                    this.m_ExpressionSaves1[node.Parameters[i]] = pps1[i];
+                }
+            }
+            
             System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
             if(m_PP != null)
             {
@@ -200,12 +240,12 @@ namespace QSoft.Registry.Linq
                 m_Lambda = lambda;
             }
             this.m_Parameters.Clear();
-            this.m_ReturnType = this.m_Lambda.ReturnType;
+            this.ReturnType = this.m_Lambda.ReturnType;
             this.m_Lastnode = expr;
             return expr;
         }
 
-        Type m_ReturnType = null;
+        public Type ReturnType { set; get; } = null;
 
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
@@ -213,70 +253,96 @@ namespace QSoft.Registry.Linq
             m_ExpressionSaves[node] = null;
             System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
             var expr = base.VisitParameter(node) as ParameterExpression;
-            if (expr.Name == this.m_DataTypeName)
+            var pp1 = this.m_ExpressionSaves1[expr];
+            //if(this.m_Lastnode != null)
             {
                 if (this.m_Parameters.ContainsKey(expr.Name) == false)
                 {
-                    ParameterExpression pp = null;
-                    
-                    if (expr.Type.IsGenericType == true&&expr.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    if(pp1.IsGenericType == true&&pp1.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
-                        pp = Expression.Parameter(typeof(IEnumerable<RegistryKey>), expr.Name);
+                        var type = this.m_GenericTypes[pp1.GetGenericArguments()[0].Name];
+                        var ie = pp1.GetGenericTypeDefinition().MakeGenericType(type);
+                        var pp = Expression.Parameter(ie, expr.Name);
+                        this.m_Parameters[expr.Name] = pp;
+                    }
+                    else if(this.m_GenericTypes.ContainsKey(pp1.Name) == true)
+                    {
+                        var type = this.m_GenericTypes[pp1.Name];
+                        var pp = Expression.Parameter(type, expr.Name);
+                        this.m_Parameters[expr.Name] = pp;
                     }
                     else
                     {
-                        pp = Expression.Parameter(typeof(RegistryKey), expr.Name);
+                        this.m_Parameters[expr.Name] = expr;
                     }
                     
-                    this.m_Parameters.Add(pp.Name, pp);
-                    this.m_ExpressionSaves[expr] = pp;
                 }
+                this.m_ExpressionSaves[expr] = this.m_Parameters[expr.Name];
             }
-            else if (expr.Type == this.m_DataType)
-            {
-                if (this.m_Parameters.ContainsKey(expr.Name) == false)
-                {
-                    if(string.IsNullOrEmpty(this.m_DataTypeName))
-                    {
-                        var parameter = Expression.Parameter(typeof(RegistryKey), expr.Name);
-                        this.m_Parameters.Add(parameter.Name, parameter);
-                        this.m_ExpressionSaves[expr] = parameter;
-                    }
-                    else
-                    {
-                        this.m_Parameters.Add(expr.Name, expr);
-                        this.m_ExpressionSaves[expr] = expr;
-                    }
-                }
-            }
-            else if(expr.Type.Name.Contains("IGrouping"))
-            {
-                var args = expr.Type.GetGenericArguments();
-                args.Replace(this.m_DataType, typeof(RegistryKey));
-                var parameter = Expression.Parameter(typeof(IGrouping<, >).MakeGenericType(args), expr.Name);
-                if(this.m_Parameters.ContainsKey(parameter.Name) == false)
-                {
-                    this.m_Parameters[parameter.Name]= parameter;
-                    this.m_ExpressionSaves[expr] = parameter;
-                }
-            }
-            else
-            {
-                if (this.m_Parameters.Count ==0)
-                {
-                    this.m_Parameters.Add(expr.Name, expr);
-                    this.m_ExpressionSaves[expr] = expr;
-                }
-                else if(this.m_Parameters.ContainsKey(expr.Name)==false)
-                {
-                    this.m_Parameters.Add(expr.Name, expr);
-                    this.m_ExpressionSaves[expr] = expr;
-                }
-            }
-            if(this.m_ExpressionSaves[node] == null)
-            {
-                this.m_ExpressionSaves[node] = this.m_Parameters[node.Name];
-            }
+            //if (expr.Name == this.m_DataTypeName)
+            //{
+            //    if (this.m_Parameters.ContainsKey(expr.Name) == false)
+            //    {
+            //        ParameterExpression pp = null;
+                    
+            //        if (expr.Type.IsGenericType == true&&expr.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            //        {
+            //            pp = Expression.Parameter(typeof(IEnumerable<RegistryKey>), expr.Name);
+            //        }
+            //        else
+            //        {
+            //            pp = Expression.Parameter(typeof(RegistryKey), expr.Name);
+            //        }
+                    
+            //        this.m_Parameters.Add(pp.Name, pp);
+            //        this.m_ExpressionSaves[expr] = pp;
+            //    }
+            //}
+            //else if (expr.Type == this.m_DataType)
+            //{
+            //    if (this.m_Parameters.ContainsKey(expr.Name) == false)
+            //    {
+            //        if(string.IsNullOrEmpty(this.m_DataTypeName))
+            //        {
+            //            var parameter = Expression.Parameter(typeof(RegistryKey), expr.Name);
+            //            this.m_Parameters.Add(parameter.Name, parameter);
+            //            this.m_ExpressionSaves[expr] = parameter;
+            //        }
+            //        else
+            //        {
+            //            this.m_Parameters.Add(expr.Name, expr);
+            //            this.m_ExpressionSaves[expr] = expr;
+            //        }
+            //    }
+            //}
+            //else if(expr.Type.Name.Contains("IGrouping"))
+            //{
+            //    var args = expr.Type.GetGenericArguments();
+            //    args.Replace(this.m_DataType, typeof(RegistryKey));
+            //    var parameter = Expression.Parameter(typeof(IGrouping<, >).MakeGenericType(args), expr.Name);
+            //    if(this.m_Parameters.ContainsKey(parameter.Name) == false)
+            //    {
+            //        this.m_Parameters[parameter.Name]= parameter;
+            //        this.m_ExpressionSaves[expr] = parameter;
+            //    }
+            //}
+            //else
+            //{
+            //    if (this.m_Parameters.Count ==0)
+            //    {
+            //        this.m_Parameters.Add(expr.Name, expr);
+            //        this.m_ExpressionSaves[expr] = expr;
+            //    }
+            //    else if(this.m_Parameters.ContainsKey(expr.Name)==false)
+            //    {
+            //        this.m_Parameters.Add(expr.Name, expr);
+            //        this.m_ExpressionSaves[expr] = expr;
+            //    }
+            //}
+            //if(this.m_ExpressionSaves[node] == null)
+            //{
+            //    this.m_ExpressionSaves[node] = this.m_Parameters[node.Name];
+            //}
             this.m_Lastnode = expr;
             return expr;
         }
@@ -284,7 +350,6 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitMember(MemberExpression node)
         {
             m_ExpressionSaves[node] = null;
-            //m_ExpressionSaves.Add(new Tr() { Src = node });
             var ttyp = node.Type;
             System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
             var expr = base.VisitMember(node) as MemberExpression;
@@ -328,7 +393,8 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        Tuple<ParameterInfo, MethodInfo, string> m_PP;
+        Tuple<ParameterInfo, MethodInfo, string> m_PP = null;
+        Dictionary<string, Type> m_GenericTypes = new Dictionary<string, Type>();
         protected override Expression VisitUnary(UnaryExpression node)
         {
             m_PP = null;
@@ -337,10 +403,35 @@ namespace QSoft.Registry.Linq
                 m_PP = m_PPs[node];
             }
             this.m_ExpressionSaves[node] = null;
+            if(this.m_ExpressionSaves1.ContainsKey(node) == true)
+            {
+                var pp1 = this.m_ExpressionSaves1[node];
+                if (pp1 != null)
+                {
+                    this.m_ExpressionSaves1[node.Operand] = pp1.GetGenericArguments()[0];
+                }
+            }
+            
             
             System.Diagnostics.Trace.WriteLine($"VisitUnary");
             var expr = base.VisitUnary(node);
             var exprs = this.m_ExpressionSaves.Clone(expr);
+
+            if(this.m_ExpressionSaves1.ContainsKey(expr) == true)
+            {
+                var pp = this.m_ExpressionSaves1[expr];
+                if (pp != null)
+                {
+                    var kkey = pp.GetGenericArguments()[0].GetGenericArguments().Last().Name;
+                    var lambda = exprs.First().Value as LambdaExpression;
+                    if (lambda != null)
+                    {
+                        this.m_GenericTypes[kkey] = lambda.ReturnType;
+                        this.m_Parameters.Clear();
+                    }
+                }
+            }
+
             Type result_type = expr.Type;
             if (result_type.IsGenericType == true)
             {
@@ -352,28 +443,55 @@ namespace QSoft.Registry.Linq
 
             UnaryExpression unary = Expression.MakeUnary(node.NodeType, exprs.First().Value, result_type);
             this.m_ExpressionSaves[expr] = unary;
-
+            
             this.m_Lastnode = expr;
             return expr;
         }
 
-        //Stack<Tuple<Type, Expression>> m_ParamList = new Stack<Tuple<Type, Expression>>();
-        Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>> m_PPs = new Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>>();
-        DictionaryList<Expression, Expression> m_ExpressionSaves = new DictionaryList<Expression, Expression>();
-        Expression m_Lastnode = null;
-        Dictionary<Expression, string> GenericTypes = new Dictionary<Expression, string>();
-        protected override Expression VisitMethodCall(MethodCallExpression node)
+        void PreparMethod(Expression node, Expression[] args, MethodInfo method)
         {
             m_ExpressionSaves[node] = null;
-            System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
-            if (node.Method.ReturnType.IsGenericType == true)
+            System.Diagnostics.Trace.WriteLine($"PreparMethod {method?.Name}");
+
+            if (method.IsGenericMethod == true)
             {
-                var return1 = node.Method.ReturnType.GetGenericTypeDefinition();
-                
+                var dic = method.GetParameters();
+                var dicc = method.GetGenericMethodDefinition().GetGenericArguments();
+                for (int i = 0; i < dicc.Length; i++)
+                {
+                    if (i == 0)
+                    {
+                        this.m_GenericTypes[dicc[i].Name] = typeof(RegistryKey);
+                    }
+                    else
+                    {
+                        if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                        {
+                            this.m_GenericTypes[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
+                        }
+                        else
+                        {
+                            this.m_GenericTypes[dicc[i].Name] = null;
+                        }
+                    }
+                }
+
+
+                var dic2 = method.GetGenericMethodDefinition().GetParameters();
+                for (int i = 0; i < args.Length; i++)
+                {
+                    m_ExpressionSaves1[args[i]] = dic2[i].ParameterType;
+                }
+            }
+
+
+            if (method.ReturnType.IsGenericType == true)
+            {
+                var return1 = method.ReturnType.GetGenericTypeDefinition();
+
                 if (return1 == typeof(IQueryable<>))
                 {
-                    
-                    var t4 = node.Method.GetGenericMethodDefinition().GetParameters();
+                    var t4 = method.GetGenericMethodDefinition().GetParameters();
                     string datatypename = t4.First().ParameterType.GetGenericArguments()[0].Name;
                     for (int i = 0; i < t4.Length; i++)
                     {
@@ -385,12 +503,24 @@ namespace QSoft.Registry.Linq
                         }
                         if (invoke != null)
                         {
-                            m_PPs[node.Arguments[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                            m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
                         }
                     }
                 }
             }
-            
+        }
+
+
+        Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>> m_PPs = new Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>>();
+        DictionaryList<Expression, Expression> m_ExpressionSaves = new DictionaryList<Expression, Expression>();
+        Dictionary<Expression, Type> m_ExpressionSaves1 = new Dictionary<Expression, Type>();
+        Expression m_Lastnode = null;
+        Dictionary<Expression, string> GenericTypes = new Dictionary<Expression, string>();
+        protected override Expression VisitMethodCall(MethodCallExpression node)
+        {
+            System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
+            this.PreparMethod(node, node.Arguments.ToArray(), node.Method);
+
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
@@ -447,7 +577,6 @@ namespace QSoft.Registry.Linq
 
         }
 
-        //Expression m_ConstantExpression_Value = null;
         protected override Expression VisitConstant(ConstantExpression node)
         {
             this.m_ExpressionSaves[node] = null;
@@ -464,13 +593,10 @@ namespace QSoft.Registry.Linq
             }
             else if (node.Type.Name.Contains("IEnumerable"))
             {
-                //this.m_ParamList.Push(Tuple.Create(expr.Type.GetGenericArguments()[0], expr));
                 this.m_ExpressionSaves[expr] = expr;
             }
             else
             {
-                //this.m_ParamList.Push(Tuple.Create(node.Type, expr));
-                //m_ConstantExpression_Value = expr;
                 this.m_ExpressionSaves[expr] = expr;
             }
             this.m_Lastnode = expr;

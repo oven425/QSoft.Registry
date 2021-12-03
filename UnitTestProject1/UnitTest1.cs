@@ -127,10 +127,9 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
             this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
-            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x).Select(x => x), regt.GroupBy(x => x).Select(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
+            //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x), regt.GroupBy(x => x).Select(x => x));
+            //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }        
 
         void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
@@ -197,6 +196,11 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void Where_All()
+        {
+        }
+
+        [TestMethod]
         public void Where()
         {
             this.Check(this.m_Tests.Where(x => x.DisplayName.ToString() == "AA".ToString()), regt.Where(x => x.DisplayName.ToString() == "AA".ToString()));
@@ -213,7 +217,7 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
 
-
+            this.Check(this.m_Tests.Where(x=>x.DisplayName.Contains("A")).Select(x => $"IsOfficial{x.IsOfficial}"), regt.Where(x => x.DisplayName.Contains("A")).Select(x => $"IsOfficial{x.IsOfficial}"));
             //this.Check(this.m_Tests.Where(x => x.FC() == 100), regt.Where(x => x.FC() == 100));
         }
 
@@ -280,18 +284,12 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
             this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
             this.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
-            //this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.DisplayVersion.ToString(), IsOfficial=(bool)x.IsOfficial });
             this.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.DisplayVersion.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.DisplayVersion.ToString() }));
         }
 
         [TestMethod]
         public void Select_Index()
         {
-            var select = regt.Select((x,index) => x);
-            foreach(var oo in select)
-            {
-
-            }
             this.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
             this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }

@@ -109,15 +109,23 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            
+            var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
+            var takewhile1 = regt.Where(x => x.DisplayName != "" && x.DisplayVersion > new Version(3,3,3,3));
+            var where1 = regt.Where(x => x.DisplayName != "").OrderByDescending(x=>x.DisplayVersion);
+            var aa = regt.GroupBy(x => x.DisplayVersion, (ver, app)=>new { ver, app});
+            regt.GroupBy(x=>x, (x,y)=>x).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
+            //regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
+            //var where_select = regt.Where(x => x.EstimatedSize > 130).Select((x, index) => x);
             //var group1 = regt.GroupBy(x => x.DisplayName);
             //var group2 = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-            var group3 = regt.GroupBy(x => x, (x,y)=>y);
-            foreach(var oo in group3)
-            {
+            //var group3 = regt.GroupBy(x => x.DisplayName, (y, z) => z);
+            //foreach (var oo in group3)
+            //{
 
-            }
-            var select = regt.Select((x, index) => new { x, index });
+            //}
+            //var where = regt.Where(x => x.DisplayName != ""&& x.EstimatedSize>0);
+            var zip = regt.Zip(installs, (reg, app) => reg);
+            var select = regt.Select((x, index) => index+1);
             var any = regt.Any(x => x.EstimatedSize > 0);
             var first1 = regt.First();
             var first2 = regt.First(x => x.DisplayName != "");

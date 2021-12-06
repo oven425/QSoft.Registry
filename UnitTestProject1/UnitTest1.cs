@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32;
+using QSoft.Registry;
 using QSoft.Registry.Linq;
 
 namespace UnitTestProject1
@@ -28,8 +29,10 @@ namespace UnitTestProject1
     {
         public int? Index { set; get; }
         public string DisplayName { set; get; }
-        public Version DisplayVersion { set; get; }
+        [QSoft.Registry.RegPropertyName(Name = "DisplayVersion")]
+        public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
+        [RegIgnore]
         public bool? IsOfficial { set; get; }
 
         public int FC()
@@ -65,12 +68,12 @@ namespace UnitTestProject1
         List<InstallApp> InstallApp_org()
         {
             List<InstallApp> datas = new List<InstallApp>();
-            datas.Add(new InstallApp() { DisplayName = "AA", DisplayVersion = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
-            datas.Add(new InstallApp() { DisplayName = "BB", DisplayVersion = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
-            datas.Add(new InstallApp() { DisplayName = "CC", DisplayVersion = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
-            datas.Add(new InstallApp() { DisplayName = "DD", DisplayVersion = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
-            datas.Add(new InstallApp() { DisplayName = "EE", DisplayVersion = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
-            datas.Add(new InstallApp() { DisplayName = "FF", DisplayVersion = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
+            datas.Add(new InstallApp() { DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
+            datas.Add(new InstallApp() { DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
+            datas.Add(new InstallApp() { DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
+            datas.Add(new InstallApp() { DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
+            datas.Add(new InstallApp() { DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
+            datas.Add(new InstallApp() { DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
 
             return datas;
         }
@@ -98,7 +101,7 @@ namespace UnitTestProject1
             }
 
 
-            var propertys = typeof(InstallApp).GetProperties().Where(x => x.CanRead == true);
+            var propertys = typeof(InstallApp).GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(typeof(RegIgnore), false).Length==0);
 
             var test1A = reg.CreateSubKey(@"1A", true);
             foreach(var oo in this.m_Tests)
@@ -109,7 +112,13 @@ namespace UnitTestProject1
                     var doo = pp.GetValue(oo);
                     if(doo!=null)
                     {
-                        regd.SetValue(pp.Name, doo);
+                        var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+                        string subkeyname = pp.Name;
+                        if (regnames.Length > 0)
+                        {
+                            subkeyname = regnames[0].Name;
+                        }
+                        regd.SetValue(subkeyname, doo);
                     }
                 }
                 regd.Close();
@@ -122,9 +131,9 @@ namespace UnitTestProject1
         public void GroupBy()
         {
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayVersion), regt.GroupBy(x => x.DisplayVersion));
-            this.Check(this.m_Tests.GroupBy(x => x.IsOfficial), regt.GroupBy(x => x.IsOfficial));
-            this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
+            this.Check(this.m_Tests.GroupBy(x => x.Version), regt.GroupBy(x => x.Version));
+            //this.Check(this.m_Tests.GroupBy(x => x.IsOfficial), regt.GroupBy(x => x.IsOfficial));
+            //this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
             this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
             //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x), regt.GroupBy(x => x).Select(x => x));
@@ -217,7 +226,6 @@ namespace UnitTestProject1
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
 
-            this.Check(this.m_Tests.Where(x=>x.DisplayName.Contains("A")).Select(x => $"IsOfficial{x.IsOfficial}"), regt.Where(x => x.DisplayName.Contains("A")).Select(x => $"IsOfficial{x.IsOfficial}"));
             //this.Check(this.m_Tests.Where(x => x.FC() == 100), regt.Where(x => x.FC() == 100));
         }
 
@@ -276,15 +284,15 @@ namespace UnitTestProject1
         {
             this.Check(this.m_Tests.Select(x => x), regt.Select(x => x));
             this.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
-            this.Check(this.m_Tests.Select(x => x.DisplayVersion), regt.Select(x => x.DisplayVersion));
+            this.Check(this.m_Tests.Select(x => x.Version), regt.Select(x => x.Version));
             this.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
-            this.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
+            //this.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
             this.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
-            this.Check(this.m_Tests.Select(x => new { Version = x.DisplayVersion }), regt.Select(x => new { Version = x.DisplayVersion }));
+            this.Check(this.m_Tests.Select(x => new { Version = x.Version }), regt.Select(x => new { Version = x.Version }));
             this.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
-            this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
-            this.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
-            this.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.DisplayVersion.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.DisplayVersion.ToString() }));
+            //this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
+            //this.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
+            //this.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.Version.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.Version.ToString() }));
         }
 
         [TestMethod]
@@ -453,7 +461,7 @@ namespace UnitTestProject1
         {
             Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
             Assert.IsTrue(this.m_Tests.Average(x => x.DisplayName.Length) == regt.Average(x => x.DisplayName.Length), "Average fail");
-            Assert.IsTrue(this.m_Tests.Average(x => x.DisplayVersion.ToString().Length) == regt.Average(x => x.DisplayVersion.ToString().Length), "Average fail");
+            Assert.IsTrue(this.m_Tests.Average(x => x.Version.ToString().Length) == regt.Average(x => x.Version.ToString().Length), "Average fail");
         }
 
         [TestMethod]
@@ -529,9 +537,10 @@ namespace UnitTestProject1
             }
             else
             {
-                var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
+                var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
                 foreach(var pp in pps)
                 {
+
                     dynamic s = pp.GetValue(src);
                     dynamic d = pp.GetValue(dst);
                     if (pp.PropertyType == typeof(InstallApp))

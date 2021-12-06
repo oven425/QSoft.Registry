@@ -30,11 +30,18 @@ namespace ConsoleApp1
             return obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
         }
     }
+
+    public class AAAAA
+    {
+
+    }
     public class InstalledApp
     {
         public string DisplayName { set; get; }
-        public Version DisplayVersion { set; get; }
+        [RegPropertyName(Name = "DisplayVersion")]
+        public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
+        [RegIgnore]
         public bool? IsOfficial { set; get; }
         public InstalledApp()
         {
@@ -47,7 +54,7 @@ namespace ConsoleApp1
         }
         public override string ToString()
         {
-            return $"DisplayName:{DisplayName} DisplayVersion:{DisplayVersion} EstimatedSize:{EstimatedSize} IsOfficial:{IsOfficial}";
+            return $"DisplayName:{DisplayName} DisplayVersion:{Version} EstimatedSize:{EstimatedSize} IsOfficial:{IsOfficial}";
         }
     }
 
@@ -55,6 +62,8 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            List<AAAAA> aaas = new List<AAAAA>();
+            aaas.Add(new AAAAA());
             var zip_method = typeof(Queryable).GetMember("Zip").First();
             //var g1 = zip_method.GetType().GetGenericArguments();
             ////var g2 = zip_method.GetType().GetGenericParameterConstraints();
@@ -109,10 +118,17 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
-            var takewhile1 = regt.Where(x => x.DisplayName != "" && x.DisplayVersion > new Version(3,3,3,3));
-            var where1 = regt.Where(x => x.DisplayName != "").OrderByDescending(x=>x.DisplayVersion);
-            var aa = regt.GroupBy(x => x.DisplayVersion, (ver, app)=>new { ver, app});
+            //int update_count = regt.Update(x => x.EstimatedSize);
+            //int update_count = regt.Update(x => new { EstimatedSize = x.EstimatedSize+100 });
+            //int update_count = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
+            //var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
+            var takewhile1 = regt.Where(x => x.DisplayName != "" && x.Version > new Version(3,3,3,3));
+            var ex = takewhile1 as Exception;
+            foreach (var oo in takewhile1)
+            {
+
+            }
+            var aa = regt.GroupBy(x => x.Version, (ver, app)=>new { ver, app});
             regt.GroupBy(x=>x, (x,y)=>x).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             //regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             //var where_select = regt.Where(x => x.EstimatedSize > 130).Select((x, index) => x);

@@ -31,14 +31,12 @@ namespace QSoft.Registry.Linq
             throw new NotImplementedException();
         }
 
-        bool m_IsFirst = true;
-
         Expression m_RegMethod = null;
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
             System.Diagnostics.Trace.WriteLine($"CreateQuery {(expression as MethodCallExpression).Method?.Name}");
             IQueryable<TElement> hr = default(IQueryable<TElement>);
-            hr = new RegQuery<TElement>(this, expression, this.m_IsFirst, this.m_RegSource);
+            hr = new RegQuery<TElement>(this, expression);
             var ttype = typeof(TElement);
             RegExpressionVisitor reg = new RegExpressionVisitor();
 
@@ -121,7 +119,6 @@ namespace QSoft.Registry.Linq
 
 
             //hr = new RegQuery<TElement>(this, this.m_RegMethod);
-            this.m_IsFirst = false;
             return hr;
             //return new RegQuery<TElement>(this, expression);
         }
@@ -256,16 +253,7 @@ namespace QSoft.Registry.Linq
                 this.m_IsWritable = (expression as MethodCallExpression)?.Method?.Name == "Update";
                 object inst = null;
                 Expression expr = expression;
-                //if (this.m_RegMethod == null)
-                //{
-                //    updatemethod = expression as MethodCallExpression;
-                //    var opop = updatemethod.Arguments[0].Type;
-                //    if (opop.Name.Contains("RegQuery`1") == true)
-                //    {
-                //        RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                //        expr = regvisitor.Visit(updatemethod, this.m_DataType, this.m_RegSource);
-                //    }
-                //}
+
                 if(expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                 {
                     RegExpressionVisitor regvisitor = new RegExpressionVisitor();
@@ -280,7 +268,6 @@ namespace QSoft.Registry.Linq
                     for (int i=1; i< updatemethod.Arguments.Count; i++)
                     {
                         RegExpressionVisitor regvisitor = new RegExpressionVisitor();
-                        //arg1 = regvisitor.Visit(updatemethod.Arguments[i], this.m_DataType, this.m_RegSource);
                         arg1 = regvisitor.Visit(this.m_DataType, updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
                         args.Add(arg1);
                     }
@@ -309,11 +296,17 @@ namespace QSoft.Registry.Linq
                 var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                 if (excute_reg != null)
                 {
-                    var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true);
+                    var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
                     inst = Activator.CreateInstance(typeof(TResult));
                     foreach (var pp in pps)
                     {
-                        var yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, pp.Name });
+                        var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+                        string subkeyname = pp.Name;
+                        if(regnames.Length>0)
+                        {
+                            subkeyname = regnames[0].Name;
+                        }
+                        var yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, subkeyname });
                         pp.SetValue(inst, yyy, null);
                     }
 

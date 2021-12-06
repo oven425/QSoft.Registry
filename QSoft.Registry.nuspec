@@ -11,7 +11,7 @@
     <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
     <icon>47811249682_f903175a23_o.jpg</icon>
     <projectUrl>https://github.com/oven425/QSoft.Registry</projectUrl>
-    <description>Linq for RegistryKey</description>
+    <description>Linq to RegistryKey</description>
     <copyright>Copyright © Ben Hsu 2021</copyright>
     <repository type="git" url="https://github.com/oven425/QSoft.Registry" />
 	<dependencies>

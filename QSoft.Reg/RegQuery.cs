@@ -32,34 +32,14 @@ namespace QSoft.Registry.Linq
             this.Expression = expression;
         }
 
-        public RegQuery(RegProvider provider, Expression expression, bool isfirst, Expression regsource)
-        {
-            this.Provider = provider;
+        //public RegQuery(RegProvider provider, Expression expression, bool isfirst, Expression regsource)
+        //{
+        //    this.Provider = provider;
 
-            ////if(isfirst == true)
-            //MethodCallExpression method1 = expression as MethodCallExpression;
-            ////if(method1.Arguments[0].NodeType == ExpressionType.Constant)
-            //{
-            //    //List<RegistryKey> regs = new List<RegistryKey>();
-            //    //RegistryKey registry = provider.Setting;
-            //    //var subkeynames = registry.GetSubKeyNames();
 
-            //    //foreach (var subkeyname in subkeynames)
-            //    //{
-            //    //    regs.Add(registry.OpenSubKey(subkeyname));
-            //    //}
-            //    //var tte = regs.AsQueryable();
+        //    this.Expression = expression;
 
-            //    RegExpressionVisitor reg = new RegExpressionVisitor();
-            //    this.Expression = reg.Visit(expression, typeof(T), null, regsource);
-            //}
-            ////else
-            ////{
-            ////    this.Expression = expression;
-            ////}
-            this.Expression = expression;
-
-        }
+        //}
 
 
         public Expression Expression { private set; get; }
@@ -98,7 +78,7 @@ namespace QSoft.Registry.Linq
 
     public static class RegQueryEx
     {
-        public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource,TResult>> selector)
+        public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource,TResult>> selector) where TResult:class
         {
             var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
             var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
@@ -112,19 +92,27 @@ namespace QSoft.Registry.Linq
             {
                 throw new Exception("source must be RegistryKey");
             }
-            var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true);
+            var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
             foreach (var oo in source)
             {
                 RegistryKey reg = oo as RegistryKey;
-                Type ddd = data.GetType();
                 var obj = data(oo);
+                
                 foreach(var pp in pps)
                 {
-                    object vv = pp.GetValue(obj, null);
-                    if(vv != null)
+                    var vv = pp.GetValue(obj, null);
+
+                    if (vv != null)
                     {
-                        reg.SetValue(pp.Name, vv);
+                        var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+                        string subkeyname = pp.Name;
+                        if (regnames.Length > 0)
+                        {
+                            subkeyname = regnames.FirstOrDefault().Name;
+                        }
+                        reg.SetValue(subkeyname, vv);
                     }
+
                 }
             }
             
@@ -219,15 +207,23 @@ namespace QSoft.Registry.Linq
         static public Expression ToData(this Type datatype, ParameterExpression param)
         {
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-            var pps = datatype.GetProperties().Where(x => x.CanWrite == true);
+            var pps = datatype.GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
             var ccs = datatype.GetConstructors();
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
             {
+                var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
                 Expression name = null;
-                if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (regnames.Length > 0)
+                {
+                    name = Expression.Constant(regnames[0].Name, typeof(string));
+                }
+                else
                 {
                     name = Expression.Constant(pp.Name, typeof(string));
+                }
+                if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
                     var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
                     UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
                     var binding = Expression.Bind(pp, unary1);
@@ -235,7 +231,6 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    name = Expression.Constant(pp.Name, typeof(string));
                     var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
                     var binding = Expression.Bind(pp, method);
                     bindings.Add(binding);

@@ -29,7 +29,7 @@ namespace UnitTestProject1
     {
         public int? Index { set; get; }
         public string DisplayName { set; get; }
-        [QSoft.Registry.RegPropertyName(Name = "DisplayVersion")]
+        [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
         [RegIgnore]

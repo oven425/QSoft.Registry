@@ -32,9 +32,11 @@ namespace QSoft.Registry.Linq
         }
 
         Expression m_RegMethod = null;
+        List<Tuple<Expression, Expression, string>> m_Errors = new List<Tuple<Expression, Expression, string>>();
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            System.Diagnostics.Trace.WriteLine($"CreateQuery {(expression as MethodCallExpression).Method?.Name}");
+            System.Diagnostics.Debug.WriteLine($"CreateQuery {(expression as MethodCallExpression).Method?.Name}");
+
             IQueryable<TElement> hr = default(IQueryable<TElement>);
             hr = new RegQuery<TElement>(this, expression);
             var ttype = typeof(TElement);
@@ -43,7 +45,12 @@ namespace QSoft.Registry.Linq
             MethodCallExpression method1 = expression as MethodCallExpression;
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
+                this.m_Errors.Clear();
                 this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
+                if (reg.Fail != null)
+                {
+                    this.m_Errors.Add(Tuple.Create(expression, this.m_RegMethod, reg.Fail));
+                }
             }
             else
             {
@@ -66,6 +73,10 @@ namespace QSoft.Registry.Linq
                 if (bb == true)
                 {
                     expr = reg.Visit(this.m_DataType, method1.Method, method1.Arguments[0], method1.Arguments[1]);
+                    if (reg.Fail != null)
+                    {
+                        this.m_Errors.Add(Tuple.Create(expression, expr, reg.Fail));
+                    }
                     var methods = method1.Method.ReflectedType.GetMethods().Where(x => x.Name == method1.Method.Name);
 
                     methods = methods.Where(x => x.IsGenericMethod == method1.Method.IsGenericMethod);
@@ -113,14 +124,7 @@ namespace QSoft.Registry.Linq
                 expr = null;
             }
 
-
-
-
-
-
-            //hr = new RegQuery<TElement>(this, this.m_RegMethod);
             return hr;
-            //return new RegQuery<TElement>(this, expression);
         }
 
 
@@ -171,20 +175,12 @@ namespace QSoft.Registry.Linq
 
         public TResult Execute<TResult>(Expression expression)
         {
-
             var tte = new List<RegistryKey>().AsQueryable();
             TResult return_hr = default(TResult);
 
 
             var expr_org = expression as MethodCallExpression;
             var updatemethod = this.m_RegMethod as MethodCallExpression;
-
-
-
-            
-
-
-
             var type = typeof(TResult);
             Type[] tts = type.GetGenericArguments();
 
@@ -258,6 +254,10 @@ namespace QSoft.Registry.Linq
                 {
                     RegExpressionVisitor regvisitor = new RegExpressionVisitor();
                     expr = regvisitor.Visit(expr_org, this.m_DataType, this.m_RegSource);
+                    if (regvisitor.Fail != null)
+                    {
+                        this.m_Errors.Add(Tuple.Create(expression, expr, regvisitor.Fail));
+                    }
                 }
                 else
                 {
@@ -269,6 +269,10 @@ namespace QSoft.Registry.Linq
                     {
                         RegExpressionVisitor regvisitor = new RegExpressionVisitor();
                         arg1 = regvisitor.Visit(this.m_DataType, updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
+                        if (regvisitor.Fail != null)
+                        {
+                            this.m_Errors.Add(Tuple.Create(expression, arg1, regvisitor.Fail));
+                        }
                         args.Add(arg1);
                     }
 
@@ -283,30 +287,42 @@ namespace QSoft.Registry.Linq
 
                 }
                 
-                
-
-               
-
+                var fail = this.CheckFail();
+                if (fail != null)
+                {
+                    throw fail;
+                }
                 object excute = null;
-
-
                 excute = tte.Provider.Execute(expr);
-                //var excute = tte.Provider.Execute<TResult>(expression);
+                
                 var excute_reg = excute as RegistryKey;
                 var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                 if (excute_reg != null)
                 {
-                    var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
+                    var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore), true).Length==0);
                     inst = Activator.CreateInstance(typeof(TResult));
                     foreach (var pp in pps)
                     {
-                        var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+                        var regattrs = pp.GetCustomAttributes(true);
                         string subkeyname = pp.Name;
-                        if(regnames.Length>0)
+                        object yyy = null;
+                        if(regattrs.Length>0)
                         {
-                            subkeyname = regnames[0].Name;
+                            var regattr = regattrs.FirstOrDefault();
+                            if(regattr is RegSubKeyName)
+                            {
+                                yyy = excute_reg.Name;
+                            }
+                            else if(regattr is RegPropertyName)
+                            {
+                                subkeyname = (regattr as RegPropertyName)?.Name;
+                                yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, subkeyname });
+                            }
                         }
-                        var yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, subkeyname });
+                        else
+                        {
+                            yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, subkeyname });
+                        }
                         pp.SetValue(inst, yyy, null);
                     }
 
@@ -329,6 +345,17 @@ namespace QSoft.Registry.Linq
             }
 
             return return_hr;
+        }
+
+        public Exception CheckFail()
+        {
+            Exception excpt = null;
+            var first = this.m_Errors.FirstOrDefault();
+            if (first != null)
+            {
+                excpt = new Exception(first.Item3);
+            }
+            return excpt;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace QSoft.Registry
+namespace QSoft.Registry.Linq
 {
     public class RegIgnore : Attribute
     {
@@ -14,5 +14,9 @@ namespace QSoft.Registry
     public class RegPropertyName : Attribute
     {
         public string Name { set; get; }
+    }
+
+    public class RegSubKeyName:Attribute
+    {
     }
 }

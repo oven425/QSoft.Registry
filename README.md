@@ -13,6 +13,20 @@ public class InstalledApp
     public int? EstimatedSize { set; get; }
 }
 ```
+if you want to use exist class, can add attribute,like below code
+```csharp
+public class App
+{
+    [RegPropertyName(Name = "DisplayName")]
+    public string Name { set; get; }
+    [RegPropertyName(Name = "DisplayVersion")]
+    public string Version { set; get; }
+    [RegIgnore]
+    public int Size { set; get; }
+}
+```
+
+
 Create Query
 ```csharp
 var regt = new RegQuery<InstalledApp>()
@@ -53,6 +67,15 @@ var takewhile = regt.TakeWhile(x => x.DisplayVersion <= new Version(2,2,2,2));
 var orderbydesc = regt.OrderByDescending(x => x.DisplayVersion);
 var oderby = regt.OrderBy(x => x.EstimatedSize);
 var where = regt.Where(x => x.DisplayName != "" && x.DisplayVersion > new Version(3,3,3,3));
+```
+Update Data
+```csharp
+//update all data
+int update_count1 = regt.Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
+int update_count2 = regt.Update(x => new { DisplayName = $"{x.DisplayName}_AA" });
+//update by rule
+int update_count3 = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
+int update_count4 = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new { DisplayName = $"{x.DisplayName}_AA" });
 ```
 GroupBy Data
 ```csharp

@@ -11,6 +11,7 @@ namespace QSoft.Registry.Linq
     {
         Type m_DataType;
         Expression m_RegSource;
+        public string Fail { private set; get; }
         public Expression Visit(Expression node, Type datatype, Expression regfunc)
         {
             this.m_ExpressionSaves[node] = null;
@@ -25,9 +26,8 @@ namespace QSoft.Registry.Linq
 
         public Expression Visit(Type datatype, MethodInfo method, params Expression[] nodes)
         {
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"Visit {method?.Name}");
-#endif
+            System.Diagnostics.Debug.WriteLine($"Visit {method?.Name}");
+
             this.PreparMethod(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
             this.m_DataType = datatype;
 
@@ -41,9 +41,8 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitBinary(BinaryExpression node)
         {
             this.m_ExpressionSaves[node] = null;
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitBinary");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitBinary");
+
             var expr = base.VisitBinary(node) as BinaryExpression;
             if(this.m_Lastnode != null)
             {
@@ -57,9 +56,7 @@ namespace QSoft.Registry.Linq
 
         protected override Expression VisitNew(NewExpression node)
         {
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitNew");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitNew");
             this.m_ExpressionSaves[node] = null;
             var expr = base.VisitNew(node) as NewExpression;
 
@@ -140,9 +137,8 @@ namespace QSoft.Registry.Linq
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
         {
             this.m_ExpressionSaves[node.Expression] = null;
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitMemberAssignment {node.Member.Name}");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitMemberAssignment {node.Member.Name}");
+
             var expr = base.VisitMemberAssignment(node);
             if(this.m_Lastnode != null)
             {
@@ -175,9 +171,9 @@ namespace QSoft.Registry.Linq
                     this.m_ExpressionSaves1[node.Parameters[i]] = pps1[i];
                 }
             }
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitLambda T:{typeof(T)}");
-#endif
+
+            System.Diagnostics.Debug.WriteLine($"VisitLambda T:{typeof(T)}");
+
             if(m_PP != null)
             {
                 var pps = m_PP.Item2.GetParameters();
@@ -248,9 +244,8 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitParameter(ParameterExpression node)
         {
             m_ExpressionSaves[node] = null;
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitParameter {node.Type.Name}");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitParameter {node.Type.Name}");
+
             var expr = base.VisitParameter(node) as ParameterExpression;
             var pp1 = this.m_ExpressionSaves1[expr];
             //if(this.m_Lastnode != null)
@@ -286,9 +281,9 @@ namespace QSoft.Registry.Linq
         {
             m_ExpressionSaves[node] = null;
             var ttyp = node.Type;
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitMember {node.Member.Name}");
-#endif
+
+            System.Diagnostics.Debug.WriteLine($"VisitMember {node.Member.Name}");
+
             var expr = base.VisitMember(node) as MemberExpression;
             if(this.m_Lastnode != null)
             {
@@ -306,11 +301,12 @@ namespace QSoft.Registry.Linq
                         else
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                            if (node.Member.GetCustomAttributes(typeof(RegIgnore), false).Length > 0)
+                            if (node.Member.GetCustomAttributes(typeof(RegIgnore), true).Length > 0)
                             {
-                                throw new Exception($"{node.Member.Name} is ignored, please do not use");
+                                this.Fail = $"{node.Member.Name} is ignored, please do not use";
+                                //throw new Exception($"{node.Member.Name} is ignored, please do not use");
                             }
-                            var regname = node.Member.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+                            var regname = node.Member.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
                             Expression left_args_1 = null;
                             if (regname.Length > 0)
                             {
@@ -362,9 +358,8 @@ namespace QSoft.Registry.Linq
                 }
             }
 
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitUnary");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitUnary");
+
             var expr = base.VisitUnary(node);
             var exprs = this.m_ExpressionSaves.Clone(expr);
 
@@ -402,9 +397,7 @@ namespace QSoft.Registry.Linq
         void PreparMethod(Expression node, Expression[] args, MethodInfo method)
         {
             m_ExpressionSaves[node] = null;
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"PreparMethod {method?.Name}");
-#endif
+            System.Diagnostics.Debug.WriteLine($"PreparMethod {method?.Name}");
 
             if (method.IsGenericMethod == true)
             {
@@ -471,9 +464,8 @@ namespace QSoft.Registry.Linq
         Dictionary<Expression, string> GenericTypes = new Dictionary<Expression, string>();
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitMethodCall {node.Method?.Name}");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitMethodCall {node.Method?.Name}");
+
             this.PreparMethod(node, node.Arguments.ToArray(), node.Method);
 
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
@@ -535,9 +527,8 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitConstant(ConstantExpression node)
         {
             this.m_ExpressionSaves[node] = null;
-#if Debug
-            System.Diagnostics.Trace.WriteLine($"VisitConstant {node.Type.Name}");
-#endif
+            System.Diagnostics.Debug.WriteLine($"VisitConstant {node.Type.Name}");
+
             var expr = base.VisitConstant(node);
             if (node.Type.Name == "RegQuery`1")
             {

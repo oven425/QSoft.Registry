@@ -47,6 +47,11 @@ namespace QSoft.Registry.Linq
         public IQueryProvider Provider { private set; get; }
         public IEnumerator<T> GetEnumerator()
         {
+            var fail = (this.Provider as RegProvider)?.CheckFail();
+            if(fail != null)
+            {
+                throw fail;
+            }
             return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
         }
 
@@ -90,9 +95,21 @@ namespace QSoft.Registry.Linq
             var regs = source as IEnumerable<RegistryKey>;
             if(regs == null)
             {
-                throw new Exception("source must be RegistryKey");
+                throw new Exception("Source must be RegistryKey");
             }
-            var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
+            var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(true).Any(y=>y is RegIgnore||y is RegSubKeyName)==false);
+            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+            foreach(var pp in pps)
+            {
+                dicpps[pp] = pp.Name;
+                var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
+                if (regnames.Length > 0)
+                {
+                    dicpps[pp] = regnames[0].Name;
+                }
+
+            }
+
             foreach (var oo in source)
             {
                 RegistryKey reg = oo as RegistryKey;
@@ -104,13 +121,7 @@ namespace QSoft.Registry.Linq
 
                     if (vv != null)
                     {
-                        var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
-                        string subkeyname = pp.Name;
-                        if (regnames.Length > 0)
-                        {
-                            subkeyname = regnames.FirstOrDefault().Name;
-                        }
-                        reg.SetValue(subkeyname, vv);
+                        reg.SetValue(dicpps[pp], vv);
                     }
 
                 }
@@ -177,11 +188,8 @@ namespace QSoft.Registry.Linq
             return select_method?.MakeGenericMethod(typeof(RegistryKey), datatype);
         }
 
-
-
         static public Expression ToSelectData(this Type datatype, ParameterExpression pp=null)
         {
-            //var pp = Expression.Parameter(typeof(RegistryKey), "x");
             if(pp==null)
             {
                 pp = Expression.Parameter(typeof(RegistryKey), "x");
@@ -207,34 +215,56 @@ namespace QSoft.Registry.Linq
         static public Expression ToData(this Type datatype, ParameterExpression param)
         {
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-            var pps = datatype.GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
+            var pps = datatype.GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore), true).Length==0);
             var ccs = datatype.GetConstructors();
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
             {
-                var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+                var regattr = pp.GetCustomAttributes(true).FirstOrDefault();
                 Expression name = null;
-                if (regnames.Length > 0)
+                if (regattr != null && regattr is RegSubKeyName)
                 {
-                    name = Expression.Constant(regnames[0].Name, typeof(string));
+                    if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+                        var method = Expression.Property(param, "Name");
+                        UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+                        var binding = Expression.Bind(pp, unary1);
+                        bindings.Add(binding);
+                    }
+                    else
+                    {
+                        var method = Expression.Property(param, "Name");
+                        var binding = Expression.Bind(pp, method);
+                        bindings.Add(binding);
+                        
+                    }
+                }
+                else if (regattr != null && regattr is RegPropertyName)
+                {
+                    var reganme = regattr as RegPropertyName;
+                    name = Expression.Constant(reganme.Name, typeof(string));
                 }
                 else
                 {
                     name = Expression.Constant(pp.Name, typeof(string));
                 }
-                if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if(name != null)
                 {
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                    UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-                    var binding = Expression.Bind(pp, unary1);
-                    bindings.Add(binding);
+                    if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+                        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+                        UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+                        var binding = Expression.Bind(pp, unary1);
+                        bindings.Add(binding);
+                    }
+                    else
+                    {
+                        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+                        var binding = Expression.Bind(pp, method);
+                        bindings.Add(binding);
+                    }
                 }
-                else
-                {
-                    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                    var binding = Expression.Bind(pp, method);
-                    bindings.Add(binding);
-                }
+                
             }
 
             var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);

@@ -35,8 +35,21 @@ namespace ConsoleApp1
     {
 
     }
+
+    public class App
+    {
+        [RegPropertyName(Name = "DisplayName")]
+        public string Name { set; get; }
+        [RegPropertyName(Name = "DisplayVersion")]
+        public string Version { set; get; }
+        [RegIgnore]
+        public int Size { set; get; }
+    }
+
     public class InstalledApp
     {
+        [RegSubKeyName]
+        public string Key { set; get; }
         public string DisplayName { set; get; }
         [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
@@ -118,11 +131,20 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            //int update_count = regt.Update(x => x.EstimatedSize);
-            //int update_count = regt.Update(x => new { EstimatedSize = x.EstimatedSize+100 });
-            //int update_count = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
+
+            //var fi = regt.FirstOrDefault();
+            try
+            {
+                int update_count2 = regt.Where(x=>x.IsOfficial==true).Update(x => new { EstimatedSize = x.EstimatedSize + 100 });
+            }
+            catch(Exception ee)
+            {
+
+            }
+            
+            int update_count = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
             //var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
-            var takewhile1 = regt.Where(x => x.DisplayName != "" && x.Version > new Version(3,3,3,3));
+            var takewhile1 = regt.Where(x =>x.IsOfficial==false&& x.Version > new Version(3,3,3,3));
             var ex = takewhile1 as Exception;
             foreach (var oo in takewhile1)
             {

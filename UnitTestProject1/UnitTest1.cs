@@ -128,18 +128,35 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
-        public void GroupBy()
+        public void GroupBy1()
         {
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
-            this.Check(this.m_Tests.GroupBy(x => x.Version), regt.GroupBy(x => x.Version));
-            //this.Check(this.m_Tests.GroupBy(x => x.IsOfficial), regt.GroupBy(x => x.IsOfficial));
-            //this.Check(this.m_Tests.GroupBy(x => new { x.IsOfficial, x.DisplayName }), regt.GroupBy(x => new { x.IsOfficial, x.DisplayName }));
-            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
-            //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x), regt.GroupBy(x => x).Select(x => x));
-            //this.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
-            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
-        }        
+            this.Check(this.m_Tests.GroupBy(x => x.EstimatedSize), regt.GroupBy(x => x.EstimatedSize));
+        }
+
+        [TestMethod]
+        public void GroupBy2()
+        {
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => new { x.DisplayName, x.EstimatedSize }), regt.GroupBy(x => x.DisplayName, x => new { x.DisplayName, x.EstimatedSize }));
+        }
+
+        [TestMethod]
+        public void GroupBy3()
+        {
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => key), regt.GroupBy(x => x.DisplayName, (key, reg) => key));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => reg), regt.GroupBy(x => x.DisplayName, (key, reg) => reg));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { key }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { key }));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { reg }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { key.Length }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { key.Length }));
+        }
+
+        [TestMethod]
+        public void GroupBy4()
+        {
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.EstimatedSize, (key, data) => data), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data));
+        }      
 
         void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
         {
@@ -544,6 +561,10 @@ namespace UnitTestProject1
                     dynamic s = pp.GetValue(src);
                     dynamic d = pp.GetValue(dst);
                     if (pp.PropertyType == typeof(InstallApp))
+                    {
+                        this.Check(s, d);
+                    }
+                    else if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {
                         this.Check(s, d);
                     }

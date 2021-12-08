@@ -31,11 +31,6 @@ namespace ConsoleApp1
         }
     }
 
-    public class AAAAA
-    {
-
-    }
-
     public class App
     {
         [RegPropertyName(Name = "DisplayName")]
@@ -75,8 +70,6 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            List<AAAAA> aaas = new List<AAAAA>();
-            aaas.Add(new AAAAA());
             var zip_method = typeof(Queryable).GetMember("Zip").First();
             //var g1 = zip_method.GetType().GetGenericArguments();
             ////var g2 = zip_method.GetType().GetGenericParameterConstraints();
@@ -104,9 +97,7 @@ namespace ConsoleApp1
             }
             var queryable = ll.AsQueryable();
 
-            List<int> src1 = new List<int> { 1, 2, 3 };
-            List<int> src2 = new List<int>() { 1,10 };
-            var except1 = src1.Except(src2);
+            
             //var rr = queryable.Select(x => new DateTime(2021,10,10));
             var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
 
@@ -131,6 +122,55 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+
+            List<int> src1 = new List<int> { 1, 2, 3, 7, 7 };
+            List<int> src2 = new List<int>() { 3, 4, 5 };
+            //var dst1 = src1.Except(src2);
+            //var dst2 = src1.Intersect(src2);
+            //var dst3 = src1.Union(src2);
+            //var dst4 = src1.Distinct();
+
+            var dst1 = src1.Except(src1);
+            var dst2 = src1.Intersect(src1);
+            var dst3 = src1.Union(src1);
+
+
+            //List<InstalledApp> src1 = new List<InstalledApp>
+            //{
+            //    new InstalledApp() { DisplayName = "1" },
+            //    new InstalledApp() { DisplayName = "2" },
+            //    new InstalledApp() { DisplayName = "3" },
+            //    new InstalledApp() { DisplayName = "7" },
+            //    new InstalledApp() { DisplayName = "7" },
+            //};
+            //List<InstalledApp> src2 = new List<InstalledApp>
+            //{
+            //    new InstalledApp() { DisplayName = "3" },
+            //    new InstalledApp() { DisplayName = "4" },
+            //    new InstalledApp() { DisplayName = "5" },
+            //};
+            //var dst1 = src1.Except(src2, new InstallAppCompare());
+            //var dst2 = src1.Intersect(src2, new InstallAppCompare());
+            //var dst3 = src1.Union(src2, new InstallAppCompare());
+            //var dst4 = src1.Distinct(new InstallAppCompare());
+
+
+            //var group1 = regt.GroupBy(x => x.DisplayName); //1146
+            //var group2 = regt.GroupBy(x => x.DisplayName, y => y.DisplayName);//1074
+            //var group3 = regt.GroupBy(x => x.DisplayName, (key, reg) => key);//1043
+            //var group4 = regt.GroupBy(x => x.DisplayName, (key, reg) => reg);//1043
+            //var group5 = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg });//1043
+            //foreach(var item in group5)
+            //{
+            //    foreach(var oo in item.reg)
+            //    {
+
+            //    }
+            //}
+
+
+
+            var group7 = regt.GroupBy(x => x.DisplayName, y=>y.EstimatedSize, (x,e)=>new { x,e});//1006
 
             //var fi = regt.FirstOrDefault();
             try

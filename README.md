@@ -30,12 +30,12 @@ public class App
 Create Query
 ```csharp
 var regt = new RegQuery<InstalledApp>()
-                .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                    x.View = RegistryView.Registry64;
-                });
+	.useSetting(x =>
+	{
+		x.Hive = RegistryHive.LocalMachine;
+		x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+		x.View = RegistryView.Registry64;
+	});
 ```
 Get data
 ```csharp

@@ -46,7 +46,8 @@ namespace QSoft.Registry.Linq
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
                 this.m_Errors.Clear();
-                this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
+                //this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
+                this.m_RegMethod = reg.Visit(expression, this.m_DataType, this.m_RegSource);
                 if (reg.Fail != null)
                 {
                     this.m_Errors.Add(Tuple.Create(expression, this.m_RegMethod, reg.Fail));

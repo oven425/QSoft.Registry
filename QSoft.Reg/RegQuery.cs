@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
@@ -343,6 +344,73 @@ namespace QSoft.Registry.Linq
             }
            
             return types.Take(args.Length).ToArray();
+        }
+
+        static public RegistryKey GetParent(this RegistryKey src)
+        {
+            string basekeyname = "";
+            string path = "";
+            Regex regex1 = new Regex(@"^(?<base>\w+)[\\](?<path>.+)[\\]", RegexOptions.Compiled);
+            Regex regex2 = new Regex(@"^(?<base>\w+)[\\]", RegexOptions.Compiled);
+            var match = regex1.Match(src.Name);
+            if (match.Success == true)
+            {
+                basekeyname = match.Groups["base"].Value;
+                path = match.Groups["path"].Value;
+            }
+            else
+            {
+                basekeyname = src.Name;
+            }
+            RegistryHive hive;
+            switch (basekeyname)
+            {
+                case "HKEY_CURRENT_USER":
+                    {
+                        hive = RegistryHive.CurrentUser;
+                    }
+                    break;
+                case "HKEY_CLASSES_ROOT":
+                    {
+                        hive = RegistryHive.ClassesRoot;
+                    }
+                    break;
+                case "HKEY_LOCAL_MACHINE":
+                    {
+                        hive = RegistryHive.LocalMachine;
+                    }
+                    break;
+                case "HKEY_CURRENT_CONFIG":
+                    {
+                        hive = RegistryHive.CurrentConfig;
+                    }
+                    break;
+                case "HKEY_DYN_DATA":
+                    {
+                        hive = RegistryHive.DynData;
+                    }
+                    break;
+                case "HKEY_PERFORMANCE_DATA":
+                    {
+                        hive = RegistryHive.PerformanceData;
+                    }
+                    break;
+                case "HKEY_USERS":
+                    {
+                        hive = RegistryHive.Users;
+                    }
+                    break;
+                default:
+                    {
+                        throw new Exception("RegistryHive not find");
+                    }
+                    break;
+            }
+            var basekey = RegistryKey.OpenBaseKey(hive,src.View);
+            var reg = basekey.OpenSubKey(path, true);
+            basekey.Close();
+            basekey.Dispose();
+            return reg;
         }
     }
 

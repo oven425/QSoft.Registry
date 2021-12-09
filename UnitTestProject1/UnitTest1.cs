@@ -8,9 +8,9 @@ using QSoft.Registry.Linq;
 
 namespace UnitTestProject1
 {
-    public class InstallAppCompare : IEqualityComparer<InstallApp>
+    public class InstallAppCompare : IEqualityComparer<InstalledApp>
     {
-        public bool Equals(InstallApp x, InstallApp y)
+        public bool Equals(InstalledApp x, InstalledApp y)
         {
             if (Object.ReferenceEquals(x, y)) return true;
             if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null))
@@ -18,14 +18,14 @@ namespace UnitTestProject1
             return x.DisplayName == y.DisplayName;
         }
 
-        public int GetHashCode(InstallApp obj)
+        public int GetHashCode(InstalledApp obj)
         {
             if (object.ReferenceEquals(obj, null)) return 0;
             return obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
         }
     }
 
-    public class InstallApp
+    public class InstalledApp
     {
         public int? Index { set; get; }
         public string DisplayName { set; get; }
@@ -40,11 +40,11 @@ namespace UnitTestProject1
             return 100;
         }
 
-        public InstallApp() { }
+        public InstalledApp() { }
 
-        public InstallApp(InstallApp data)
+        public InstalledApp(InstalledApp data)
         {
-            var pps = typeof(InstallApp).GetProperties().Where(x => x.CanRead == true && x.CanWrite == true);
+            var pps = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true && x.CanWrite == true);
             foreach(var pp in pps)
             {
                 pp.SetValue(this, pp.GetValue(data));
@@ -55,7 +55,7 @@ namespace UnitTestProject1
     [TestClass]
     public class LinqToRegistry
     {
-        List<InstallApp> m_Tests = new List<InstallApp>();
+        List<InstalledApp> m_Tests = new List<InstalledApp>();
         List<AppData> m_Apps = new List<AppData>();
         public LinqToRegistry()
         {
@@ -65,20 +65,20 @@ namespace UnitTestProject1
             m_Apps.Add(new AppData() { Name = "AA", IsOfficial = false });
         }
 
-        List<InstallApp> InstallApp_org()
+        List<InstalledApp> InstallApp_org()
         {
-            List<InstallApp> datas = new List<InstallApp>();
-            datas.Add(new InstallApp() { DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
-            datas.Add(new InstallApp() { DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
-            datas.Add(new InstallApp() { DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
-            datas.Add(new InstallApp() { DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
-            datas.Add(new InstallApp() { DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
-            datas.Add(new InstallApp() { DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
+            List<InstalledApp> datas = new List<InstalledApp>();
+            datas.Add(new InstalledApp() { DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
+            datas.Add(new InstalledApp() { DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
+            datas.Add(new InstalledApp() { DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
+            datas.Add(new InstalledApp() { DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
+            datas.Add(new InstalledApp() { DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
+            datas.Add(new InstalledApp() { DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
 
             return datas;
         }
 
-        IQueryable<InstallApp> regt = new RegQuery<InstallApp>()
+        IQueryable<InstalledApp> regt = new RegQuery<InstalledApp>()
             .useSetting(x =>
             {
                 x.Hive = RegistryHive.LocalMachine;
@@ -101,7 +101,7 @@ namespace UnitTestProject1
             }
 
 
-            var propertys = typeof(InstallApp).GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(typeof(RegIgnore), false).Length==0);
+            var propertys = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
 
             var test1A = reg.CreateSubKey(@"1A", true);
             foreach(var oo in this.m_Tests)
@@ -120,7 +120,11 @@ namespace UnitTestProject1
                         }
                         regd.SetValue(subkeyname, doo);
                     }
+
+                    
                 }
+                //var parent = regd.GetParent();
+                //parent.DeleteSubKeyTree(oo.DisplayName);
                 regd.Close();
                 regd.Dispose();
             }
@@ -156,6 +160,8 @@ namespace UnitTestProject1
         public void GroupBy4()
         {
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.EstimatedSize, (key, data) => data), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count()), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count()));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key=key.ToString(), Count=data.Count() }), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key = key.ToString(), Count = data.Count() }));
         }      
 
         void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
@@ -261,7 +267,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void Except()
         {
-            var tests = this.m_Tests.Take(2).Select(x=>new InstallApp(x));
+            var tests = this.m_Tests.Take(2).Select(x=>new InstalledApp(x));
             this.Check(this.m_Tests.Except(tests), regt.Except(tests));
             this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
         }
@@ -269,7 +275,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void Intersect()
         {
-            var tests = this.m_Tests.Take(2).Select(x => new InstallApp(x));
+            var tests = this.m_Tests.Take(2).Select(x => new InstalledApp(x));
             this.Check(this.m_Tests.Intersect(tests), regt.Intersect(tests));
             this.Check(this.m_Tests.Intersect(tests, new InstallAppCompare()), regt.Intersect(tests, new InstallAppCompare()));
         }
@@ -277,7 +283,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void Union()
         {
-            var tests = this.m_Tests.Take(2).Select(x => new InstallApp(x));
+            var tests = this.m_Tests.Take(2).Select(x => new InstalledApp(x));
             this.Check(this.m_Tests.Union(tests), regt.Union(tests));
             this.Check(this.m_Tests.Union(tests, new InstallAppCompare()), regt.Union(tests, new InstallAppCompare()));
         }
@@ -322,7 +328,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void Reverse()
         {
-            List<InstallApp> reverse = new List<InstallApp>(this.m_Tests);
+            List<InstalledApp> reverse = new List<InstalledApp>(this.m_Tests);
             reverse.Reverse();
             this.Check(reverse, regt.Reverse());
         }
@@ -484,14 +490,14 @@ namespace UnitTestProject1
         [TestMethod]
         public void Update()
         {
-           
-            int update_count = regt.Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize + 100 });
+
+            int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
             var count1 = regt;
-            var count2 = this.m_Tests.Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize + 100 });
+            var count2 = this.m_Tests.Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize + 100 });
             this.Check(count1, count2);
-            regt.Where(x => x.EstimatedSize > 130).Update(x => new InstallApp() { EstimatedSize = x.EstimatedSize - 100 });
+            regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             count1 = regt.Where(x => x.EstimatedSize > 130);
-            count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstallApp(x) { EstimatedSize = x.EstimatedSize - 100 });
+            count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize - 100 });
             this.Check(count1, count2);
 
             //update_count = regt.Update(x => new InstallApp() { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
@@ -560,7 +566,7 @@ namespace UnitTestProject1
 
                     dynamic s = pp.GetValue(src);
                     dynamic d = pp.GetValue(dst);
-                    if (pp.PropertyType == typeof(InstallApp))
+                    if (pp.PropertyType == typeof(InstalledApp))
                     {
                         this.Check(s, d);
                     }

@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using QSoft.Registry;
@@ -88,7 +89,30 @@ namespace ConsoleApp1
             installs.Add(new InstalledApp() { DisplayName = "A", IsOfficial = true });
             installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
+            Dictionary<int, Dictionary<string, Type>> uu = new Dictionary<int, Dictionary<string, Type>>();
+            uu[0] = new Dictionary<string, Type>();
+            uu[0]["1"] = typeof(int);
+            uu[1] = uu[0];
+
+
+
+            //string full = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+            //var sss = full.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries);
+            //var ss1 = sss.Skip(1).Take(sss.Length - 2);
+
+            //var ssssss = ss1.Aggregate((x, y) => $"{x}\\{y}");
+
+
+            //RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            //var reg1 = regbase.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
+            //var parent = regbase.GetParent();
+            //Regex regex = new Regex(@"[\\]([A-Za-z0-9]+)$");
+            //Regex regex = new Regex(@"^(?<base>\w+)[\\]");
+
+
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
+
+
             List<RegistryKey> ll = new List<RegistryKey>();
             foreach (var subkeyname in queryreg.GetSubKeyNames())
             {
@@ -122,7 +146,9 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-
+            int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
+            var avg = regt.Average(x => x.Version.ToString().Length);
+            //var group4 = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count());
             List<int> src1 = new List<int> { 1, 2, 3, 7, 7 };
             List<int> src2 = new List<int>() { 3, 4, 5 };
             //var dst1 = src1.Except(src2);
@@ -173,16 +199,16 @@ namespace ConsoleApp1
             var group7 = regt.GroupBy(x => x.DisplayName, y=>y.EstimatedSize, (x,e)=>new { x,e});//1006
 
             //var fi = regt.FirstOrDefault();
-            try
-            {
-                int update_count2 = regt.Where(x=>x.IsOfficial==true).Update(x => new { EstimatedSize = x.EstimatedSize + 100 });
-            }
-            catch(Exception ee)
-            {
+            //try
+            //{
+            //    int update_count2 = regt.Where(x=>x.IsOfficial==true).Update(x => new { EstimatedSize = x.EstimatedSize + 100 });
+            //}
+            //catch(Exception ee)
+            //{
 
-            }
+            //}
             
-            int update_count = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
+            int update_count12 = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             //var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
             var takewhile1 = regt.Where(x =>x.IsOfficial==false&& x.Version > new Version(3,3,3,3));
             var ex = takewhile1 as Exception;

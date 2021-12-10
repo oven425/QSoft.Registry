@@ -89,14 +89,17 @@ namespace ConsoleApp1
             installs.Add(new InstalledApp() { DisplayName = "A", IsOfficial = true });
             installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
-            Dictionary<int, Dictionary<string, Type>> uu = new Dictionary<int, Dictionary<string, Type>>();
-            uu[0] = new Dictionary<string, Type>();
-            uu[0]["1"] = typeof(int);
-            uu[1] = uu[0];
 
 
 
-            //string full = @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+            string full = @"HKEY_LOCAL_MACHINE\";
+            //Regex regex1 = new Regex(@"^(?<base>\w+)[\\](\.+)[\\]$(?<path>.+)", RegexOptions.Compiled);
+            //Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+            //var match = regex1.Match(full);
+            //if(match.Success)
+            //{
+
+            //}
             //var sss = full.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries);
             //var ss1 = sss.Skip(1).Take(sss.Length - 2);
 
@@ -146,8 +149,13 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
-            var avg = regt.Average(x => x.Version.ToString().Length);
+            var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();
+            var group1 = regt.GroupBy(x => x.DisplayName, (key, reg) => reg);
+            var avg = regt.Where(x => int.Parse(x.EstimatedSize.ToString()).ToString("X2") == "6E").Select(x=>x.DisplayName);
+            foreach(var oo in avg)
+            {
+
+            }
             //var group4 = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count());
             List<int> src1 = new List<int> { 1, 2, 3, 7, 7 };
             List<int> src2 = new List<int>() { 3, 4, 5 };

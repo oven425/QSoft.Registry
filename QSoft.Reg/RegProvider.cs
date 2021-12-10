@@ -12,7 +12,7 @@ using System.Text;
 
 namespace QSoft.Registry.Linq
 {
-    public class RegProvider : IQueryProvider
+    public class RegProvider<T> : IQueryProvider
     {
         public RegSetting Setting { set; get; } = new RegSetting();
         Type m_DataType;
@@ -20,7 +20,7 @@ namespace QSoft.Registry.Linq
         MethodCallExpression m_RegSource;
         public RegProvider(Type datatype)
         {
-            var method = typeof(RegProvider).GetMethod("CreateRegs");
+            var method = typeof(RegProvider<T>).GetMethod("CreateRegs");
             this.m_RegSource = Expression.Call(Expression.Constant(this), method);
             this.m_DataType = datatype;
         }
@@ -40,13 +40,14 @@ namespace QSoft.Registry.Linq
             IQueryable<TElement> hr = default(IQueryable<TElement>);
             hr = new RegQuery<TElement>(this, expression);
             var ttype = typeof(TElement);
-            RegExpressionVisitor reg = new RegExpressionVisitor();
+            RegExpressionVisitor<T> reg = new RegExpressionVisitor<T>();
 
             MethodCallExpression method1 = expression as MethodCallExpression;
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
                 this.m_Errors.Clear();
                 //this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
+                var aaa = typeof(T);
                 this.m_RegMethod = reg.Visit(expression, this.m_DataType, this.m_RegSource);
                 if (reg.Fail != null)
                 {
@@ -253,7 +254,7 @@ namespace QSoft.Registry.Linq
 
                 if(expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                 {
-                    RegExpressionVisitor regvisitor = new RegExpressionVisitor();
+                    RegExpressionVisitor<T> regvisitor = new RegExpressionVisitor<T>();
                     expr = regvisitor.Visit(expr_org, this.m_DataType, this.m_RegSource);
                     if (regvisitor.Fail != null)
                     {
@@ -268,7 +269,7 @@ namespace QSoft.Registry.Linq
                     args.Add(this.m_RegMethod);
                     for (int i=1; i< updatemethod.Arguments.Count; i++)
                     {
-                        RegExpressionVisitor regvisitor = new RegExpressionVisitor();
+                        RegExpressionVisitor<T> regvisitor = new RegExpressionVisitor<T>();
                         arg1 = regvisitor.Visit(this.m_DataType, updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
                         if (regvisitor.Fail != null)
                         {

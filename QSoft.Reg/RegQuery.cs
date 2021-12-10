@@ -20,14 +20,20 @@ namespace QSoft.Registry.Linq
         
         public RegQuery<T> useSetting(Action<RegSetting> data)
         {
-            var provider = new RegProvider(typeof(T));
+            var provider = new RegProvider<T>(typeof(T));
             
             data(provider.Setting);
             this.Provider = provider;
             return this;
         }
 
-        public RegQuery(RegProvider provider, Expression expression)
+        //public RegQuery(RegProvider provider, Expression expression)
+        //{
+        //    this.Provider = provider;
+        //    this.Expression = expression;
+        //}
+
+        public RegQuery(IQueryProvider provider, Expression expression)
         {
             this.Provider = provider;
             this.Expression = expression;
@@ -48,7 +54,7 @@ namespace QSoft.Registry.Linq
         public IQueryProvider Provider { private set; get; }
         public IEnumerator<T> GetEnumerator()
         {
-            var fail = (this.Provider as RegProvider)?.CheckFail();
+            var fail = (this.Provider as RegProvider<T>)?.CheckFail();
             if(fail != null)
             {
                 throw fail;
@@ -129,6 +135,42 @@ namespace QSoft.Registry.Linq
             }
             
             return source.Count();
+        }
+
+        public static int RemoveAll<TSource>(this IQueryable<TSource> source)
+        {
+            var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "RemoveAll");
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), source.Expression);
+            return source.Provider.Execute<int>(methdodcall);
+        }
+
+        public static int RemoveAll<TSource>(this IEnumerable<TSource> source)
+        {
+            Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+            var regs = source as IEnumerable<RegistryKey>;
+            if (regs == null)
+            {
+                throw new Exception("Source must be RegistryKey");
+            }
+            int count = 0;
+            var parent = regs.FirstOrDefault()?.GetParent();
+            if(parent != null)
+            {
+                foreach (var oo in regs)
+                {
+                    var match = regex1.Match(oo.Name);
+                    if (match.Success)
+                    {
+                        parent.DeleteSubKeyTree(match.Groups["path"].Value);
+                        count++;
+                    }
+
+                }
+                parent.Close();
+                parent.Dispose();
+            }
+            
+            return count;
         }
 
         static public int Replace(this Type[] datas, Type src, Type dst)

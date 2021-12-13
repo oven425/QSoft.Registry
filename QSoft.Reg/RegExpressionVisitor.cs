@@ -263,6 +263,20 @@ namespace QSoft.Registry.Linq
                         var pp = Expression.Parameter(ie, expr.Name);
                         this.m_Parameters[expr.Name] = pp;
                     }
+                    else if(this.m_Parameters.Count ==0)
+                    {
+                        var find = this.m_GenericTypes.FirstOrDefault(x => x.ContainsKey(pp1.Name));
+                        if(find != null)
+                        {
+                            var type = find[pp1.Name];
+                            var pp = Expression.Parameter(type, expr.Name);
+                            this.m_Parameters[expr.Name] = pp;
+                        }
+                        else
+                        {
+                            this.m_Parameters[expr.Name] = expr;
+                        }
+                    }
                     else if(this.m_GenericTypes.First().ContainsKey(pp1.Name) == true)
                     {
                         var type = this.m_GenericTypes.First()[pp1.Name];
@@ -308,7 +322,6 @@ namespace QSoft.Registry.Linq
                             if (node.Member.GetCustomAttributes(typeof(RegIgnore), true).Length > 0)
                             {
                                 this.Fail = $"{node.Member.Name} is ignored, please do not use";
-                                //throw new Exception($"{node.Member.Name} is ignored, please do not use");
                             }
                             var regname = node.Member.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
                             Expression left_args_1 = null;
@@ -443,7 +456,15 @@ namespace QSoft.Registry.Linq
                         }
                         else
                         {
-                            this.m_GenericTypes.First()[dicc[i].Name] = null;
+                            //this.m_GenericTypes.First()[dicc[i].Name] = null;
+                            if (dic[i].ParameterType.IsGenericType == true)
+                            {
+                                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
+                            }
+                            else
+                            {
+                                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
+                            }
                         }
                     }
                 }

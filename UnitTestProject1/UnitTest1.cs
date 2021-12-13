@@ -206,7 +206,7 @@ namespace UnitTestProject1
         public void TakeWhile_Index()
         {
             this.Check(this.m_Tests.TakeWhile((x,index) => x.DisplayName == "AA"), regt.TakeWhile((x,index) => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.TakeWhile((x, index) => index==0), regt.TakeWhile((x, index) => index == 0));
+            this.Check(this.m_Tests.TakeWhile((x, index) => index == 0), regt.TakeWhile((x, index) => index == 0));
         }
 
         [TestMethod]
@@ -319,10 +319,26 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void Select_Tuple()
+        {
+            this.Check(this.m_Tests.Select(x => Tuple.Create(x.DisplayName)), regt.Select(x => Tuple.Create(x.DisplayName)));
+            this.Check(this.m_Tests.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize)), regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize)));
+        }
+
+        [TestMethod]
         public void Select_Index()
         {
             this.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
             this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
+        }
+
+        [TestMethod]
+        public void Select_Index_Tuple()
+        {
+            this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName)), regt.Select((x, index) => Tuple.Create(x.DisplayName)));
+            this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize)), regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize)));
+            this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName,index)), regt.Select((x, index) => Tuple.Create(x.DisplayName, index)));
+            this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize, index)), regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize, index)));
         }
 
         [TestMethod]

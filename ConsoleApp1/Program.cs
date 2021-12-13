@@ -123,9 +123,10 @@ namespace ConsoleApp1
                 ll.Add(reg);
             }
             var queryable = ll.AsQueryable();
+            //ll.Where(x => (done:int.TryParse(x.GetValue<string>(""), out var value));
 
-            
-            //var rr = queryable.Select(x => new DateTime(2021,10,10));
+
+
             var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
 
 
@@ -149,6 +150,9 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+            //var ttk = regt.TakeWhile((x, index) => index == 0);
+            var tuple = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
+            var tuple1 = regt.Select((x,idx) => Tuple.Create(x.DisplayName, idx));
             var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();
             var group1 = regt.GroupBy(x => x.DisplayName, (key, reg) => reg);
             var avg = regt.Where(x => int.Parse(x.EstimatedSize.ToString()).ToString("X2") == "6E").Select(x=>x.DisplayName);
@@ -215,15 +219,16 @@ namespace ConsoleApp1
             //{
 
             //}
-            
-            int update_count12 = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
+            var og = regt.First();
+            //int update_count12 = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             //var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
-            var takewhile1 = regt.Where(x =>x.IsOfficial==false&& x.Version > new Version(3,3,3,3));
-            var ex = takewhile1 as Exception;
-            foreach (var oo in takewhile1)
-            {
+            var takewhile1 = regt.AsEnumerable();
+            var a = (a:123, b:"123");
+            int.TryParse("100", out var bbbb);
+            //foreach (var oo in takewhile1)
+            //{
 
-            }
+            //}
             var aa = regt.GroupBy(x => x.Version, (ver, app)=>new { ver, app});
             regt.GroupBy(x=>x, (x,y)=>x).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             //regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });

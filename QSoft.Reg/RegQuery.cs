@@ -244,7 +244,7 @@ namespace QSoft.Registry.Linq
             return unary;
         }
 
-        public static Expression ToLambdaData(this Type datatype, ParameterExpression pp = null)
+        public static LambdaExpression ToLambdaData(this Type datatype, ParameterExpression pp = null)
         {
             if (pp == null)
             {
@@ -339,7 +339,7 @@ namespace QSoft.Registry.Linq
                         {
                             infos[oo.ParameterType.GetGenericArguments()[0].Name] = oo;
                         }
-                        else if(paramtype == typeof(Func<>) || paramtype == typeof(Func<,>))
+                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>))
                         {
                             var func = oo.ParameterType.GetGenericArguments().Last().Name;
                             infos[func] = oo;
@@ -350,7 +350,13 @@ namespace QSoft.Registry.Linq
                             infos[func] = oo;
                         }
                     }
-                    if(infos.Count>=args.Length)
+                    else if (oo.ParameterType.IsGenericParameter == true)
+                    {
+                        var aaaaa = oo.ParameterType;
+                        infos[aaaaa.Name] = oo;
+                    }
+
+                    if (infos.Count >= args.Length)
                     {
                         break;
                     }
@@ -375,12 +381,24 @@ namespace QSoft.Registry.Linq
                         }
                         else
                         {
-                            var uu = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericTypeDefinition();
-                            if (uu == typeof(Func<>) || uu == typeof(Func<,>) || uu == typeof(Func<,,>))
+                            var type = src.ElementAt(oo).Type.GetGenericArguments()[0];
+                            if(type.IsGenericType == true)
                             {
-                                types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
+                                var uu = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericTypeDefinition();
+                                if (uu == typeof(Func<>) || uu == typeof(Func<,>) || uu == typeof(Func<,,>))
+                                {
+                                    types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
+                                }
+                            }
+                            else
+                            {
+                                types.Add(src.ElementAt(oo).Type);
                             }
                         }
+                    }
+                    else
+                    {
+                        types.Add(src.ElementAt(oo).Type);
                     }
                 }
             }

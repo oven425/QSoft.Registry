@@ -48,7 +48,7 @@ namespace QSoft.Registry.Linq
                 this.m_Errors.Clear();
                 //this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
                 var aaa = typeof(T);
-                this.m_RegMethod = reg.Visit(expression, this.m_DataType, this.m_RegSource);
+                this.m_RegMethod = reg.Visit(expression, this.m_RegSource);
                 if (reg.Fail != null)
                 {
                     this.m_Errors.Add(Tuple.Create(expression, this.m_RegMethod, reg.Fail));
@@ -74,7 +74,7 @@ namespace QSoft.Registry.Linq
                 }
                 if (bb == true)
                 {
-                    expr = reg.Visit(this.m_DataType, method1.Method, method1.Arguments[0], method1.Arguments[1]);
+                    expr = reg.Visit(method1.Method, method1.Arguments[0], method1.Arguments[1]);
                     if (reg.Fail != null)
                     {
                         this.m_Errors.Add(Tuple.Create(expression, expr, reg.Fail));
@@ -255,7 +255,7 @@ namespace QSoft.Registry.Linq
                 if(expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                 {
                     RegExpressionVisitor<T> regvisitor = new RegExpressionVisitor<T>();
-                    expr = regvisitor.Visit(expr_org, this.m_DataType, this.m_RegSource);
+                    expr = regvisitor.Visit(expr_org, this.m_RegSource);
                     if (regvisitor.Fail != null)
                     {
                         this.m_Errors.Add(Tuple.Create(expression, expr, regvisitor.Fail));
@@ -270,7 +270,7 @@ namespace QSoft.Registry.Linq
                     for (int i=1; i< updatemethod.Arguments.Count; i++)
                     {
                         RegExpressionVisitor<T> regvisitor = new RegExpressionVisitor<T>();
-                        arg1 = regvisitor.Visit(this.m_DataType, updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
+                        arg1 = regvisitor.Visit(updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
                         if (regvisitor.Fail != null)
                         {
                             this.m_Errors.Add(Tuple.Create(expression, arg1, regvisitor.Fail));

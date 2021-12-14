@@ -1,14 +1,8 @@
 ﻿#define Queryable
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
@@ -90,8 +84,7 @@ namespace ConsoleApp1
             installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
 
-
-
+            
             string full = @"HKEY_LOCAL_MACHINE\";
             //Regex regex1 = new Regex(@"^(?<base>\w+)[\\](\.+)[\\]$(?<path>.+)", RegexOptions.Compiled);
             //Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
@@ -123,8 +116,13 @@ namespace ConsoleApp1
                 ll.Add(reg);
             }
             var queryable = ll.AsQueryable();
-            //ll.Where(x => (done:int.TryParse(x.GetValue<string>(""), out var value));
+            //var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
+            //var o1 = typeof(InstalledApp).ToData(o_pp);
+            //var o_func = Expression.Lambda<Func<RegistryKey, InstalledApp>>(o1, o_pp).Compile();
+            //var o2 = o_func(queryable.First());
 
+            //var oo1 = typeof(InstalledApp).ToLambdaData();
+            //oo1.Compile();
 
 
             var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
@@ -150,7 +148,9 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+            var fir = regt.Where(x => x.Key.Contains("AA"));
             //var ttk = regt.TakeWhile((x, index) => index == 0);
+            int revv = regt.RemoveAll();
             var tuple = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
             var tuple1 = regt.Select((x,idx) => Tuple.Create(x.DisplayName, idx));
             var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();

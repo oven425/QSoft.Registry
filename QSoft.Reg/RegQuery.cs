@@ -137,10 +137,74 @@ namespace QSoft.Registry.Linq
             return source.Count();
         }
 
+        public static int RemoveAll<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+        {
+            var removeall = typeof(RegQueryEx).GetMethods().FirstOrDefault(x =>
+            {
+                Type[] types = new Type[] { typeof(IEnumerable<TSource>).GetGenericTypeDefinition(), typeof(Func<TSource, bool>).GetGenericTypeDefinition() };
+                bool result = false;
+                if (x.Name == "RemoveAll" && x.IsGenericMethod==true)
+                {
+                    var pps = x.GetParameters().Select(y=>y.ParameterType.GetGenericTypeDefinition());
+                    result = pps.Zip(types, (a,b)=> new {a,b }).All(c=>c.a==c.b);
+                }
+                return result;
+            });
+            var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression, predicate);
+            return source.Provider.Execute<int>(methdodcall);
+        }
+
+        public static int RemoveAll<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        {
+            Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+            var regs = source as IEnumerable<RegistryKey>;
+            if (regs == null)
+            {
+                throw new Exception("Source must be RegistryKey");
+            }
+            int count = 0;
+            var parent = regs.FirstOrDefault()?.GetParent();
+            if (parent != null)
+            {
+                var zip = source.Zip(regs, (src, reg) => new { src, reg });
+                foreach (var oo in zip)
+                {
+                    if(predicate(oo.src) == true)
+                    {
+                        var match = regex1.Match(oo.reg.Name);
+                        if (match.Success)
+                        {
+                            parent.DeleteSubKeyTree(match.Groups["path"].Value);
+                            count++;
+                        }
+                    }
+                    
+
+                }
+                parent.Close();
+                parent.Dispose();
+            }
+
+            return count;
+        }
+
+
         public static int RemoveAll<TSource>(this IQueryable<TSource> source)
         {
-            var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "RemoveAll");
-            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), source.Expression);
+            var removeall = typeof(RegQueryEx).GetMethods().FirstOrDefault(x =>
+            {
+                bool result = false;
+                if (x.Name == "RemoveAll" && x.IsGenericMethod == true)
+                {
+                    var pps = x.GetParameters();
+                    if (pps.Length == 1)
+                    {
+                        result = (pps[0].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<TSource>).GetGenericTypeDefinition());
+                    }
+                }
+                return result;
+            });
+            var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression);
             return source.Provider.Execute<int>(methdodcall);
         }
 
@@ -242,6 +306,14 @@ namespace QSoft.Registry.Linq
             var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
 
             return unary;
+        }
+
+        public static Func<RegistryKey, TData> ToFunc<TData>(this RegistryKey reg)
+        {
+            var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
+            var o1 = typeof(TData).ToData(o_pp);
+            var o_func = Expression.Lambda<Func<RegistryKey, TData>>(o1, o_pp).Compile();
+            return o_func;
         }
 
         public static LambdaExpression ToLambdaData(this Type datatype, ParameterExpression pp = null)

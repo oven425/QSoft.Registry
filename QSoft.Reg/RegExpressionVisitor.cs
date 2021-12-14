@@ -12,7 +12,7 @@ namespace QSoft.Registry.Linq
         //Type m_DataType;
         Expression m_RegSource;
         public string Fail { private set; get; }
-        public Expression Visit(Expression node, Type datatype, Expression regfunc)
+        public Expression Visit(Expression node, Expression regfunc)
         {
             this.m_ExpressionSaves[node] = null;
             //this.m_DataType = datatype;
@@ -24,7 +24,7 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        public Expression Visit(Type datatype, MethodInfo method, params Expression[] nodes)
+        public Expression Visit(MethodInfo method, params Expression[] nodes)
         {
             System.Diagnostics.Debug.WriteLine($"Visit {method?.Name}");
             //this.m_DataType = datatype;
@@ -308,9 +308,9 @@ namespace QSoft.Registry.Linq
                 var exprs = this.m_ExpressionSaves.Clone(expr);
                 if((expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName || this.m_DataTypeName == "")
                 {
-                    if(exprs.Last().Value is ParameterExpression)
+                    if (exprs.Last().Value is ParameterExpression)
                     {
-                        if(exprs.Last().Value.Type.IsGenericType==true&& exprs.Last().Value.Type.GetGenericTypeDefinition() == typeof(IGrouping<,>))
+                        if (exprs.Last().Value.Type.IsGenericType == true && exprs.Last().Value.Type.GetGenericTypeDefinition() == typeof(IGrouping<,>))
                         {
                             var mes1 = exprs.Last().Value.Type.GetMember(expr.Member.Name);
                             var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mes1.ElementAt(0));
@@ -319,21 +319,34 @@ namespace QSoft.Registry.Linq
                         else
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                            if (node.Member.GetCustomAttributes(typeof(RegIgnore), true).Length > 0)
+                            //if (node.Member.GetCustomAttributes(typeof(RegIgnore), true).Length > 0)
+                            //{
+                            //    this.Fail = $"{node.Member.Name} is ignored, please do not use";
+                            //}
+                            var regname = node.Member.GetCustomAttributes(true).FirstOrDefault();
+                            Expression member = null;
+                            Expression left_args_1 = null;
+                            if(regname is RegIgnore)
                             {
                                 this.Fail = $"{node.Member.Name} is ignored, please do not use";
                             }
-                            var regname = node.Member.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
-                            Expression left_args_1 = null;
-                            if (regname.Length > 0)
+                            else if (regname is RegPropertyName)
                             {
-                                left_args_1 = Expression.Constant(regname.First().Name);
+                                left_args_1 = Expression.Constant((regname as RegPropertyName).Name);
+                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
-                            else
+                            else if(regname is RegSubKeyName)
+                            {
+                                member = Expression.Property(exprs.First().Value, "Name");
+                            }
+                            if(member ==null&&left_args_1 == null)
                             {
                                 left_args_1 = Expression.Constant(node.Member.Name);
+                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
-                            var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
+
+
+
                             this.m_ExpressionSaves[expr] = member;
                         }
                     }

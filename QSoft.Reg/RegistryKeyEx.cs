@@ -131,6 +131,7 @@ namespace QSoft.Registry
                 }
                 else
                 {
+                    //return (T)Convert.ChangeType(obj, typeof(T));
                     t = (T)obj;
                 }
             }

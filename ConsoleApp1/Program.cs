@@ -63,8 +63,14 @@ namespace ConsoleApp1
 
     class Program
     {
+        public static T test<T>(object src)
+        {
+            return (T)Convert.ChangeType(src, typeof(T));
+        }
         static void Main(string[] args)
         {
+            var tt1 = test<int>(5);
+            var tt2 = test<uint>(5);
             var zip_method = typeof(Queryable).GetMember("Zip").First();
             //var g1 = zip_method.GetType().GetGenericArguments();
             ////var g2 = zip_method.GetType().GetGenericParameterConstraints();
@@ -121,13 +127,11 @@ namespace ConsoleApp1
             //var o_func = Expression.Lambda<Func<RegistryKey, InstalledApp>>(o1, o_pp).Compile();
             //var o2 = o_func(queryable.First());
 
-            //var oo1 = typeof(InstalledApp).ToLambdaData();
-            //oo1.Compile();
+
+            
 
 
             var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-
-
 
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
@@ -141,6 +145,15 @@ namespace ConsoleApp1
             lambda = methodcall.Arguments[1] as LambdaExpression;
             ttype = methodcall.Arguments[1].GetType();
 
+            //var bios_reg = new RegQuery<BIOS>()
+            //   .useSetting(x =>
+            //   {
+            //       x.Hive = RegistryHive.LocalMachine;
+            //       x.SubKey = @"HARDWARE\DESCRIPTION\System";
+            //       x.View = RegistryView.Registry64;
+            //   });
+            //var bios = bios_reg.FirstOrDefault(x=>x.Key.Contains("BIOS"));
+
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
@@ -148,9 +161,24 @@ namespace ConsoleApp1
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            var fir = regt.Where(x => x.Key.Contains("AA"));
+
+            var regt1 = new RegQuery<InstalledApp>()
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.LocalMachine;
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                    x.View = RegistryView.Registry64;
+                });
+
+            var aaaa = regt.Except(regt1.Take(2));
+            foreach(var oo in aaaa)
+            {
+
+            }
+
+            var fir = regt.First();
             //var ttk = regt.TakeWhile((x, index) => index == 0);
-            int revv = regt.RemoveAll();
+            //int revv = regt.RemoveAll();
             var tuple = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
             var tuple1 = regt.Select((x,idx) => Tuple.Create(x.DisplayName, idx));
             var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();
@@ -459,5 +487,26 @@ namespace ConsoleApp1
         public string Ver { set; get; }
         public string Uninstallstring { set; get; }
         public bool IsOfficial { set; get; }
+    }
+
+    public class BIOS
+    {
+        [RegSubKeyName]
+        public string Key { set; get; }
+        public string BaseBoardManufacturer { set; get; }
+        public string BaseBoardProduct { set; get; }
+        public string BaseBoardVersion { set; get; }
+        public uint BiosMajorRelease { set; get; }
+        public int BiosMinorRelease { set; get; }
+        public string BIOSReleaseDate { set; get; }
+        public string BIOSVendor { set; get; }
+        public string BIOSVersion { set; get; }
+        public int ECFirmwareMajorRelease { set; get; }
+        public int ECFirmwareMinorRelease { set; get; }
+        public string SystemFamily { set; get; }
+        public string SystemManufacturer { set; get; }
+        public string SystemProductName { set; get; }
+        public string SystemSKU { set; get; }
+        public string SystemVersion { set; get; }
     }
 }

@@ -344,9 +344,6 @@ namespace QSoft.Registry.Linq
                                 left_args_1 = Expression.Constant(node.Member.Name);
                                 member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
-
-
-
                             this.m_ExpressionSaves[expr] = member;
                         }
                     }
@@ -538,6 +535,12 @@ namespace QSoft.Registry.Linq
                 switch(expr.Method.Name)
                 {
                     case "Except":
+                        {
+                            var vv = typeof(RegQueryEx).GetMethod("Except_RegistryKey");
+                            methodcall = Expression.Call(vv.MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
+                        }
+                        break;
+                    //case "Except":
                     case "Union":
                     case "Intersect":
                     case "Distinct":
@@ -596,19 +599,15 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Debug.WriteLine($"VisitConstant {node.Type.Name}");
 
             var expr = base.VisitConstant(node);
-            if (node.Type.Name == "RegQuery`1")
+
+            if (node.Type == typeof(RegQuery<TData>))
             {
                 this.m_ExpressionSaves[expr] = this.m_RegSource;
-                //this.m_DataType = node.Type.GetGenericArguments().FirstOrDefault();
             }
-            else if (node.Type.Name == "RegProvider")
-            {
-                //this.m_DataType = node.Type.GetGenericArguments().FirstOrDefault();
-            }
-            else if (node.Type.Name.Contains("IEnumerable"))
-            {
-                this.m_ExpressionSaves[expr] = expr;
-            }
+            //else if (node.Type.Name.Contains("IEnumerable"))
+            //{
+            //    this.m_ExpressionSaves[expr] = expr;
+            //}
             else
             {
                 this.m_ExpressionSaves[expr] = expr;

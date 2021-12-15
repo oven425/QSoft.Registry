@@ -27,27 +27,11 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        //public RegQuery(RegProvider provider, Expression expression)
-        //{
-        //    this.Provider = provider;
-        //    this.Expression = expression;
-        //}
-
         public RegQuery(IQueryProvider provider, Expression expression)
         {
             this.Provider = provider;
             this.Expression = expression;
         }
-
-        //public RegQuery(RegProvider provider, Expression expression, bool isfirst, Expression regsource)
-        //{
-        //    this.Provider = provider;
-
-
-        //    this.Expression = expression;
-
-        //}
-
 
         public Expression Expression { private set; get; }
         public Type ElementType => typeof(T);
@@ -206,6 +190,29 @@ namespace QSoft.Registry.Linq
             });
             var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression);
             return source.Provider.Execute<int>(methdodcall);
+        }
+
+        public static IQueryable<TSource> Except_RegistryKey<TSource>(this IQueryable<TSource> source1, IQueryable<TSource> source2)
+        {
+            if (typeof(TSource) != typeof(RegistryKey))
+            {
+                throw new Exception("Source must be RegistryKey");
+            }
+            var src_regs_1 = source1 as IQueryable<RegistryKey>;
+            var src_regs_2 = source2 as IQueryable<RegistryKey>;
+
+
+            var src_regs_3 = src_regs_1 as IQueryable<TSource>;
+
+            var except = src_regs_1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
+            var dic = src_regs_1.ToDictionary(x => x.Name);
+            return except.Select(x => dic[x]) as IQueryable<TSource>;
+
+
+            //var dic = src_regs_1.ToDictionary(x=>x.Name);
+            //var except = dic.Keys.Except(src_regs_2.Select(x => x.Name));
+            //var dst = except.Select(x => dic[x]).AsQueryable();
+            return null;
         }
 
         public static int RemoveAll<TSource>(this IEnumerable<TSource> source)

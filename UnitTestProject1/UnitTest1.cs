@@ -267,9 +267,11 @@ namespace UnitTestProject1
         [TestMethod]
         public void Except()
         {
-            var tests = this.m_Tests.Take(2).Select(x=>new InstalledApp(x));
+            //var tests = this.m_Tests.Take(2).Select(x=>new InstalledApp(x));
+            //this.Check(this.m_Tests.Except(tests), regt.Except(tests));
+            //this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
+            var tests = this.m_Tests.Take(2);
             this.Check(this.m_Tests.Except(tests), regt.Except(tests));
-            this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
         }
 
         [TestMethod]

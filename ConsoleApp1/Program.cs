@@ -1,5 +1,6 @@
 ﻿#define Queryable
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -25,6 +26,8 @@ namespace ConsoleApp1
             return obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
         }
     }
+
+    
 
     public class App
     {
@@ -111,7 +114,9 @@ namespace ConsoleApp1
             //Regex regex = new Regex(@"[\\]([A-Za-z0-9]+)$");
             //Regex regex = new Regex(@"^(?<base>\w+)[\\]");
 
-
+            var biosquery = RegistryHive.LocalMachine.OpenView64(@"HARDWARE\DESCRIPTION\System\BIOS", false);
+            var BiosMajorRelease = biosquery.GetValue<uint>("BiosMajorRelease");
+            var iiu = Convert.ToUInt32(BiosMajorRelease);
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
 
 
@@ -145,14 +150,14 @@ namespace ConsoleApp1
             lambda = methodcall.Arguments[1] as LambdaExpression;
             ttype = methodcall.Arguments[1].GetType();
 
-            //var bios_reg = new RegQuery<BIOS>()
-            //   .useSetting(x =>
-            //   {
-            //       x.Hive = RegistryHive.LocalMachine;
-            //       x.SubKey = @"HARDWARE\DESCRIPTION\System";
-            //       x.View = RegistryView.Registry64;
-            //   });
-            //var bios = bios_reg.FirstOrDefault(x=>x.Key.Contains("BIOS"));
+            var bios_reg = new RegQuery<BIOS>()
+               .useSetting(x =>
+               {
+                   x.Hive = RegistryHive.LocalMachine;
+                   x.SubKey = @"HARDWARE\DESCRIPTION\System\BIOS";
+                   x.View = RegistryView.Registry64;
+               });
+            var bios = bios_reg.Dump();
 
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
@@ -166,12 +171,14 @@ namespace ConsoleApp1
                 .useSetting(x =>
                 {
                     x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
                     x.View = RegistryView.Registry64;
                 });
-
-            var aaaa = regt.Except(regt1.Take(2));
-            foreach(var oo in aaaa)
+            var yj = regt1.Take(2);
+            var aaaa = regt.Except(yj);
+            //var aaaa = regt.Except(installs, new InstallAppCompare());
+            //var aaaa = regt.Except(installs);
+            foreach (var oo in aaaa)
             {
 
             }

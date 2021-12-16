@@ -15,19 +15,20 @@ namespace QSoft.Registry.Linq
     public class RegProvider<TData> : IQueryProvider
     {
         public RegSetting Setting { set; get; } = new RegSetting();
-        //Type m_DataType;
 
         MethodCallExpression m_RegSource;
-        public RegProvider(Type datatype)
+        static int m_Count = 0;
+        int m_Couunt1 = 0;
+        public RegProvider()
         {
+            m_Count++;
+            m_Couunt1 = m_Count;
             var method = typeof(RegProvider<TData>).GetMethod("CreateRegs");
             this.m_RegSource = Expression.Call(Expression.Constant(this), method);
-            //this.m_DataType = datatype;
         }
 
         public IQueryable CreateQuery(Expression expression)
         {
-            
             throw new NotImplementedException();
         }
 
@@ -46,7 +47,6 @@ namespace QSoft.Registry.Linq
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
                 this.m_Errors.Clear();
-                //this.m_RegMethod = reg.Visit(expression, typeof(TElement), this.m_RegSource);
                 var aaa = typeof(TData);
                 this.m_RegMethod = reg.Visit(expression, this.m_RegSource);
                 if (reg.Fail != null)
@@ -164,8 +164,9 @@ namespace QSoft.Registry.Linq
             //        oo.Dispose();
             //    }
             //}
-            
-            
+            var ooooo = m_Count;
+            var ooooo1 = this.m_Couunt1;
+
             List<RegistryKey> regs = new List<RegistryKey>();
             RegistryKey reg = this.Setting;
             var subkeynames = reg.GetSubKeyNames();
@@ -195,7 +196,6 @@ namespace QSoft.Registry.Linq
             {
                 var expr = expression;
                 var sd = typeof(TData).ToSelectData();
-                //var select = this.SelectMethod().MakeGenericMethod(typeof(RegistryKey), this.m_DataType);
                 var select = typeof(TData).SelectMethod();
                 updatemethod = Expression.Call(select, this.m_RegSource, sd);
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
@@ -204,7 +204,7 @@ namespace QSoft.Registry.Linq
                 return (TResult)excute;
             }
 
-            if (type.Name == "IEnumerable`1")
+            if (type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
                 if (updatemethod.Type == typeof(IQueryable<RegistryKey>) || updatemethod.Type == typeof(IOrderedQueryable<RegistryKey>))
                 {

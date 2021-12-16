@@ -9,13 +9,11 @@ namespace QSoft.Registry.Linq
 {
     class RegExpressionVisitor<TData>: ExpressionVisitor
     {
-        //Type m_DataType;
         Expression m_RegSource;
         public string Fail { private set; get; }
         public Expression Visit(Expression node, Expression regfunc)
         {
             this.m_ExpressionSaves[node] = null;
-            //this.m_DataType = datatype;
             this.m_RegSource = regfunc;
             Expression expr = this.Visit(node);
 
@@ -27,7 +25,6 @@ namespace QSoft.Registry.Linq
         public Expression Visit(MethodInfo method, params Expression[] nodes)
         {
             System.Diagnostics.Debug.WriteLine($"Visit {method?.Name}");
-            //this.m_DataType = datatype;
             this.PreparMethod(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
             
 
@@ -71,8 +68,6 @@ namespace QSoft.Registry.Linq
                         if (parameter.Type.IsGenericType == true)
                         {
                             var param = this.m_Parameters[parameter.Name];
-                            //var select_method = this.m_DataType.SelectMethod_Enumerable();
-                            //var sd = this.m_DataType.ToLambdaData();
                             var select_method = typeof(TData).SelectMethod_Enumerable();
                             var sd = typeof(TData).ToLambdaData();
                             var aaaaa = Expression.Call(select_method, param, sd);
@@ -81,7 +76,6 @@ namespace QSoft.Registry.Linq
                         else
                         {
                             var param = this.m_Parameters[parameter.Name];
-                            //var todata = this.m_DataType.ToData(param);
                             var todata = typeof(TData).ToData(param);
                             exprs[exprs.ElementAt(i).Key] = todata;
                         }
@@ -136,7 +130,6 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        //Dictionary<string, MemberAssignment> m_MemberAssigns = new Dictionary<string, MemberAssignment>();
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
         {
             this.m_ExpressionSaves[node.Expression] = null;
@@ -435,12 +428,10 @@ namespace QSoft.Registry.Linq
                 {
                     if (i == 0)
                     {
-                        //if(dic[i].ParameterType == typeof(IEnumerable<>).GetGenericTypeDefinition().MakeGenericType(this.m_DataType))
                         if (dic[i].ParameterType == typeof(IEnumerable<TData>))
                         {
                             this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
                         }
-                        //else if (dic[i].ParameterType == typeof(IQueryable<>).GetGenericTypeDefinition().MakeGenericType(this.m_DataType))
                         else if (dic[i].ParameterType == typeof(IQueryable<TData>))
                         {
                             this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
@@ -536,7 +527,17 @@ namespace QSoft.Registry.Linq
                 {
                     case "Except":
                         {
-                            var vv = typeof(RegQueryEx).GetMethod("Except_RegistryKey");
+                            var pps = expr.Method.GetParameters();
+                            var vv = typeof(RegQueryEx).GetMethods().Where(x =>
+                            {
+                                bool result = false;
+                                if(x.Name == $"{expr.Method.Name}_RegistryKey" && x.GetParameters().Length == pps.Length)
+                                {
+                                    result = true;
+                                }
+                                return result;
+                            }).First();
+                            ttypes1 = exprs1.Select(x => x.Value).GetTypes(vv);
                             methodcall = Expression.Call(vv.MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
                         }
                         break;

@@ -131,12 +131,41 @@ namespace QSoft.Registry
                 }
                 else
                 {
-                    //return (T)Convert.ChangeType(obj, typeof(T));
-                    t = (T)obj;
+                    
+                    switch(typecode)
+                    {
+                        case TypeCode.UInt16:
+                        case TypeCode.UInt32:
+                        case TypeCode.UInt64:
+                            {
+                                return (T)Convert.ChangeType(obj, typeof(T));
+                            }
+                            break;
+                        default:
+                            {
+                                t = (T)obj;
+                            }
+                            break;
+                    }
+                    
                 }
             }
             return t;
         }
+
+        //public static T Converter<T>(this object src)
+        //{
+        //    var typecode = Type.GetTypeCode(typeof(T));
+        //    switch(typecode)
+        //    {
+        //        case TypeCode.UInt32:
+        //            {
+        //                return Convert.ToUInt32(src);
+        //            }
+        //            break;
+        //    }
+        //    return default(T);
+        //}
 
         public static T GetValue<T>(this RegistryKey src, string subkey, string name)
         {

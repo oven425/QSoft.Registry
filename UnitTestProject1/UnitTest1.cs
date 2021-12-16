@@ -271,7 +271,7 @@ namespace UnitTestProject1
             //this.Check(this.m_Tests.Except(tests), regt.Except(tests));
             //this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
             var tests = this.m_Tests.Take(2);
-            this.Check(this.m_Tests.Except(tests), regt.Except(tests));
+            this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
         }
 
         [TestMethod]

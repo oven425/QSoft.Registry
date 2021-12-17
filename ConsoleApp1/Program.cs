@@ -22,8 +22,14 @@ namespace ConsoleApp1
 
         public int GetHashCode(InstalledApp obj)
         {
-            if (object.ReferenceEquals(obj, null)) return 0;
-            return obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
+            int hashcode = 0;
+            if (object.ReferenceEquals(obj, null))
+            {
+                hashcode = 0;
+            }
+            hashcode = obj.DisplayName == null ? 0 : obj.DisplayName.GetHashCode();
+            System.Diagnostics.Trace.WriteLine($"hashcode:{hashcode}");
+            return hashcode;
         }
     }
 
@@ -171,26 +177,28 @@ namespace ConsoleApp1
                 .useSetting(x =>
                 {
                     x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\";
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
-            var yj = regt1.Take(2);
-            var aaaa = regt.Except(yj);
+            //var yj = regt1.Take(2);
+            //var aaaa = regt.Except(regt1.Take(2));
+            //var aaaa = regt.Where(x=>x.DisplayName!="").Except(regt1.Take(2));
             //var aaaa = regt.Except(installs, new InstallAppCompare());
-            //var aaaa = regt.Except(installs);
+            var aaaa = regt.Except(regt.ToList().Take(2));
+            //var aaaa = regt.Select(x => x).Where(x => x.DisplayName != "");
             foreach (var oo in aaaa)
             {
 
             }
 
-            var fir = regt.First();
-            //var ttk = regt.TakeWhile((x, index) => index == 0);
-            //int revv = regt.RemoveAll();
-            var tuple = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
-            var tuple1 = regt.Select((x,idx) => Tuple.Create(x.DisplayName, idx));
-            var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();
-            var group1 = regt.GroupBy(x => x.DisplayName, (key, reg) => reg);
-            var avg = regt.Where(x => int.Parse(x.EstimatedSize.ToString()).ToString("X2") == "6E").Select(x=>x.DisplayName);
+            //var fir = regt.First();
+            ////var ttk = regt.TakeWhile((x, index) => index == 0);
+            ////int revv = regt.RemoveAll();
+            //var tuple = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
+            //var tuple1 = regt.Select((x,idx) => Tuple.Create(x.DisplayName, idx));
+            //var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();
+            //var group1 = regt.Where(x=>x.DisplayName=="").GroupBy(x => x.DisplayName, (key, reg) => reg);
+            var avg = regt.Where(x => int.Parse(x.EstimatedSize.ToString()).ToString("X2") == "0A").Select(x=>x.DisplayName);
             foreach(var oo in avg)
             {
 

@@ -80,41 +80,58 @@ namespace QSoft.Registry.Linq
         }
     }
 
-    public class EqualityComparer1<T> : IEqualityComparer<T>
+    public class EqualityComparerAll<T> : IEqualityComparer<T>
     {
-        
         public bool Equals(T x, T y)
         {
-            if (Object.ReferenceEquals(x, y)) return true;
-            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null))
-                return false;
-            Type type1 = x.GetType();
-            Type type2 = y.GetType();
-            if (type1 != type2)
-            {
-                return false;
-            }
-
-            var pps = type1.GetProperties().Where(p => p.CanRead == true);
+            var pps = typeof(T).GetProperties().Where(p => p.CanRead == true);
             foreach (var pp in pps)
             {
                 var typecode = Type.GetTypeCode(pp.PropertyType);
-
-                dynamic ss1 = pp.GetValue(x, null);
-                dynamic ss2 = pp.GetValue(y, null);
-                if (ss1 != ss2)
+                dynamic s1 = pp.GetValue(x, null);
+                dynamic s2 = pp.GetValue(y, null);
+                if(s1 != s2)
                 {
                     return false;
                 }
+                
             }
-
             return true;
         }
 
         public int GetHashCode(T obj)
         {
-            if (object.ReferenceEquals(obj, null)) return 0;
-            return obj == null ? 0 : obj.GetHashCode();
+            return 0;
+            //Check whether the object is null
+            if (Object.ReferenceEquals(obj, null)) return 0;
+            List<int> hashcodes = new List<int>();
+            var pps = typeof(T).GetProperties().Where(p => p.CanRead == true);
+            foreach (var pp in pps)
+            {
+                var typecode = Type.GetTypeCode(pp.PropertyType);
+
+                var ss1 = pp.GetValue(obj, null);
+                if(ss1 == null)
+                {
+                    hashcodes.Add(0);
+                }
+                else
+                {
+                    hashcodes.Add(ss1.GetHashCode());
+                }
+            }
+
+            int hashcode = hashcodes.Aggregate((x, y) => x ^ y);
+            System.Diagnostics.Trace.WriteLine($"hashcode:{hashcode}");
+            return hashcode;
+            //Get hash code for the Name field if it is not null.
+            //int hashProductName = product.Name == null ? 0 : product.Name.GetHashCode();
+
+            ////Get hash code for the Code field.
+            //int hashProductCode = product.Code.GetHashCode();
+
+            ////Calculate the hash code for the product.
+            //return hashProductName ^ hashProductCode;
         }
     }
 }

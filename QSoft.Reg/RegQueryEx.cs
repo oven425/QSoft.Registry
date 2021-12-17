@@ -7,8 +7,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace QSoft.Registry.Linq
 {
@@ -132,44 +130,25 @@ namespace QSoft.Registry.Linq
             return source.Provider.Execute<int>(methdodcall);
         }
 
-        static string ToXml(object obj)
-        {
-            string str = "";
-            System.Xml.Serialization.XmlSerializer xml = new System.Xml.Serialization.XmlSerializer(obj.GetType());
-            
-            using (MemoryStream mm = new MemoryStream())
-            {
-                using (var xmlWriter = XmlWriter.Create(mm, new XmlWriterSettings { Indent = false, Encoding = Encoding.UTF8 }))
-                {
-                    xml.Serialize(xmlWriter, obj);
-                }
-               
-                str = Encoding.UTF8.GetString(mm.ToArray());
-            }
-            return str;
-        }
-
         public static IQueryable<RegistryKey> Except_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2)
         {
             if (typeof(TSource2) == typeof(RegistryKey))
             {
                 var src_regs_2 = source2 as IQueryable<RegistryKey>;
+                var groupby = source1.GroupBy(x => x.Name);
                 var except = source1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
                 var ss = source1.Join(except, x => x.Name, y => y, (x, y) => x);
                 return ss;
             }
             else
             {
-                //var func = source1.First().ToFunc<TSource2>();
-                //var xml1 = source1.ToDictionary(x => ToXml(func(x)));
-                //var xml2 = source2.Select(x => ToXml(x));
-                //var compare = xml1.Select(x=>x.Key).Except(xml2);
-                //var dst = compare.Select(x => xml1[x]).AsQueryable();
-
-                //return dst;
+                var func = source1.First().ToFunc<TSource2>();
+                var aa = source1.ToDictionary(x => func(x), x => x);
+                var compare = aa.Keys.Except(source2, new EqualityComparerAll<TSource2>());
+                var dst = compare.Select(x => aa[x]).AsQueryable();
+                return dst;
 
             }
-            return null;
         }
 
         public static IQueryable<RegistryKey> Except_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2, IEqualityComparer<TSource2> comparer)
@@ -197,23 +176,6 @@ namespace QSoft.Registry.Linq
             }
 
         }
-
-        //public static IQueryable<TSource> Except_RegistryKey<TSource>(this IQueryable<TSource> source1, IQueryable<TSource> source2)
-        //{
-        //    if (typeof(TSource) != typeof(RegistryKey))
-        //    {
-        //        throw new Exception("Source must be RegistryKey");
-        //    }
-        //    var src_regs_1 = source1 as IQueryable<RegistryKey>;
-        //    var src_regs_2 = source2 as IQueryable<RegistryKey>;
-
-
-        //    var src_regs_3 = src_regs_1 as IQueryable<TSource>;
-
-        //    var except = src_regs_1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
-        //    var dic = src_regs_1.ToDictionary(x => x.Name);
-        //    return except.Select(x => dic[x]) as IQueryable<TSource>;
-        //}
 
         public static int RemoveAll<TSource>(this IEnumerable<TSource> source)
         {

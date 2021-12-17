@@ -22,17 +22,65 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+        Dictionary<Expression, Expression> m_Saves;
+        public Expression VisitA(Expression node, Expression regfunc, Dictionary<Expression, Expression> saves)
+        {
+            this.m_Saves = saves;
+            this.m_ExpressionSaves[node] = null;
+            this.m_RegSource = regfunc;
+            Expression expr = this.Visit(node);
+
+            var exprs = this.m_ExpressionSaves.Clone(expr);
+            expr = exprs.First().Value;
+            return expr;
+        }
+
         public Expression Visit(MethodInfo method, params Expression[] nodes)
         {
             System.Diagnostics.Debug.WriteLine($"Visit {method?.Name}");
             this.PreparMethod(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
-            
+
 
             Expression expr = this.Visit(nodes[1]);
 
             var exprs = this.m_ExpressionSaves.Clone(expr);
             expr = exprs.First().Value;
             return expr;
+        }
+
+
+        public Expression Visit1(MethodCallExpression node, Expression[] args)
+        {
+            System.Diagnostics.Debug.WriteLine($"Visit {node.Method?.Name}");
+            this.PreparMethod(node, args, node.Method);
+
+            foreach(var arg in args)
+            {
+                var aaaa = this.Visit(arg);
+            }
+
+            var exprs = this.m_ExpressionSaves.Clone(node);
+            var ttypes = exprs.Select(x => x.Value).GetTypes(node.Method);
+            var mmm = Expression.Call(node.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes), exprs.Select(x => x.Value));
+            return mmm;
+        }
+
+        public Expression Visit2(MethodCallExpression node, Expression[] args)
+        {
+            System.Diagnostics.Debug.WriteLine($"Visit {node.Method?.Name}");
+            this.PreparMethod(node, args, node.Method);
+
+            foreach (var arg in args.Skip(1))
+            {
+                var aaaa = this.Visit(arg);
+            }
+
+            var exprs = this.m_ExpressionSaves.Clone(node);
+            var list = exprs.Select(x => x.Value).ToList();
+            list.Insert(0, args[0]);
+            var ttypes = list.GetTypes(node.Method);
+            var mmm = Expression.Call(node.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes), list);
+            return mmm;
         }
 
         protected override Expression VisitBinary(BinaryExpression node)
@@ -457,7 +505,6 @@ namespace QSoft.Registry.Linq
                         }
                         else
                         {
-                            //this.m_GenericTypes.First()[dicc[i].Name] = null;
                             if (dic[i].ParameterType.IsGenericType == true)
                             {
                                 this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
@@ -483,7 +530,7 @@ namespace QSoft.Registry.Linq
             {
                 var return1 = method.ReturnType.GetGenericTypeDefinition();
 
-                if (return1 == typeof(IQueryable<>))
+                if (return1 == typeof(IQueryable<>)&& method.IsGenericMethod==true)
                 {
                     var t4 = method.GetGenericMethodDefinition().GetParameters();
                     string datatypename = t4.First().ParameterType.GetGenericArguments()[0].Name;
@@ -513,7 +560,12 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitMethodCall {node.Method?.Name}");
-
+            if (this.m_Saves.ContainsKey(node) == true)
+            {
+                var aaa = this.m_Saves[node];
+                this.m_ExpressionSaves[node] = aaa;
+                return node;
+            }
             this.PreparMethod(node, node.Arguments.ToArray(), node.Method);
 
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
@@ -603,12 +655,11 @@ namespace QSoft.Registry.Linq
 
             if (node.Type == typeof(RegQuery<TData>))
             {
-                this.m_ExpressionSaves[expr] = this.m_RegSource;
+                var reguqery = node.Value as RegQuery<TData>;
+                var regprovider = reguqery?.Provider as RegProvider<TData>;
+                this.m_ExpressionSaves[expr] = regprovider.m_RegSource;
+                //this.m_ExpressionSaves[expr] = this.m_RegSource;
             }
-            //else if (node.Type.Name.Contains("IEnumerable"))
-            //{
-            //    this.m_ExpressionSaves[expr] = expr;
-            //}
             else
             {
                 this.m_ExpressionSaves[expr] = expr;

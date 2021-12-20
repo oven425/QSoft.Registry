@@ -163,7 +163,6 @@ namespace QSoft.Registry.Linq
 
         bool m_IsWritable = false;
         IQueryable<RegistryKey> m_Regs;
-        //List<IQueryable<RegistryKey>> m_Temps = new List<IQueryable<RegistryKey>>();
         public IQueryable<RegistryKey> CreateRegs()
         {
             if (this.m_Regs?.Count() > 0)
@@ -176,15 +175,12 @@ namespace QSoft.Registry.Linq
             }
 
             List<RegistryKey> regs = new List<RegistryKey>();
-            RegistryKey reg = this.Setting;
+            RegistryKey reg = this.Setting.Create();
             var subkeynames = reg.GetSubKeyNames();
             foreach (var subkeyname in subkeynames)
             {
                 regs.Add(reg.OpenSubKey(subkeyname, m_IsWritable));
             }
-            //var qqr = regs.AsQueryable();
-            //m_Temps.Add(qqr);
-            //return qqr;
             return m_Regs = regs.AsQueryable();
         }
 
@@ -239,7 +235,6 @@ namespace QSoft.Registry.Linq
                         Expression arg2 = updatemethod.Arguments[1];
                         if(type3[1] == typeof(TData))
                         {
-                            //arg2 = this.ToSelectData();
                             arg2 = typeof(TData).ToSelectData();
                         }
                         updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, typeof(TData).ToSelectData());
@@ -314,33 +309,6 @@ namespace QSoft.Registry.Linq
                 if (excute_reg != null)
                 {
                     inst = excute_reg.ToFunc<TResult>()(excute_reg);
-                    //var pps = typeof(TResult).GetProperties().Where(x => x.CanWrite == true&&x.GetCustomAttributes(typeof(RegIgnore), true).Length==0);
-                    //inst = Activator.CreateInstance(typeof(TResult));
-                    //foreach (var pp in pps)
-                    //{
-                    //    var regattrs = pp.GetCustomAttributes(true);
-                    //    string subkeyname = pp.Name;
-                    //    object yyy = null;
-                    //    if(regattrs.Length>0)
-                    //    {
-                    //        var regattr = regattrs.FirstOrDefault();
-                    //        if(regattr is RegSubKeyName)
-                    //        {
-                    //            yyy = excute_reg.Name;
-                    //        }
-                    //        else if(regattr is RegPropertyName)
-                    //        {
-                    //            subkeyname = (regattr as RegPropertyName)?.Name;
-                    //            yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, subkeyname });
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        yyy = regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType).Invoke(excute_reg, new object[] { excute_reg, subkeyname });
-                    //    }
-                    //    pp.SetValue(inst, yyy, null);
-                    //}
-
                 }
                 else
                 {
@@ -354,8 +322,6 @@ namespace QSoft.Registry.Linq
                         oo.Dispose();
                     }
                 }
-                
-                
                 return_hr = (TResult)inst;
             }
 

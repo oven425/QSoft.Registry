@@ -27,6 +27,8 @@ namespace UnitTestProject1
 
     public class InstalledApp
     {
+        [RegSubKeyName]
+        public string Key { set; get; }
         public int? Index { set; get; }
         public string DisplayName { set; get; }
         [RegPropertyName(Name = "DisplayVersion")]
@@ -68,12 +70,12 @@ namespace UnitTestProject1
         List<InstalledApp> InstallApp_org()
         {
             List<InstalledApp> datas = new List<InstalledApp>();
-            datas.Add(new InstalledApp() { DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
-            datas.Add(new InstalledApp() { DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
-            datas.Add(new InstalledApp() { DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
-            datas.Add(new InstalledApp() { DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
-            datas.Add(new InstalledApp() { DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
-            datas.Add(new InstalledApp() { DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
+            datas.Add(new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
+            datas.Add(new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
+            datas.Add(new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
+            datas.Add(new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
+            datas.Add(new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
+            datas.Add(new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
 
             return datas;
         }
@@ -106,7 +108,7 @@ namespace UnitTestProject1
             var test1A = reg.CreateSubKey(@"1A", true);
             foreach(var oo in this.m_Tests)
             {
-                var regd = test1A.CreateSubKey(oo.DisplayName, true);
+                var regd = test1A.CreateSubKey(oo.Key, true);
                 foreach(var pp in propertys)
                 {
                     var doo = pp.GetValue(oo);
@@ -197,9 +199,10 @@ namespace UnitTestProject1
         [TestMethod]
         public void TakeWhile()
         {
-            this.Check(this.m_Tests.TakeWhile(x=>x.DisplayName=="AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
+            this.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
             this.Check(this.m_Tests.TakeWhile(x => x.EstimatedSize.ToString() == "10"), regt.TakeWhile(x => x.EstimatedSize.ToString() == "10"));
             this.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA".ToString()), regt.TakeWhile(x => x.DisplayName == "AA".ToString()));
+            this.Check(this.m_Tests.TakeWhile(x => x.Key.Contains("AA".ToString())), regt.TakeWhile(x => x.Key.Contains("AA".ToString())));
         }
 
         [TestMethod]
@@ -438,6 +441,7 @@ namespace UnitTestProject1
         [TestMethod]
         public void All()
         {
+
             Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "") == regt.All(x => x.DisplayName == ""), "All(x => x.DisplayName == ) fail");
             Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "" && x.EstimatedSize > 10) == regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10), "All fail");
         }
@@ -448,6 +452,7 @@ namespace UnitTestProject1
             Assert.IsTrue(this.m_Tests.Count() == regt.Count(), "Count fail");
             Assert.IsTrue(this.m_Tests.Count(x=>x.EstimatedSize>30) == regt.Count(x => x.EstimatedSize > 30), "Count fail");
             Assert.IsTrue(this.m_Tests.Count(x=>x.EstimatedSize>=40&&x.DisplayName=="") == regt.Count(x => x.EstimatedSize >= 40 && x.DisplayName == ""), "Count fail");
+            Assert.IsTrue(this.m_Tests.Count(x=>x.Key.Length>=2) == regt.Count(x => x.Key.Length >= 2), "Count fail");
         }
 
         [TestMethod]

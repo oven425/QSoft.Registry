@@ -360,25 +360,28 @@ namespace QSoft.Registry.Linq
                         else
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                            //if (node.Member.GetCustomAttributes(typeof(RegIgnore), true).Length > 0)
-                            //{
-                            //    this.Fail = $"{node.Member.Name} is ignored, please do not use";
-                            //}
-                            var regname = node.Member.GetCustomAttributes(true).FirstOrDefault();
+
+                            var attr = node.Member.GetCustomAttributes(true).FirstOrDefault();
                             Expression member = null;
                             Expression left_args_1 = null;
-                            if(regname is RegIgnore)
+                            if (attr is RegIgnore)
                             {
                                 this.Fail = $"{node.Member.Name} is ignored, please do not use";
                             }
-                            else if (regname is RegPropertyName)
+                            else if (attr is RegPropertyName)
                             {
-                                left_args_1 = Expression.Constant((regname as RegPropertyName).Name);
+                                left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
                                 member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
-                            else if(regname is RegSubKeyName)
+                            else if (attr is RegSubKeyName)
                             {
+                                var subkeyname = attr as RegSubKeyName;
                                 member = Expression.Property(exprs.First().Value, "Name");
+                                if(subkeyname.IsFullName == false)
+                                {
+                                    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
+                                    member = Expression.Call(method, member);
+                                }
                             }
                             if(member ==null&&left_args_1 == null)
                             {
@@ -577,25 +580,26 @@ namespace QSoft.Registry.Linq
             {
                 switch(expr.Method.Name)
                 {
-                    case "Except":
-                        {
-                            var pps = expr.Method.GetParameters();
-                            var vv = typeof(RegQueryEx).GetMethods().Where(x =>
-                            {
-                                bool result = false;
-                                if(x.Name == $"{expr.Method.Name}_RegistryKey" && x.GetParameters().Length == pps.Length)
-                                {
-                                    result = true;
-                                }
-                                return result;
-                            }).First();
-                            ttypes1 = exprs1.Select(x => x.Value).GetTypes(vv);
-                            methodcall = Expression.Call(vv.MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
-                        }
-                        break;
                     //case "Except":
-                    case "Union":
+                    //case "Intersect":
+                    //    {
+                    //        var pps = expr.Method.GetParameters();
+                    //        var vv = typeof(RegQueryEx).GetMethods().Where(x =>
+                    //        {
+                    //            bool result = false;
+                    //            if(x.Name == $"{expr.Method.Name}_RegistryKey" && x.GetParameters().Length == pps.Length)
+                    //            {
+                    //                result = true;
+                    //            }
+                    //            return result;
+                    //        }).First();
+                    //        ttypes1 = exprs1.Select(x => x.Value).GetTypes(vv);
+                    //        methodcall = Expression.Call(vv.MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
+                    //    }
+                    //    break;
+                    case "Except":
                     case "Intersect":
+                    case "Union":
                     case "Distinct":
                         {
                             var sd = typeof(TData).ToSelectData();

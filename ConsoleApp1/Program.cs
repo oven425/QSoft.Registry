@@ -120,9 +120,6 @@ namespace ConsoleApp1
             //Regex regex = new Regex(@"[\\]([A-Za-z0-9]+)$");
             //Regex regex = new Regex(@"^(?<base>\w+)[\\]");
 
-            var biosquery = RegistryHive.LocalMachine.OpenView64(@"HARDWARE\DESCRIPTION\System\BIOS", false);
-            var BiosMajorRelease = biosquery.GetValue<uint>("BiosMajorRelease");
-            var iiu = Convert.ToUInt32(BiosMajorRelease);
             var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
 
 
@@ -142,28 +139,30 @@ namespace ConsoleApp1
             
 
 
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-
+            //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
+            var rr = queryable.Select(x => x.Name.GetLastSegement());
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var unary = methodcall.Arguments[2] as UnaryExpression;
-            var lambda = unary.Operand as LambdaExpression;
+            //var unary = methodcall.Arguments[2] as UnaryExpression;
+            //var lambda = unary.Operand as LambdaExpression;
 
 
-            var newexpr = lambda.Body as NewExpression;
-            methodcall = newexpr.Arguments[1] as MethodCallExpression;
-            var ggw = methodcall.Method.GetGenericArguments();
-            lambda = methodcall.Arguments[1] as LambdaExpression;
-            ttype = methodcall.Arguments[1].GetType();
+            //var newexpr = lambda.Body as NewExpression;
+            //methodcall = newexpr.Arguments[1] as MethodCallExpression;
+            //var ggw = methodcall.Method.GetGenericArguments();
+            //lambda = methodcall.Arguments[1] as LambdaExpression;
+            //ttype = methodcall.Arguments[1].GetType();
 
-            var bios_reg = new RegQuery<BIOS>()
-               .useSetting(x =>
-               {
-                   x.Hive = RegistryHive.LocalMachine;
-                   x.SubKey = @"HARDWARE\DESCRIPTION\System\BIOS";
-                   x.View = RegistryView.Registry64;
-               });
-            var bios = bios_reg.Dump();
+            //var direct_reg = new RegQuery<A2>()
+            //   .useSetting(x =>
+            //   {
+            //       x.Hive = RegistryHive.LocalMachine;
+            //       x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\2A";
+            //       x.View = RegistryView.Registry64;
+            //   });
+            //direct_reg.CreateOrUpdate(new A2() { A = "12345" });
+            //var bios = direct_reg.Get();
+            //direct_reg.Delete();
 
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
@@ -180,12 +179,14 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
+            int remove_count2 = regt.Where(x => x.Version == new Version(1, 1, 1, 1)).RemoveAll();
             //var yj = regt1.Take(2);
             //var aaaa = regt.Except(regt1.Take(2));
             //var aaaa = regt.Where(x=>x.DisplayName!="").Except(regt1.Take(2));
             //var aaaa = regt.Except(installs, new InstallAppCompare());
-            var aaaa = regt.Except(regt.ToList().Take(2));
+            //var aaaa = regt.Union(regt.ToList().Take(2));
             //var aaaa = regt.Select(x => x).Where(x => x.DisplayName != "");
+            var aaaa = regt.Where(x => x.Key == $"{x.Key}");
             foreach (var oo in aaaa)
             {
 
@@ -502,6 +503,11 @@ namespace ConsoleApp1
         public string Ver { set; get; }
         public string Uninstallstring { set; get; }
         public bool IsOfficial { set; get; }
+    }
+
+    public class A2
+    {
+        public string A { set; get; }
     }
 
     public class BIOS

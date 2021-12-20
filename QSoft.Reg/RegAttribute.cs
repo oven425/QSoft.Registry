@@ -21,5 +21,6 @@ namespace QSoft.Registry.Linq
     [AttributeUsage(AttributeTargets.Property)]
     public class RegSubKeyName:Attribute
     {
+        public bool IsFullName { set; get; } = false;
     }
 }

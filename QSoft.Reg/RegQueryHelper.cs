@@ -114,20 +114,16 @@ namespace QSoft.Registry.Linq
                 Expression name = null;
                 if (regattr != null && regattr is RegSubKeyName)
                 {
-                    if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    RegSubKeyName subkeyname = regattr as RegSubKeyName;
+                    Expression mm = null;
+                    mm = Expression.Property(param, "Name");
+                    if (subkeyname.IsFullName == false)
                     {
-                        var method = Expression.Property(param, "Name");
-                        UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-                        var binding = Expression.Bind(pp, unary1);
-                        bindings.Add(binding);
+                        var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
+                        mm = Expression.Call(method, mm);
                     }
-                    else
-                    {
-                        var method = Expression.Property(param, "Name");
-                        var binding = Expression.Bind(pp, method);
-                        bindings.Add(binding);
-
-                    }
+                    var binding = Expression.Bind(pp, mm);
+                    bindings.Add(binding);
                 }
                 else if (regattr != null && regattr is RegPropertyName)
                 {
@@ -257,12 +253,33 @@ namespace QSoft.Registry.Linq
             return types.Take(args.Length).ToArray();
         }
 
+
+        public static string GetLastSegement(this string src)
+        {
+            string basekeyname = "";
+            string path = "";
+            Regex regex1 = new Regex(@"^(?<base>\w+)[\\](?<path>.+)[\\]", RegexOptions.Compiled);
+            //Regex regex2 = new Regex(@"^(?<base>\w+)[\\]", RegexOptions.Compiled);
+            var match = regex1.Match(src);
+            if (match.Success == true)
+            {
+                basekeyname = match.Groups["base"].Value;
+                path = match.Groups["path"].Value;
+            }
+            else
+            {
+                basekeyname = src;
+            }
+            var segement = src.Replace(basekeyname, "").Replace(path, "").TrimStart('\\');
+            return segement;
+        }
+
         static public RegistryKey GetParent(this RegistryKey src)
         {
             string basekeyname = "";
             string path = "";
             Regex regex1 = new Regex(@"^(?<base>\w+)[\\](?<path>.+)[\\]", RegexOptions.Compiled);
-            Regex regex2 = new Regex(@"^(?<base>\w+)[\\]", RegexOptions.Compiled);
+            //Regex regex2 = new Regex(@"^(?<base>\w+)[\\]", RegexOptions.Compiled);
             var match = regex1.Match(src.Name);
             if (match.Success == true)
             {

@@ -1,3 +1,5 @@
+
+
 # Use Linq style read registry(Linq to Registry)
 ## Use Queryable read data
 * Support Queryable function
@@ -9,18 +11,20 @@ Create definition
 public class InstalledApp
 {
 	public string DisplayName { set; get; }
-    public string DisplayVersion { set; get; }
+    public Version DisplayVersion { set; get; }
     public int? EstimatedSize { set; get; }
 }
 ```
 if you want to use exist class, can add attribute,like below code
 ```csharp
-public class App
+public class InstalledApp
 {
-    [RegPropertyName(Name = "DisplayName")]
-    public string Name { set; get; }
+	[RegSubKeyName]
+    public string Key { set; get; }
+    public string DisplayName { set; get; }
     [RegPropertyName(Name = "DisplayVersion")]
-    public string Version { set; get; }
+    public Version Version { set; get; }
+    public int? EstimatedSize { set; get; }
     [RegIgnore]
     public int Size { set; get; }
 }
@@ -30,12 +34,12 @@ public class App
 Create Query
 ```csharp
 var regt = new RegQuery<InstalledApp>()
-	.useSetting(x =>
-	{
-		x.Hive = RegistryHive.LocalMachine;
-		x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-		x.View = RegistryView.Registry64;
-	});
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.LocalMachine;
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+                    x.View = RegistryView.Registry64;
+                });
 ```
 Get data
 ```csharp
@@ -43,7 +47,6 @@ var first1 = regt.First();
 var first2 = regt.First(x => x.DisplayName != "");
 var last1 = regt.Last();
 var last2 = regt.Last(x => x.DisplayName != "");
-
 
 var count1 = regt.Count();
 var count2 = regt.Count(x => x.DisplayName == "AA");
@@ -63,10 +66,10 @@ var dictonary = regt.ToDictionary(x => x.EstimatedSize);
 Query data
 ```csharp
 var take = regt.Take(10);
-var takewhile = regt.TakeWhile(x => x.DisplayVersion <= new Version(2,2,2,2));
-var orderbydesc = regt.OrderByDescending(x => x.DisplayVersion);
+var takewhile = regt.TakeWhile(x => x.Version <= new Version(2,2,2,2));
+var orderbydesc = regt.OrderByDescending(x => x.Version);
 var oderby = regt.OrderBy(x => x.EstimatedSize);
-var where = regt.Where(x => x.DisplayName != "" && x.DisplayVersion > new Version(3,3,3,3));
+var where = regt.Where(x => x.DisplayName != "" && x.Version > new Version(3,3,3,3));
 ```
 Update Data
 ```csharp
@@ -77,6 +80,13 @@ int update_count2 = regt.Update(x => new { DisplayName = $"{x.DisplayName}_AA" }
 int update_count3 = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new InstalledApp() { DisplayName = $"{x.DisplayName}_AA" });
 int update_count4 = regt.Where(x=>x.Version>new Version(1,1,1,1)).Update(x => new { DisplayName = $"{x.DisplayName}_AA" });
 ```
+Remove Data
+```csharp
+//remove all data
+int remove_count1 = regt.RemoveAll();
+//remove where result
+int remove_count2 = regt.Where(x=>x.Version==new Version(1,1,1,1)).RemoveAll();
+```
 GroupBy Data
 ```csharp
 var group1 = regt.GroupBy(x => x.DisplayName);
@@ -85,8 +95,8 @@ var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
 
 
 
-
-## Use extension linq function like below code
+__Plan to not maintain the extension method in the next version__
+### Use extension linq function like below code
 ```csharp
 using QSoft.Registry;
 using QSoft.Registry.Linq;

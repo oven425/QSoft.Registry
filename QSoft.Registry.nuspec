@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>QSoft.Registry</id>
-    <version>1.0.0.4</version>
+    <version>1.0.0.5</version>
     <title>Registry.NET</title>
     <authors>BEN_HSU</authors>
     <owners>BEN_HSU</owners>
@@ -14,13 +14,14 @@
     <description>Linq to RegistryKey</description>
     <copyright>Copyright © Ben Hsu 2021</copyright>
     <repository type="git" url="https://github.com/oven425/QSoft.Registry" />
+	<tags>RegistryKey, Linq</tags>
 	<dependencies>
 		<group targetFramework=".NETFramework4.0" />
 		<group targetFramework=".NETFramework4.7.2" />
 		<group targetFramework=".NETFramework4.8" />
     </dependencies>
-	<releaseNotes>1. Add RegIgnore attribute
-2. Add RegPropertyName
+	<releaseNotes>1. Add RegSubKeyName attribute
+2. Add RemoveAll function
 3. Fix parse Expression issue
 4. Fix data type translate issue</releaseNotes>
   </metadata>

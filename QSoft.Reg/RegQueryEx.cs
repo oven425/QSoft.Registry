@@ -59,56 +59,56 @@ namespace QSoft.Registry.Linq
             return source.Count();
         }
 
-        public static int RemoveAll<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        {
-            var removeall = typeof(RegQueryEx).GetMethods().FirstOrDefault(x =>
-            {
-                Type[] types = new Type[] { typeof(IEnumerable<TSource>).GetGenericTypeDefinition(), typeof(Func<TSource, bool>).GetGenericTypeDefinition() };
-                bool result = false;
-                if (x.Name == "RemoveAll" && x.IsGenericMethod == true)
-                {
-                    var pps = x.GetParameters().Select(y => y.ParameterType.GetGenericTypeDefinition());
-                    result = pps.Zip(types, (a, b) => new { a, b }).All(c => c.a == c.b);
-                }
-                return result;
-            });
-            var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression, predicate);
-            return source.Provider.Execute<int>(methdodcall);
-        }
+        //public static int RemoveAll<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+        //{
+        //    var removeall = typeof(RegQueryEx).GetMethods().FirstOrDefault(x =>
+        //    {
+        //        Type[] types = new Type[] { typeof(IEnumerable<TSource>).GetGenericTypeDefinition(), typeof(Func<TSource, bool>).GetGenericTypeDefinition() };
+        //        bool result = false;
+        //        if (x.Name == "RemoveAll" && x.IsGenericMethod == true)
+        //        {
+        //            var pps = x.GetParameters().Select(y => y.ParameterType.GetGenericTypeDefinition());
+        //            result = pps.Zip(types, (a, b) => new { a, b }).All(c => c.a == c.b);
+        //        }
+        //        return result;
+        //    });
+        //    var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression, predicate);
+        //    return source.Provider.Execute<int>(methdodcall);
+        //}
 
-        public static int RemoveAll<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
-        {
-            Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
-            var regs = source as IEnumerable<RegistryKey>;
-            if (regs == null)
-            {
-                throw new Exception("Source must be RegistryKey");
-            }
-            int count = 0;
-            var parent = regs.FirstOrDefault()?.GetParent();
-            if (parent != null)
-            {
-                var zip = source.Zip(regs, (src, reg) => new { src, reg });
-                foreach (var oo in zip)
-                {
-                    if (predicate(oo.src) == true)
-                    {
-                        var match = regex1.Match(oo.reg.Name);
-                        if (match.Success)
-                        {
-                            parent.DeleteSubKeyTree(match.Groups["path"].Value);
-                            count++;
-                        }
-                    }
+        //public static int RemoveAll<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        //{
+        //    Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+        //    var regs = source as IEnumerable<RegistryKey>;
+        //    if (regs == null)
+        //    {
+        //        throw new Exception("Source must be RegistryKey");
+        //    }
+        //    int count = 0;
+        //    var parent = regs.FirstOrDefault()?.GetParent();
+        //    if (parent != null)
+        //    {
+        //        var zip = source.Zip(regs, (src, reg) => new { src, reg });
+        //        foreach (var oo in zip)
+        //        {
+        //            if (predicate(oo.src) == true)
+        //            {
+        //                var match = regex1.Match(oo.reg.Name);
+        //                if (match.Success)
+        //                {
+        //                    parent.DeleteSubKeyTree(match.Groups["path"].Value);
+        //                    count++;
+        //                }
+        //            }
 
 
-                }
-                parent.Close();
-                parent.Dispose();
-            }
+        //        }
+        //        parent.Close();
+        //        parent.Dispose();
+        //    }
 
-            return count;
-        }
+        //    return count;
+        //}
 
 
         public static int RemoveAll<TSource>(this IQueryable<TSource> source)
@@ -128,53 +128,6 @@ namespace QSoft.Registry.Linq
             });
             var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression);
             return source.Provider.Execute<int>(methdodcall);
-        }
-
-        public static IQueryable<RegistryKey> Except_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2)
-        {
-            if (typeof(TSource2) == typeof(RegistryKey))
-            {
-                var src_regs_2 = source2 as IQueryable<RegistryKey>;
-                var groupby = source1.GroupBy(x => x.Name);
-                var except = source1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
-                var ss = source1.Join(except, x => x.Name, y => y, (x, y) => x);
-                return ss;
-            }
-            else
-            {
-                var func = source1.First().ToFunc<TSource2>();
-                var aa = source1.ToDictionary(x => func(x), x => x);
-                var compare = aa.Keys.Except(source2, new EqualityComparerAll<TSource2>());
-                var dst = compare.Select(x => aa[x]).AsQueryable();
-                return dst;
-
-            }
-        }
-
-        public static IQueryable<RegistryKey> Except_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2, IEqualityComparer<TSource2> comparer)
-        {
-            var src_regs_1 = source1 as IQueryable<RegistryKey>;
-            if (src_regs_1 == null)
-            {
-                throw new Exception("Source must be RegistryKey");
-            }
-            
-            if (typeof(TSource2) == typeof(RegistryKey))
-            {
-                var src_regs_2 = source2 as IQueryable<RegistryKey>;
-                var except = src_regs_1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
-                var ss = src_regs_1.Join(except, x => x.Name, y => y, (x, y) => x);
-                return ss;
-            }
-            else
-            {
-                var func = src_regs_1.First().ToFunc<TSource2>();
-                var aa = src_regs_1.ToDictionary(x => func(x), x => x);
-                var compare = aa.Keys.Except(source2, comparer);
-                var dst = compare.Select(x => aa[x]).AsQueryable();
-                return dst;
-            }
-
         }
 
         public static int RemoveAll<TSource>(this IEnumerable<TSource> source)
@@ -205,6 +158,90 @@ namespace QSoft.Registry.Linq
 
             return count;
         }
+
+        //public static IQueryable<RegistryKey> Intersect_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2)
+        //{
+        //    if (typeof(TSource2) == typeof(RegistryKey))
+        //    {
+        //        var src_regs_2 = source2 as IQueryable<RegistryKey>;
+        //        var groupby = source1.GroupBy(x => x.Name);
+        //        var except = source1.Select(x => x.Name).Intersect(src_regs_2.Select(x => x.Name));
+        //        var ss = source1.Join(except, x => x.Name, y => y, (x, y) => x);
+        //        return ss;
+        //    }
+        //    else
+        //    {
+        //        var func = source1.First().ToFunc<TSource2>();
+        //        var aa = source1.ToDictionary(x => func(x), x => x);
+        //        var compare = aa.Keys.Intersect(source2, new EqualityComparerForce<TSource2>());
+        //        var dst = compare.Select(x => aa[x]).AsQueryable();
+        //        return dst;
+
+        //    }
+        //}
+
+        //public static IQueryable<RegistryKey> Intersect_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2, IEqualityComparer<TSource2> comparer)
+        //{
+        //    if (typeof(TSource2) == typeof(RegistryKey))
+        //    {
+        //        var src_regs_2 = source2 as IQueryable<RegistryKey>;
+        //        var except = source1.Select(x => x.Name).Intersect(src_regs_2.Select(x => x.Name));
+        //        var ss = source1.Join(except, x => x.Name, y => y, (x, y) => x);
+        //        return ss;
+        //    }
+        //    else
+        //    {
+        //        var func = source1.First().ToFunc<TSource2>();
+        //        var aa = source1.ToDictionary(x => func(x), x => x);
+        //        var compare = aa.Keys.Intersect(source2, comparer);
+        //        var dst = compare.Select(x => aa[x]).AsQueryable();
+        //        return dst;
+        //    }
+
+        //}
+
+        //public static IQueryable<RegistryKey> Except_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2)
+        //{
+        //    if (typeof(TSource2) == typeof(RegistryKey))
+        //    {
+        //        var src_regs_2 = source2 as IQueryable<RegistryKey>;
+        //        var groupby = source1.GroupBy(x => x.Name);
+        //        var except = source1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
+        //        var ss = source1.Join(except, x => x.Name, y => y, (x, y) => x);
+        //        return ss;
+        //    }
+        //    else
+        //    {
+        //        var func = source1.First().ToFunc<TSource2>();
+        //        var aa = source1.ToDictionary(x => func(x), x => x);
+        //        var compare = aa.Keys.Except(source2, new EqualityComparerForce<TSource2>());
+        //        var dst = compare.Select(x => aa[x]).AsQueryable();
+        //        return dst;
+
+        //    }
+        //}
+
+        //public static IQueryable<RegistryKey> Except_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2, IEqualityComparer<TSource2> comparer)
+        //{
+        //    if (typeof(TSource2) == typeof(RegistryKey))
+        //    {
+        //        var src_regs_2 = source2 as IQueryable<RegistryKey>;
+        //        var except = source1.Select(x => x.Name).Except(src_regs_2.Select(x => x.Name));
+        //        var ss = source1.Join(except, x => x.Name, y => y, (x, y) => x);
+        //        return ss;
+        //    }
+        //    else
+        //    {
+        //        var func = source1.First().ToFunc<TSource2>();
+        //        var aa = source1.ToDictionary(x => func(x), x => x);
+        //        var compare = aa.Keys.Except(source2, comparer);
+        //        var dst = compare.Select(x => aa[x]).AsQueryable();
+        //        return dst;
+        //    }
+
+        //}
+
+        
 
         
     }

@@ -53,11 +53,51 @@ namespace QSoft.Registry.Linq
             throw new NotImplementedException();
         }
 
-        public T Dump()
-        {
-            RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting;
-            return reg.ToFunc<T>()(reg);
-        }
+        //public void CreateOrUpdate(T data)
+        //{
+        //    var setting = (this.Provider as RegProvider<T>)?.Setting;
+        //    RegistryKey reg = setting?.Create(true);
+        //    if (reg == null)
+        //    {
+        //        Regex regex1 = new Regex(@"^(?<parent>.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+        //        string subkey = setting.SubKey;
+        //        var match = regex1.Match(subkey);
+        //        if(match.Success)
+        //        {
+        //            var basekey = RegistryKey.OpenBaseKey(setting.Hive, setting.View);
+        //            var parentreg = basekey.OpenSubKey(match.Groups["parent"].Value, true);
+        //            reg = parentreg.CreateSubKey(match.Groups["path"].Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
+        //        }
+        //    }
+
+
+        //    if(reg != null)
+        //    {
+        //        var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
+        //        foreach(var pp in pps)
+        //        {
+        //            reg.SetValue(pp.Name, pp.GetValue(data, null));
+        //        }
+        //    }
+        //}
+
+        //public T Get()
+        //{
+        //    RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Create();
+        //    return reg.ToFunc<T>()(reg);
+        //}
+
+        //public void Delete()
+        //{
+        //    RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Create();
+        //    var parent = reg.GetParent();
+        //    Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+        //    var match = regex1.Match(reg.Name);
+        //    if (match.Success)
+        //    {
+        //        parent.DeleteSubKeyTree(match.Groups["path"].Value);
+        //    }
+        //}
     }
 
     public class RegSetting
@@ -66,21 +106,31 @@ namespace QSoft.Registry.Linq
         public RegistryHive Hive { set; get; }
         public RegistryView View { set; get; }
 
-
-        public static implicit operator RegistryKey(RegSetting data)
+        public RegistryKey Create(bool write=false)
         {
-            RegistryKey reg_base = RegistryKey.OpenBaseKey(data.Hive, RegistryView.Registry64);
-            if (string.IsNullOrEmpty(data.SubKey) == false)
+            RegistryKey reg_base = RegistryKey.OpenBaseKey(this.Hive, this.View);
+            if (string.IsNullOrEmpty(this.SubKey) == false)
             {
-                RegistryKey reg = reg_base.OpenSubKey(data.SubKey);
+                RegistryKey reg = reg_base.OpenSubKey(this.SubKey, write);
                 reg_base.Dispose();
                 return reg;
             }
             return reg_base;
         }
+        //public static implicit operator RegistryKey(RegSetting data)
+        //{
+        //    RegistryKey reg_base = RegistryKey.OpenBaseKey(data.Hive, RegistryView.Registry64);
+        //    if (string.IsNullOrEmpty(data.SubKey) == false)
+        //    {
+        //        RegistryKey reg = reg_base.OpenSubKey(data.SubKey);
+        //        reg_base.Dispose();
+        //        return reg;
+        //    }
+        //    return reg_base;
+        //}
     }
 
-    public class EqualityComparerAll<T> : IEqualityComparer<T>
+    public class EqualityComparerForce<T> : IEqualityComparer<T>
     {
         public bool Equals(T x, T y)
         {
@@ -102,36 +152,6 @@ namespace QSoft.Registry.Linq
         public int GetHashCode(T obj)
         {
             return 0;
-            //Check whether the object is null
-            if (Object.ReferenceEquals(obj, null)) return 0;
-            List<int> hashcodes = new List<int>();
-            var pps = typeof(T).GetProperties().Where(p => p.CanRead == true);
-            foreach (var pp in pps)
-            {
-                var typecode = Type.GetTypeCode(pp.PropertyType);
-
-                var ss1 = pp.GetValue(obj, null);
-                if(ss1 == null)
-                {
-                    hashcodes.Add(0);
-                }
-                else
-                {
-                    hashcodes.Add(ss1.GetHashCode());
-                }
-            }
-
-            int hashcode = hashcodes.Aggregate((x, y) => x ^ y);
-            System.Diagnostics.Trace.WriteLine($"hashcode:{hashcode}");
-            return hashcode;
-            //Get hash code for the Name field if it is not null.
-            //int hashProductName = product.Name == null ? 0 : product.Name.GetHashCode();
-
-            ////Get hash code for the Code field.
-            //int hashProductCode = product.Code.GetHashCode();
-
-            ////Calculate the hash code for the product.
-            //return hashProductName ^ hashProductCode;
         }
     }
 }

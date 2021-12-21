@@ -361,7 +361,7 @@ namespace QSoft.Registry.Linq
                 }
             }
         }
-
+        [Obsolete("No support, please use RegQuery<T>")]
         public static bool Any(this RegistryKey src, Func<RegistryKey, bool> func)
         {
             bool bb = false;

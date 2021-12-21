@@ -53,81 +53,102 @@ namespace QSoft.Registry.Linq
             throw new NotImplementedException();
         }
 
-        //public void CreateOrUpdate(T data)
-        //{
-        //    var setting = (this.Provider as RegProvider<T>)?.Setting;
-        //    RegistryKey reg = setting?.Create(true);
-        //    if (reg == null)
-        //    {
-        //        Regex regex1 = new Regex(@"^(?<parent>.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
-        //        string subkey = setting.SubKey;
-        //        var match = regex1.Match(subkey);
-        //        if(match.Success)
-        //        {
-        //            var basekey = RegistryKey.OpenBaseKey(setting.Hive, setting.View);
-        //            var parentreg = basekey.OpenSubKey(match.Groups["parent"].Value, true);
-        //            reg = parentreg.CreateSubKey(match.Groups["path"].Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
-        //        }
-        //    }
-
-
-        //    if(reg != null)
-        //    {
-        //        var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
-        //        foreach(var pp in pps)
-        //        {
-        //            reg.SetValue(pp.Name, pp.GetValue(data, null));
-        //        }
-        //    }
-        //}
-
-        //public T Get()
-        //{
-        //    RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Create();
-        //    return reg.ToFunc<T>()(reg);
-        //}
-
-        //public void Delete()
-        //{
-        //    RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Create();
-        //    var parent = reg.GetParent();
-        //    Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
-        //    var match = regex1.Match(reg.Name);
-        //    if (match.Success)
-        //    {
-        //        parent.DeleteSubKeyTree(match.Groups["path"].Value);
-        //    }
-        //}
-    }
-
-    public class RegSetting
-    {
-        public string SubKey { set; get; }
-        public RegistryHive Hive { set; get; }
-        public RegistryView View { set; get; }
-
-        public RegistryKey Create(bool write=false)
+        public void Create(T data, bool isoverwrite=false)
         {
-            RegistryKey reg_base = RegistryKey.OpenBaseKey(this.Hive, this.View);
-            if (string.IsNullOrEmpty(this.SubKey) == false)
+            var setting = (this.Provider as RegProvider<T>)?.Setting;
+            RegistryKey reg = setting?.Open(true);
+            if(reg != null && isoverwrite==false)
             {
-                RegistryKey reg = reg_base.OpenSubKey(this.SubKey, write);
-                reg_base.Dispose();
-                return reg;
+                throw new Exception("Exist RegsistryKey");
             }
-            return reg_base;
+            else if(reg != null)
+            {
+                var names = reg.GetValueNames();
+                foreach(var oo in names)
+                {
+                    reg.DeleteValue(oo);
+                }
+            }
+            else
+            {
+                reg = setting?.Create(true);
+            }
+            var pps = this.DumpPropertys(data);
+            foreach(var pp in pps)
+            {
+                var oo = pp.Key.GetValue(data, null);
+                reg.SetValue(pp.Value, oo);
+            }
+
         }
-        //public static implicit operator RegistryKey(RegSetting data)
-        //{
-        //    RegistryKey reg_base = RegistryKey.OpenBaseKey(data.Hive, RegistryView.Registry64);
-        //    if (string.IsNullOrEmpty(data.SubKey) == false)
-        //    {
-        //        RegistryKey reg = reg_base.OpenSubKey(data.SubKey);
-        //        reg_base.Dispose();
-        //        return reg;
-        //    }
-        //    return reg_base;
-        //}
+
+        Dictionary<PropertyInfo, string> DumpPropertys(T data)
+        {
+            var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
+            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+            foreach (var pp in pps)
+            {
+                var attr = pp.GetCustomAttributes(true).FirstOrDefault();
+                string ppname = "";
+                if (attr is RegIgnore)
+                {
+
+                }
+                else if (attr is RegPropertyName)
+                {
+                    ppname = (attr as RegPropertyName)?.Name;
+                }
+                else if (attr is RegSubKeyName)
+                {
+
+                }
+                else
+                {
+                    ppname = pp.Name;
+                }
+                if (string.IsNullOrEmpty(ppname) == false)
+                {
+                    dicpps[pp] = ppname;
+                    var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
+                    if (regnames.Length > 0)
+                    {
+                        dicpps[pp] = regnames[0].Name;
+                    }
+                }
+
+            }
+            return dicpps;
+        }
+
+        public void Update(T data)
+        {
+            var setting = (this.Provider as RegProvider<T>)?.Setting;
+            RegistryKey reg = setting?.Open(true);
+            var pps = this.DumpPropertys(data);
+            foreach (var pp in pps)
+            {
+                var oo = pp.Key.GetValue(data, null);
+                reg.SetValue(pp.Value, oo);
+            }
+        }
+
+        public T Get()
+        {
+            RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
+            return reg.ToDataFunc<T>()(reg);
+        }
+
+        public void Delete()
+        {
+            RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
+            var parent = reg.GetParent();
+            Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+            var match = regex1.Match(reg.Name);
+            if (match.Success)
+            {
+                parent.DeleteSubKeyTree(match.Groups["path"].Value);
+            }
+        }
     }
 
     public class EqualityComparerForce<T> : IEqualityComparer<T>

@@ -12,6 +12,38 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryEx
     {
+        public static int Insert<TSource, TData>(this RegQuery<TSource> source, IEnumerable<TData> datas)
+        {
+            var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Insert");
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TData)), source.Expression, Expression.Constant(datas, typeof(IEnumerable<TData>)));
+            return source.Provider.Execute<int>(methdodcall);
+        }
+
+        public static int Insert<TSource, TData>(this IEnumerable<TSource> source, IEnumerable<TData> datas)
+        {
+            var regs = source as IEnumerable<RegistryKey>;
+            if (regs == null)
+            {
+                throw new Exception("Source must be RegistryKey");
+            }
+            var reg = regs.FirstOrDefault()?.GetParent();
+            var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true);
+            foreach (var data in datas)
+            {
+                var child = reg.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                foreach (var pp in pps)
+                {
+                    var vv = pp.GetValue(data, null);
+                    if(vv != null)
+                    {
+                        child.SetValue(pp.Name, vv);
+                    }
+                }
+                child.Close();
+            }
+            return datas.Count();
+        }
+
         public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) where TResult : class
         {
             var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
@@ -36,7 +68,6 @@ namespace QSoft.Registry.Linq
                 {
                     dicpps[pp] = regnames[0].Name;
                 }
-
             }
 
             foreach (var oo in source)

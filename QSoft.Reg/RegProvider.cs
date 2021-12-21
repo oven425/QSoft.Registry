@@ -175,7 +175,7 @@ namespace QSoft.Registry.Linq
             }
 
             List<RegistryKey> regs = new List<RegistryKey>();
-            RegistryKey reg = this.Setting.Create();
+            RegistryKey reg = this.Setting.Open();
             var subkeynames = reg.GetSubKeyNames();
             foreach (var subkeyname in subkeynames)
             {
@@ -308,7 +308,7 @@ namespace QSoft.Registry.Linq
                 //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                 if (excute_reg != null)
                 {
-                    inst = excute_reg.ToFunc<TResult>()(excute_reg);
+                    inst = excute_reg.ToDataFunc<TResult>()(excute_reg);
                 }
                 else
                 {

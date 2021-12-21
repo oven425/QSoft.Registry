@@ -99,7 +99,6 @@ namespace ConsoleApp1
             installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
 
-            
             string full = @"HKEY_LOCAL_MACHINE\";
             //Regex regex1 = new Regex(@"^(?<base>\w+)[\\](\.+)[\\]$(?<path>.+)", RegexOptions.Compiled);
             //Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
@@ -136,11 +135,9 @@ namespace ConsoleApp1
             //var o2 = o_func(queryable.First());
 
 
-            
-
 
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-            var rr = queryable.Select(x => x.Name.GetLastSegement());
+            var rr = queryable.Where(x => Convert.ToInt16(x.Name) == 10);
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
             //var unary = methodcall.Arguments[2] as UnaryExpression;
@@ -152,16 +149,19 @@ namespace ConsoleApp1
             //var ggw = methodcall.Method.GetGenericArguments();
             //lambda = methodcall.Arguments[1] as LambdaExpression;
             //ttype = methodcall.Arguments[1].GetType();
-
+            //Microsoft.Win32.Registry.CurrentConfig.CreateSubKey("TT", true);
+            //RegistryKey.OpenBaseKey(RegistryHive.CurrentConfig, RegistryView.Registry64).CreateSubKey("TT", true);
             //var direct_reg = new RegQuery<A2>()
             //   .useSetting(x =>
             //   {
-            //       x.Hive = RegistryHive.LocalMachine;
-            //       x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\2A";
+            //       x.Hive = RegistryHive.CurrentConfig;
+            //       x.SubKey = @"Test";
             //       x.View = RegistryView.Registry64;
             //   });
-            //direct_reg.CreateOrUpdate(new A2() { A = "12345" });
-            //var bios = direct_reg.Get();
+            //direct_reg.Create(new A2() { A = "12345" }, true);
+            //var a2 = direct_reg.Get();
+            //a2.A = "098876";
+            //direct_reg.Update(a2);
             //direct_reg.Delete();
 
             var regt = new RegQuery<InstalledApp>()
@@ -179,6 +179,7 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
+            regt.Insert(Enumerable.Repeat(new InstalledApp(), 3));
             int remove_count2 = regt.Where(x => x.Version == new Version(1, 1, 1, 1)).RemoveAll();
             //var yj = regt1.Take(2);
             //var aaaa = regt.Except(regt1.Take(2));

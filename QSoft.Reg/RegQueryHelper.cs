@@ -83,7 +83,7 @@ namespace QSoft.Registry.Linq
             return unary;
         }
 
-        public static Func<RegistryKey, TData> ToFunc<TData>(this RegistryKey reg)
+        public static Func<RegistryKey, TData> ToDataFunc<TData>(this RegistryKey reg)
         {
             var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
             var o1 = typeof(TData).ToData(o_pp);
@@ -121,6 +121,17 @@ namespace QSoft.Registry.Linq
                     {
                         var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
                         mm = Expression.Call(method, mm);
+                    }
+                    switch(Type.GetTypeCode(pp.PropertyType))
+                    {
+                        case TypeCode.Byte:
+                        case TypeCode.Int16:
+                        case TypeCode.Int32:
+                        case TypeCode.Int64:
+                            {
+                                
+                            }
+                            break;
                     }
                     var binding = Expression.Bind(pp, mm);
                     bindings.Add(binding);

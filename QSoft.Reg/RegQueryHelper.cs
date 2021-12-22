@@ -122,17 +122,6 @@ namespace QSoft.Registry.Linq
                         var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
                         mm = Expression.Call(method, mm);
                     }
-                    switch(Type.GetTypeCode(pp.PropertyType))
-                    {
-                        case TypeCode.Byte:
-                        case TypeCode.Int16:
-                        case TypeCode.Int32:
-                        case TypeCode.Int64:
-                            {
-                                
-                            }
-                            break;
-                    }
                     var binding = Expression.Bind(pp, mm);
                     bindings.Add(binding);
                 }
@@ -247,6 +236,23 @@ namespace QSoft.Registry.Linq
                                 {
                                     types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
                                 }
+                            }
+                            else if(type.IsGenericType == true&&type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                            {
+                                types.Add(src.ElementAt(oo).Type);
+                            }
+                            else if (src.ElementAt(oo).Type.IsGenericType == true)
+                            {
+                                var ttype = src.ElementAt(oo).Type;
+                                if(ttype.GetGenericTypeDefinition() == typeof(Nullable<>))
+                                {
+                                    types.Add(src.ElementAt(oo).Type);
+                                }
+                                else
+                                {
+                                    types.Add(type);
+                                }
+                                
                             }
                             else
                             {

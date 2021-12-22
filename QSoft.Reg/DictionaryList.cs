@@ -93,6 +93,11 @@ namespace QSoft.Registry
                 {
                     if (this[i].Key.Equals(key))
                     {
+                        //if(indexs.Count == 0)
+                        //{
+                        //    indexs.Add(i);
+                        //    keyvalues.Insert(0, this.ElementAt(i));
+                        //}
                         break;
                     }
                     indexs.Add(i);

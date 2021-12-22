@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace QSoft.Registry.Linq
 {
@@ -338,13 +339,14 @@ namespace QSoft.Registry.Linq
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            m_ExpressionSaves[node] = null;
+            m_ExpressionSaves[node] = node.Expression == null?node:null;
+
             var ttyp = node.Type;
 
             System.Diagnostics.Debug.WriteLine($"VisitMember {node.Member.Name}");
 
             var expr = base.VisitMember(node) as MemberExpression;
-            if(this.m_Lastnode != null)
+            if(this.m_Lastnode != null && expr.Expression != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
                 if((expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName || this.m_DataTypeName == "")
@@ -655,19 +657,37 @@ namespace QSoft.Registry.Linq
             this.m_ExpressionSaves[node] = null;
             System.Diagnostics.Debug.WriteLine($"VisitConstant {node.Type.Name}");
 
-            var expr = base.VisitConstant(node);
-
+            var expr = base.VisitConstant(node) as ConstantExpression;
+            Expression expr1 = null;
+            var ttype = node.Value.GetType();
+            if (ttype.GetCustomAttributes(true).Any(x=>x is CompilerGeneratedAttribute) ==true)
+            {
+                var pps = ttype.GetFields();
+                var op = pps.First().GetValue(expr.Value);
+                if(op.GetType() == typeof(RegQuery<TData>))
+                {
+                    var reguqery = op as RegQuery<TData>;
+                    var regprovider = reguqery?.Provider as RegProvider<TData>;
+                    //expr1 = regprovider.m_RegSource;
+                }
+            }
+            
             if (node.Type == typeof(RegQuery<TData>))
             {
                 var reguqery = node.Value as RegQuery<TData>;
                 var regprovider = reguqery?.Provider as RegProvider<TData>;
-                this.m_ExpressionSaves[expr] = regprovider.m_RegSource;
-                //this.m_ExpressionSaves[expr] = this.m_RegSource;
+                //this.m_ExpressionSaves[expr] = regprovider.m_RegSource;
+                expr1 = regprovider.m_RegSource;
             }
-            else
-            {
-                this.m_ExpressionSaves[expr] = expr;
-            }
+            //else if(node.Value is RegQuery<TData>)
+            //{
+
+            //}
+            //else
+            //{
+            //    this.m_ExpressionSaves[expr] = expr;
+            //}
+            this.m_ExpressionSaves[expr] = expr1??expr;
             this.m_Lastnode = expr;
             return expr;
         }

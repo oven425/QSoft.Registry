@@ -33,7 +33,19 @@ namespace ConsoleApp1
         }
     }
 
-    
+    public class User
+    {
+        public string Key { set; get; }
+        public string Name { set; get; }
+        public DateTime BirthDay { set; get; }
+        public int CityID { set; get; }
+    }
+
+    public class City
+    {
+        public int ID { set; get; }
+        public string Name { set; get; }
+    }
 
     public class App
     {
@@ -55,6 +67,8 @@ namespace ConsoleApp1
         public int? EstimatedSize { set; get; }
         [RegIgnore]
         public bool? IsOfficial { set; get; }
+        public DateTime? CreateTime { set; get; } = DateTime.Now;
+        public DateTime ModifyTime { set; get; } = DateTime.Now;
         public InstalledApp()
         {
             //DisplayName = "AA";
@@ -99,6 +113,11 @@ namespace ConsoleApp1
             installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
 
+            List<int> lll = new List<int>();
+            lll.Add(1);
+            var aaa = lll.AsQueryable();
+            lll.Add(2);
+
             string full = @"HKEY_LOCAL_MACHINE\";
             //Regex regex1 = new Regex(@"^(?<base>\w+)[\\](\.+)[\\]$(?<path>.+)", RegexOptions.Compiled);
             //Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
@@ -137,11 +156,15 @@ namespace ConsoleApp1
 
 
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-            var rr = queryable.Where(x => Convert.ToInt16(x.Name) == 10);
+            var rr = queryable.Where(x => x.GetValue<DateTime>("CreateTime") == DateTime.Now);
             var ttype = rr.GetType();
             MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            //var unary = methodcall.Arguments[2] as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
+            var unary = methodcall.Arguments[1] as UnaryExpression;
+            var lambda = unary.Operand as LambdaExpression;
+            var binary = lambda.Body as BinaryExpression;
+            var property = binary.Right as MemberExpression;
+            ttype = binary.Right.GetType();
+
 
 
             //var newexpr = lambda.Body as NewExpression;
@@ -164,6 +187,54 @@ namespace ConsoleApp1
             //direct_reg.Update(a2);
             //direct_reg.Delete();
 
+            var regt_city = new RegQuery<City>()
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.CurrentConfig;
+                    x.SubKey = @"Citys";
+                    x.View = RegistryView.Registry64;
+                });
+            //regt_city.RemoveAll();
+            //regt_city.Insert(new List<City>()
+            //{
+            //    new City(){ID=0, Name="Kaohsiung"},
+            //    new City(){ID=1, Name="New Taipei"},
+            //    new City(){ID=2, Name="Taichung"},
+            //    new City(){ID=3, Name="Tainan"},
+            //});
+
+            var regt_user = new RegQuery<User>()
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.CurrentConfig;
+                    x.SubKey = @"Users";
+                    x.View = RegistryView.Registry64;
+                });
+            //regt_user.RemoveAll();
+            //regt_user.Insert(new List<User>()
+            //{
+            //    new User(){Name="AAA", BirthDay=new DateTime(1980, 1,1), CityID=0},
+            //    new User(){Name="AAA_1", BirthDay=new DateTime(1980, 1,1), CityID=0},
+            //    new User(){Name="BBB", BirthDay=new DateTime(1981, 1,1), CityID=1},
+            //    new User(){Name="CCC", BirthDay=new DateTime(1982, 1,1), CityID=1},
+            //    new User(){Name="DDD", BirthDay=new DateTime(1983, 1,1), CityID=2},
+            //    new User(){Name="EEE", BirthDay=new DateTime(1984, 1,1), CityID=2},
+            //    new User(){Name="FFF", BirthDay=new DateTime(1985, 1,1), CityID=3}
+            //});
+            //var ddd = regt_user.FirstOrDefault().BirthDay;
+            var oi = regt_user.Where(x => x.BirthDay == regt_user.FirstOrDefault().BirthDay).RemoveAll();
+            //foreach (var oo in oi)
+            //{
+
+            //}
+
+            var jj = regt_user.Join(regt_city, x => x.CityID, x => x.ID, (x, y) => new { Name=x.Name, City=y.Name}).OrderBy(x=>x.Name);
+
+            var groupby_age = regt_user.GroupBy(x => (DateTime.Now - x.BirthDay).TotalDays/365);
+            foreach(var oo in groupby_age)
+            {
+
+            }
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
@@ -179,16 +250,29 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
-            regt.Insert(Enumerable.Repeat(new InstalledApp(), 3));
-            int remove_count2 = regt.Where(x => x.Version == new Version(1, 1, 1, 1)).RemoveAll();
+            //regt.Insert(Enumerable.Repeat(new InstalledApp(), 3));
+            //int remove_count2 = regt.RemoveAll();
             //var yj = regt1.Take(2);
             //var aaaa = regt.Except(regt1.Take(2));
             //var aaaa = regt.Where(x=>x.DisplayName!="").Except(regt1.Take(2));
             //var aaaa = regt.Except(installs, new InstallAppCompare());
             //var aaaa = regt.Union(regt.ToList().Take(2));
             //var aaaa = regt.Select(x => x).Where(x => x.DisplayName != "");
-            var aaaa = regt.Where(x => x.Key == $"{x.Key}");
-            foreach (var oo in aaaa)
+            //var aaaa = regt.Where(x => x.Key == $"{x.Key}");
+            //foreach (var oo in aaaa)
+            //{
+
+            //}
+            //int update_count = regt.Update(x => new InstalledApp()
+            //{
+            //    EstimatedSize = x.EstimatedSize + 100,
+            //    ModifyTime = new DateTime(2222, 2, 2)
+            //});
+            //var tt = regt.First().CreateTime;
+
+            var sels = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
+            var time = regt.Where(x => x.CreateTime == regt.First().CreateTime);
+            foreach(var oo in time)
             {
 
             }

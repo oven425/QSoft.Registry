@@ -45,8 +45,17 @@ namespace QSoft.Registry.Linq
             {
                 this.m_Exprs.Clear();
             }
-            this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-            this.m_Exprs[expression] = this.m_RegMethod;
+            if(this.m_RegMethod==null || (this.m_RegMethod != null && this.m_RegMethod.Type == typeof(IQueryable<RegistryKey>) ))
+            {
+                this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+                this.m_Exprs[expression] = this.m_RegMethod;
+            }
+            else
+            {
+                var args = method1.Arguments.ToArray();
+                args[0] = this.m_RegMethod;
+                this.m_RegMethod = Expression.Call(method1.Method, args);
+            }
 
 
 
@@ -162,28 +171,53 @@ namespace QSoft.Registry.Linq
         }
 
         bool m_IsWritable = false;
-        IQueryable<RegistryKey> m_Regs;
+        //IQueryable<RegistryKey> m_Regs;
+        //public IQueryable<RegistryKey> CreateRegs()
+        //{
+        //    RegistryKey reg = this.Setting.Open();
+        //    var subkeynames = reg.GetSubKeyNames();
+
+        //    if (this.m_Regs?.Count() > 0)
+        //    {
+        //        foreach (var oo in this.m_Regs)
+        //        {
+        //            oo.Close();
+        //            oo.Dispose();
+        //        }
+        //    }
+
+        //    List<RegistryKey> regs = new List<RegistryKey>();
+
+
+        //    foreach (var subkeyname in subkeynames)
+        //    {
+        //        regs.Add(reg.OpenSubKey(subkeyname, m_IsWritable));
+        //    }
+        //    return m_Regs = regs.AsQueryable();
+        //}
+
+        List<RegistryKey> m_Regs = new List<RegistryKey>();
         public IQueryable<RegistryKey> CreateRegs()
         {
-            if (this.m_Regs?.Count() > 0)
+            //foreach (var oo in this.m_Regs)
+            //{
+            //    oo.Close();
+            //}
+            this.m_Regs.Clear();
+            //if (this.m_Regs.Count ==0)
             {
-                foreach (var oo in this.m_Regs)
+                RegistryKey reg = this.Setting.Create();
+                var subkeynames = reg.GetSubKeyNames();
+                foreach (var subkeyname in subkeynames)
                 {
-                    oo.Close();
-                    oo.Dispose();
+                    this.m_Regs.Add(reg.OpenSubKey(subkeyname, m_IsWritable));
                 }
+                this.m_RefreshData = false;
             }
-
-            List<RegistryKey> regs = new List<RegistryKey>();
-            RegistryKey reg = this.Setting.Open();
-            var subkeynames = reg.GetSubKeyNames();
-            foreach (var subkeyname in subkeynames)
-            {
-                regs.Add(reg.OpenSubKey(subkeyname, m_IsWritable));
-            }
-            return m_Regs = regs.AsQueryable();
+            return m_Regs.AsQueryable();
         }
 
+        bool m_RefreshData = false;
         public TResult Execute<TResult>(Expression expression)
         {
             var tte = new List<RegistryKey>().AsQueryable();
@@ -255,11 +289,20 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-                this.m_IsWritable = (expression as MethodCallExpression)?.Method?.Name == "Update";
+                string methodname = (expression as MethodCallExpression)?.Method?.Name;
+                System.Diagnostics.Debug.WriteLine($"Execute<TResult> {methodname}");
+                this.m_IsWritable = methodname == "Update"|| methodname == "Insert" || methodname == "RemoveAll";
                 object inst = null;
                 Expression expr = expression;
+                if(methodname == "Insert" || methodname=="RemoveAll")
+                {
+                    this.m_RefreshData = true;
+                }
+                if(methodname == "Insert")
+                {
 
-                if(expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
+                }
+                else if (expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                 {
                     RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
                     expr = regvisitor.VisitA(expr_org, this.m_RegSource, this.m_Exprs);
@@ -303,7 +346,7 @@ namespace QSoft.Registry.Linq
                 }
                 object excute = null;
                 excute = tte.Provider.Execute(expr);
-                
+
                 var excute_reg = excute as RegistryKey;
                 //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                 if (excute_reg != null)
@@ -314,14 +357,14 @@ namespace QSoft.Registry.Linq
                 {
                     inst = excute;
                 }
-                if(this.m_Regs != null)
-                {
-                    foreach (var oo in this.m_Regs)
-                    {
-                        oo.Close();
-                        oo.Dispose();
-                    }
-                }
+                //if(this.m_Regs != null)
+                //{
+                //    foreach (var oo in this.m_Regs)
+                //    {
+                //        oo.Close();
+                //        oo.Dispose();
+                //    }
+                //}
                 return_hr = (TResult)inst;
             }
 

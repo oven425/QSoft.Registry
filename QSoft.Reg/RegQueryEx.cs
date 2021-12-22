@@ -15,22 +15,27 @@ namespace QSoft.Registry.Linq
         public static int Insert<TSource, TData>(this RegQuery<TSource> source, IEnumerable<TData> datas)
         {
             var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Insert");
-            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TData)), source.Expression, Expression.Constant(datas, typeof(IEnumerable<TData>)));
-            return source.Provider.Execute<int>(methdodcall);
+            //var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TData)), source.Expression, Expression.Constant(datas, typeof(IEnumerable<TData>)));
+            var reg = source.ToRegistryKey();
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TData)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TData>)));
+            int hr = source.Provider.Execute<int>(methdodcall);
+            reg.Close();
+            return hr;
         }
 
-        public static int Insert<TSource, TData>(this IEnumerable<TSource> source, IEnumerable<TData> datas)
+        public static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas)
         {
-            var regs = source as IEnumerable<RegistryKey>;
-            if (regs == null)
-            {
-                throw new Exception("Source must be RegistryKey");
-            }
-            var reg = regs.FirstOrDefault()?.GetParent();
+            //var regs = source as IEnumerable<RegistryKey>;
+            //if (regs == null)
+            //{
+            //    throw new Exception("Source must be RegistryKey");
+            //}
+            //var reg = regs.FirstOrDefault()?.GetParent();
+            int count = 0;
             var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true);
             foreach (var data in datas)
             {
-                var child = reg.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                var child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
                 foreach (var pp in pps)
                 {
                     var vv = pp.GetValue(data, null);
@@ -40,8 +45,9 @@ namespace QSoft.Registry.Linq
                     }
                 }
                 child.Close();
+                count = count + 1;
             }
-            return datas.Count();
+            return count;
         }
 
         public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) where TResult : class
@@ -181,7 +187,6 @@ namespace QSoft.Registry.Linq
                         parent.DeleteSubKeyTree(match.Groups["path"].Value);
                         count++;
                     }
-
                 }
                 parent.Close();
                 parent.Dispose();

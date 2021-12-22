@@ -149,6 +149,12 @@ namespace QSoft.Registry.Linq
                 parent.DeleteSubKeyTree(match.Groups["path"].Value);
             }
         }
+
+        public RegistryKey ToRegistryKey()
+        {
+            RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Create(true);
+            return reg;
+        }
     }
 
     public class EqualityComparerForce<T> : IEqualityComparer<T>

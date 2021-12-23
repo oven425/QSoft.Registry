@@ -179,7 +179,8 @@ namespace QSoft.Registry.Linq
             var parent = regs.FirstOrDefault()?.GetParent();
             if (parent != null)
             {
-                foreach (var oo in regs)
+                var rds = regs.ToList();
+                foreach (var oo in rds)
                 {
                     var match = regex1.Match(oo.Name);
                     if (match.Success)
@@ -188,6 +189,15 @@ namespace QSoft.Registry.Linq
                         count++;
                     }
                 }
+                //foreach (var oo in regs)
+                //{
+                //    var match = regex1.Match(oo.Name);
+                //    if (match.Success)
+                //    {
+                //        parent.DeleteSubKeyTree(match.Groups["path"].Value);
+                //        count++;
+                //    }
+                //}
                 parent.Close();
                 parent.Dispose();
             }

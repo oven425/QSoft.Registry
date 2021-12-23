@@ -57,9 +57,16 @@ namespace ConsoleApp1
         public int Size { set; get; }
     }
 
+    public class Company
+    {
+        public string Name { set; get; }
+        public int ID { set; get; }
+
+    }
+
     public class InstalledApp
     {
-        [RegSubKeyName]
+        //[RegSubKeyName]
         public string Key { set; get; }
         public string DisplayName { set; get; }
         [RegPropertyName(Name = "DisplayVersion")]
@@ -67,34 +74,35 @@ namespace ConsoleApp1
         public int? EstimatedSize { set; get; }
         [RegIgnore]
         public bool? IsOfficial { set; get; }
-        public DateTime? CreateTime { set; get; } = DateTime.Now;
-        public DateTime ModifyTime { set; get; } = DateTime.Now;
-        public InstalledApp()
-        {
-            //DisplayName = "AA";
-        }
+        public int ID { set; get; }
 
-        public int FC()
+        public InstalledApp() { }
+
+        public InstalledApp(InstalledApp data)
         {
-            return 100;
-        }
-        public override string ToString()
-        {
-            return $"DisplayName:{DisplayName} DisplayVersion:{Version} EstimatedSize:{EstimatedSize} IsOfficial:{IsOfficial}";
+            var pps = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true && x.CanWrite == true);
+            foreach (var pp in pps)
+            {
+                pp.SetValue(this, pp.GetValue(data));
+            }
         }
     }
 
+    public class AppMapping
+    {
+        public int CompanyID { set; get; }
+        public int AppID { set; get; }
+    }
+
+   
+
     class Program
     {
-        public static T test<T>(object src)
-        {
-            return (T)Convert.ChangeType(src, typeof(T));
-        }
         static void Main(string[] args)
         {
-            var tt1 = test<int>(5);
-            var tt2 = test<uint>(5);
-            var zip_method = typeof(Queryable).GetMember("Zip").First();
+            TestDB();
+
+            return;
             //var g1 = zip_method.GetType().GetGenericArguments();
             ////var g2 = zip_method.GetType().GetGenericParameterConstraints();
             //var g3 = zip_method.GetType().GetGenericTypeDefinition();
@@ -222,15 +230,15 @@ namespace ConsoleApp1
             //    new User(){Name="FFF", BirthDay=new DateTime(1985, 1,1), CityID=3}
             //});
             //var ddd = regt_user.FirstOrDefault().BirthDay;
-            var oi = regt_user.Where(x => x.BirthDay == regt_user.FirstOrDefault().BirthDay).RemoveAll();
+            //var oi = regt_user.Where(x => x.BirthDay == regt_user.FirstOrDefault().BirthDay).RemoveAll();
             //foreach (var oo in oi)
             //{
 
             //}
 
-            var jj = regt_user.Join(regt_city, x => x.CityID, x => x.ID, (x, y) => new { Name=x.Name, City=y.Name}).OrderBy(x=>x.Name);
-
-            var groupby_age = regt_user.GroupBy(x => (DateTime.Now - x.BirthDay).TotalDays/365);
+            //var jj = regt_user.Join(regt_city, x => x.CityID, x => x.ID, (x, y) => new { Name = x.Name, City = y.Name }).OrderBy(x => x.Name);
+            //jj.ToList();
+            var groupby_age = regt_user.GroupBy(x => x).Select(x=>x.Key);
             foreach(var oo in groupby_age)
             {
 
@@ -270,12 +278,6 @@ namespace ConsoleApp1
             //});
             //var tt = regt.First().CreateTime;
 
-            var sels = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
-            var time = regt.Where(x => x.CreateTime == regt.First().CreateTime);
-            foreach(var oo in time)
-            {
-
-            }
 
             //var fir = regt.First();
             ////var ttk = regt.TakeWhile((x, index) => index == 0);
@@ -570,6 +572,83 @@ namespace ConsoleApp1
 
 #endif
 
+        }
+
+        public static void TestDB()
+        {
+            RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\AppMapping";
+                x.View = RegistryView.Registry64;
+            });
+
+            RegQuery<Company> regt_company = new RegQuery<Company>()
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.CurrentConfig;
+                    x.SubKey = @"UnitTest\Company";
+                    x.View = RegistryView.Registry64;
+                });
+
+
+            RegQuery<InstalledApp> regt_apps = new RegQuery<InstalledApp>()
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.CurrentConfig;
+                    x.SubKey = @"UnitTest\Apps";
+                });
+            regt_company.RemoveAll();
+            regt_company.Insert(new List<Company>()
+            {
+                new Company(){Name = "Company_A", ID=1},
+                new Company(){Name = "Company_B", ID=2},
+                new Company(){Name = "Company_C", ID=3},
+                new Company(){Name = "Company_D", ID=4},
+                new Company(){Name = "Company_E", ID=5},
+            });
+            regt_apps.RemoveAll();
+            regt_apps.Insert(new List<InstalledApp>()
+            {
+                new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0},
+                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 },
+                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 },
+                new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 },
+                new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 },
+                new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 },
+                new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
+                new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
+            });
+            regt_appmapping.RemoveAll();
+            regt_appmapping.Insert(new List<AppMapping>()
+            {
+                new AppMapping(){AppID = 0, CompanyID = 1},
+                new AppMapping(){AppID = 1, CompanyID = 1},
+                new AppMapping(){AppID = 2, CompanyID = 1},
+                new AppMapping(){AppID = 3, CompanyID = 1},
+                new AppMapping(){AppID = 4, CompanyID = 2}
+            });
+            //var applist = from company in regt_company where company.ID==1 select new { company };
+            //var applist = from company in regt_company
+            //              join appmapping in regt_appmapping
+            //              on company.ID equals appmapping.CompanyID into gj
+            //              from subpet in gj.DefaultIfEmpty()
+            //              select new { company.ID, company.Name, appid=subpet.AppID};
+            //var gg = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
+            //    .Join(regt_apps, x => x.y.AppID, y => y.ID, (x, y) => new { x, y }).GroupBy(x=>x.x.x.Name);
+
+            var mapping = regt_appmapping.ToList();
+            //regt_appmapping.Select(x => new { x }).ToList();
+            //regt_appmapping.Join(regt_apps, x => x.AppID, y => y.ID, (x, y) => new { x, y }).ToList();
+
+            var gj = regt_company.GroupJoin(mapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
+
+            //var inner = from company in regt_company
+            //            from appmapping in regt_appmapping
+            //            from app in regt_apps
+            //            where company.ID == appmapping.CompanyID && appmapping.AppID == app.ID
+            //            select new { company.Name };
         }
     }
 

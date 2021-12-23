@@ -25,22 +25,24 @@ namespace UnitTestProject1
         }
     }
 
+    public class Company
+    {
+        public string Name { set; get; }
+        public int ID { set; get; }
+
+    }
+
     public class InstalledApp
     {
         [RegSubKeyName]
         public string Key { set; get; }
-        public int? Index { set; get; }
         public string DisplayName { set; get; }
         [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
         [RegIgnore]
         public bool? IsOfficial { set; get; }
-
-        public int FC()
-        {
-            return 100;
-        }
+        public int ID { set; get; }
 
         public InstalledApp() { }
 
@@ -52,6 +54,12 @@ namespace UnitTestProject1
                 pp.SetValue(this, pp.GetValue(data));
             }
         }
+    }
+
+    public class AppMapping
+    {
+        public int CompanyID { set; get; }
+        public int AppID { set; get; }
     }
 
     [TestClass]
@@ -70,72 +78,133 @@ namespace UnitTestProject1
         List<InstalledApp> InstallApp_org()
         {
             List<InstalledApp> datas = new List<InstalledApp>();
-            datas.Add(new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, IsOfficial = true, Index = 0 });
-            datas.Add(new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, IsOfficial = false, Index = 1 });
-            datas.Add(new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, IsOfficial = true, Index = 2 });
-            datas.Add(new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, IsOfficial = false, Index = 3 });
-            datas.Add(new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, IsOfficial = true, Index = 4 });
-            datas.Add(new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, IsOfficial = false, Index = 5 });
+            datas.Add(new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0});
+            datas.Add(new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 });
+            datas.Add(new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 });
+            datas.Add(new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 });
+            datas.Add(new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 });
+            datas.Add(new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 });
+            datas.Add(new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 });
+            datas.Add(new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 });
 
             return datas;
         }
 
-        IQueryable<InstalledApp> regt = new RegQuery<InstalledApp>()
+        RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
             .useSetting(x =>
             {
-                x.Hive = RegistryHive.LocalMachine;
-                x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\AppMapping";
+                x.View = RegistryView.Registry64;
+            });
+
+        RegQuery<Company> regt_company = new RegQuery<Company>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\Company";
+                x.View = RegistryView.Registry64;
+            });
+
+
+        RegQuery<InstalledApp> regt = new RegQuery<InstalledApp>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\Apps";
             });
         [TestCategory("Init")]
         [TestMethod]
         public void BuildMockup()
         {
-            RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            var reg = regbase.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
-            try
+            regt_company.RemoveAll();
+            regt_company.Insert(new List<Company>()
             {
-                reg.DeleteSubKeyTree("1A");
-            }
-            catch(Exception ee)
+                new Company(){Name = "Company_A", ID=1},
+                new Company(){Name = "Company_B", ID=2},
+                new Company(){Name = "Company_C", ID=3},
+                new Company(){Name = "Company_D", ID=4},
+                new Company(){Name = "Company_E", ID=5},
+            });
+            regt.RemoveAll();
+            regt.Insert(new List<InstalledApp>()
             {
-                System.Diagnostics.Trace.WriteLine(ee.Message);
-                System.Diagnostics.Trace.WriteLine(ee.StackTrace);
-            }
-
-
-            var propertys = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
-
-            var test1A = reg.CreateSubKey(@"1A", true);
-            foreach(var oo in this.m_Tests)
+                new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0},
+                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 },
+                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 },
+                new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 },
+                new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 },
+                new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 },
+                new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
+                new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
+            });
+            regt_appmapping.RemoveAll();
+            regt_appmapping.Insert(new List<AppMapping>()
             {
-                var regd = test1A.CreateSubKey(oo.Key, true);
-                foreach(var pp in propertys)
-                {
-                    var doo = pp.GetValue(oo);
-                    if(doo!=null)
-                    {
-                        var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
-                        string subkeyname = pp.Name;
-                        if (regnames.Length > 0)
-                        {
-                            subkeyname = regnames[0].Name;
-                        }
-                        regd.SetValue(subkeyname, doo);
-                    }
+                new AppMapping(){AppID = 0, CompanyID = 0},
+                new AppMapping(){AppID = 1, CompanyID = 0},
+                new AppMapping(){AppID = 2, CompanyID = 0},
+                new AppMapping(){AppID = 3, CompanyID = 0},
+                new AppMapping(){AppID = 4, CompanyID = 1}
+            });
+            var comapnys = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => y).Join(regt, x=>x.AppID, y=>y.ID,(x,y)=>y);
+            foreach(var oo in comapnys)
+            {
 
-                    
-                }
-                //var parent = regd.GetParent();
-                //parent.DeleteSubKeyTree(oo.DisplayName);
-                regd.Close();
-                regd.Dispose();
             }
+            //RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+            //var reg = regbase.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
+            //try
+            //{
+            //    reg.DeleteSubKeyTree("1A");
+            //}
+            //catch(Exception ee)
+            //{
+            //    System.Diagnostics.Trace.WriteLine(ee.Message);
+            //    System.Diagnostics.Trace.WriteLine(ee.StackTrace);
+            //}
 
+
+            //var propertys = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
+
+            //var test1A = reg.CreateSubKey(@"1A", true);
+            //foreach(var oo in this.m_Tests)
+            //{
+            //    var regd = test1A.CreateSubKey(oo.Key, true);
+            //    foreach(var pp in propertys)
+            //    {
+            //        var doo = pp.GetValue(oo);
+            //        if(doo!=null)
+            //        {
+            //            var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
+            //            string subkeyname = pp.Name;
+            //            if (regnames.Length > 0)
+            //            {
+            //                subkeyname = regnames[0].Name;
+            //            }
+            //            regd.SetValue(subkeyname, doo);
+            //        }
+
+
+            //    }
+            //    //var parent = regd.GetParent();
+            //    //parent.DeleteSubKeyTree(oo.DisplayName);
+            //    regd.Close();
+            //    regd.Dispose();
+            //}
+
+        }
+
+        [TestMethod]
+        public void GroupBy1_Select()
+        {
+            this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x.Key), regt.GroupBy(x => x).Select(x => x.Key));
         }
 
         [TestMethod]
         public void GroupBy1()
         {
+            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
             this.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
             this.Check(this.m_Tests.GroupBy(x => x.EstimatedSize), regt.GroupBy(x => x.EstimatedSize));
         }
@@ -519,9 +588,9 @@ namespace UnitTestProject1
             var count2 = this.m_Tests.Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize + 100 });
             this.Check(count1, count2);
             regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            count1 = regt.Where(x => x.EstimatedSize > 130);
+            var count3 = regt.Where(x => x.EstimatedSize > 130);
             count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize - 100 });
-            this.Check(count1, count2);
+            this.Check(count3, count2);
 
             //update_count = regt.Update(x => new InstallApp() { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
             //count2 = this.m_Tests.Select(x => new InstallApp(x) { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });

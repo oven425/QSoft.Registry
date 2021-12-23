@@ -148,7 +148,9 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
+                var members = expr.Members.ToArray();
+                var pps = expr.Constructor.GetParameters();
+                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), members);
                 this.m_ExpressionSaves[expr] = expr_new;
             }
 
@@ -246,6 +248,7 @@ namespace QSoft.Registry.Linq
                     else
                     {
                         this.m_DataTypeName = node.Parameters[pp.Position].Name;
+                        //break;
                     }
                 }
             }
@@ -302,6 +305,13 @@ namespace QSoft.Registry.Linq
                     {
                         var type = this.m_GenericTypes.First()[pp1.GetGenericArguments()[0].Name];
                         var ie = pp1.GetGenericTypeDefinition().MakeGenericType(type);
+                        var pp = Expression.Parameter(ie, expr.Name);
+                        this.m_Parameters[expr.Name] = pp;
+                    }
+                    else if(expr.Type.IsGenericType==true && expr.Type.GetGenericTypeDefinition()==typeof(IGrouping<,>))
+                    {
+                        var find = this.m_GenericTypes.FirstOrDefault(x => x.ContainsKey(pp1.Name));
+                        var ie = expr.Type.GetGenericTypeDefinition().MakeGenericType(find.Values.ToArray());
                         var pp = Expression.Parameter(ie, expr.Name);
                         this.m_Parameters[expr.Name] = pp;
                     }
@@ -488,6 +498,12 @@ namespace QSoft.Registry.Linq
                         else if (dic[i].ParameterType == typeof(IQueryable<TData>))
                         {
                             this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
+                        }
+                        else if(dic[i].ParameterType == typeof(IQueryable<IGrouping<TData,TData>>))
+                        {
+                            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
+                            this.m_GenericTypes.First()[dicc[i+1].Name] = typeof(RegistryKey);
+                            i = i + 1;
                         }
                         else
                         {

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection.Emit;
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
@@ -74,7 +75,7 @@ namespace ConsoleApp1
         public int? EstimatedSize { set; get; }
         [RegIgnore]
         public bool? IsOfficial { set; get; }
-        public int ID { set; get; }
+        public int? ID { set; get; }
 
         public InstalledApp() { }
 
@@ -100,6 +101,25 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            var newtype = new { Name = "1", Value = 1 }.GetType();
+            var pps = newtype.GetProperties();
+            var cons = newtype.GetConstructors();
+
+            //TypeBuilder tb = new TypeBuilder();
+
+            //List<int> testlist = Enumerable.Range(1, 5).ToList();
+            //var qur = testlist.AsQueryable();
+            //foreach(var oo in testlist)
+            //{
+            //    if(oo==2)
+            //    {
+            //        testlist[0] = 100;
+            //    }
+            //}
+
+
+
+
             TestDB();
 
             return;
@@ -599,15 +619,15 @@ namespace ConsoleApp1
                     x.Hive = RegistryHive.CurrentConfig;
                     x.SubKey = @"UnitTest\Apps";
                 });
-            regt_company.RemoveAll();
-            regt_company.Insert(new List<Company>()
-            {
-                new Company(){Name = "Company_A", ID=1},
-                new Company(){Name = "Company_B", ID=2},
-                new Company(){Name = "Company_C", ID=3},
-                new Company(){Name = "Company_D", ID=4},
-                new Company(){Name = "Company_E", ID=5},
-            });
+            //regt_company.RemoveAll();
+            //regt_company.Insert(new List<Company>()
+            //{
+            //    new Company(){Name = "Company_A", ID=1},
+            //    new Company(){Name = "Company_B", ID=2},
+            //    new Company(){Name = "Company_C", ID=3},
+            //    new Company(){Name = "Company_D", ID=4},
+            //    new Company(){Name = "Company_E", ID=5},
+            //});
             regt_apps.RemoveAll();
             regt_apps.Insert(new List<InstalledApp>()
             {
@@ -620,6 +640,7 @@ namespace ConsoleApp1
                 new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
                 new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
             });
+
             regt_appmapping.RemoveAll();
             regt_appmapping.Insert(new List<AppMapping>()
             {
@@ -638,11 +659,31 @@ namespace ConsoleApp1
             //var gg = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
             //    .Join(regt_apps, x => x.y.AppID, y => y.ID, (x, y) => new { x, y }).GroupBy(x=>x.x.x.Name);
 
-            var mapping = regt_appmapping.ToList();
+            //var mapping = regt_appmapping.ToList();
+            //regt_appmapping.Select((x, index) => new { x, index});
             //regt_appmapping.Select(x => new { x }).ToList();
             //regt_appmapping.Join(regt_apps, x => x.AppID, y => y.ID, (x, y) => new { x, y }).ToList();
 
-            var gj = regt_company.GroupJoin(mapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
+            //var join = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new {x,y });
+            //var gj = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
+
+
+            var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
+                .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
+
+            var left1 = from company in regt_company
+                       join map in regt_appmapping on company.ID equals map.CompanyID into temp
+                       from mapresult in temp.DefaultIfEmpty()
+                       select new { company, mapresult };
+            //left1.Where(x => x.mapresult == null).Select(x => x.company).RemoveAll();
+
+
+            //var left11 = (from map in regt_appmapping
+            //              join comapny in regt_company on map.CompanyID equals comapny.ID into companys
+            //              from companyhr in companys.DefaultIfEmpty()
+            //              join app in regt_apps on map.AppID equals app.ID into apps
+            //              from apphr in apps.DefaultIfEmpty()
+            //              select new { companyhr.Name, apphr.DisplayName });
 
             //var inner = from company in regt_company
             //            from appmapping in regt_appmapping

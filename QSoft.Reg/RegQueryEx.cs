@@ -25,23 +25,34 @@ namespace QSoft.Registry.Linq
 
         public static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas)
         {
-            //var regs = source as IEnumerable<RegistryKey>;
-            //if (regs == null)
-            //{
-            //    throw new Exception("Source must be RegistryKey");
-            //}
-            //var reg = regs.FirstOrDefault()?.GetParent();
             int count = 0;
-            var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true);
+            var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
+            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+            foreach (var pp in pps)
+            {
+                dicpps[pp] = pp.Name;
+                var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
+                if (regnames.Length > 0)
+                {
+                    dicpps[pp] = regnames[0].Name;
+                }
+            }
+            int index = 0;
+            var names = source.GetSubKeyNames();
+            if(names.Length > 0)
+            {
+                index = int.Parse(names.Last());
+            }
             foreach (var data in datas)
             {
-                var child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                var child = source.CreateSubKey($"{index++:0000000000}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                //var child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
                 foreach (var pp in pps)
                 {
                     var vv = pp.GetValue(data, null);
                     if(vv != null)
                     {
-                        child.SetValue(pp.Name, vv);
+                        child.SetValue(dicpps[pp], vv);
                     }
                 }
                 child.Close();

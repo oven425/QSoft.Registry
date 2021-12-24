@@ -248,7 +248,7 @@ namespace QSoft.Registry.Linq
                     else
                     {
                         this.m_DataTypeName = node.Parameters[pp.Position].Name;
-                        //break;
+                        break;
                     }
                 }
             }

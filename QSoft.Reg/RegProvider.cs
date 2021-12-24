@@ -329,11 +329,24 @@ namespace QSoft.Registry.Linq
             {
                 
                 System.Diagnostics.Debug.WriteLine($"Execute<TResult> {methodname}");
-                this.m_IsWritable = methodname == "Update"|| methodname == "Insert" || methodname == "RemoveAll";
+               
                 object inst = null;
                 Expression expr = expression;
-                
-                if(methodname == "Insert")
+
+                if (methodname == "Insert" || methodname == "RemoveAll"|| methodname=="Update")
+                {
+                    if(this.m_IsWritable == false)
+                    {
+                        foreach (var oo in this.m_Regs)
+                        {
+                            oo.Close();
+                            oo.Dispose();
+                        }
+                        this.m_Regs.Clear();
+                    }
+                }
+                this.m_IsWritable = methodname == "Update" || methodname == "Insert" || methodname == "RemoveAll";
+                if (methodname == "Insert")
                 {
 
                 }

@@ -42,7 +42,7 @@ namespace UnitTestProject1
         public int? EstimatedSize { set; get; }
         [RegIgnore]
         public bool? IsOfficial { set; get; }
-        public int ID { set; get; }
+        public int? ID { set; get; }
 
         public InstalledApp() { }
 
@@ -77,17 +77,18 @@ namespace UnitTestProject1
 
         List<InstalledApp> InstallApp_org()
         {
-            List<InstalledApp> datas = new List<InstalledApp>();
-            datas.Add(new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0});
-            datas.Add(new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 });
-            datas.Add(new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 });
-            datas.Add(new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 });
-            datas.Add(new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 });
-            datas.Add(new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 });
-            datas.Add(new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 });
-            datas.Add(new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 });
+            return regt.ToList();
+            //List<InstalledApp> datas = new List<InstalledApp>();
+            //datas.Add(new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0});
+            //datas.Add(new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 });
+            //datas.Add(new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 });
+            //datas.Add(new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 });
+            //datas.Add(new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 });
+            //datas.Add(new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 });
+            //datas.Add(new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 });
+            //datas.Add(new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 });
 
-            return datas;
+            //return datas;
         }
 
         RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
@@ -136,8 +137,14 @@ namespace UnitTestProject1
                 new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 },
                 new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 },
                 new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
-                new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
+                new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 },
+                new InstalledApp() { Key = "FF", DisplayName = "GG", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 8 },
+                new InstalledApp() { Key = "FF", DisplayName = "HH", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 9 },
+                new InstalledApp() { Key = "FF", DisplayName = "II", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 10 },
+                new InstalledApp() { Key = "FF", DisplayName = "JJ", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 11 },
+                new InstalledApp() { Key = "FF", DisplayName = "KK", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 12 },
             });
+            this.m_Tests = regt.ToList();
             regt_appmapping.RemoveAll();
             regt_appmapping.Insert(new List<AppMapping>()
             {
@@ -652,7 +659,7 @@ namespace UnitTestProject1
             }
             else
             {
-                var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(typeof(RegIgnore),false).Length==0);
+                var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
                 foreach(var pp in pps)
                 {
 

@@ -12,7 +12,7 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryEx
     {
-        public static int Insert<TSource, TData>(this RegQuery<TSource> source, IEnumerable<TData> datas)
+        public static int Insert<TSource, TData>(this RegQuery<TSource> source, IEnumerable<TData> datas) where TData : class
         {
             var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Insert");
             //var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TData)), source.Expression, Expression.Constant(datas, typeof(IEnumerable<TData>)));

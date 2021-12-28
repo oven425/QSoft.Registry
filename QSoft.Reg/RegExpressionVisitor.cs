@@ -49,41 +49,6 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-
-        public Expression Visit1(MethodCallExpression node, Expression[] args)
-        {
-            System.Diagnostics.Debug.WriteLine($"Visit {node.Method?.Name}");
-            this.PreparMethod(node, args, node.Method);
-
-            foreach(var arg in args)
-            {
-                var aaaa = this.Visit(arg);
-            }
-
-            var exprs = this.m_ExpressionSaves.Clone(node);
-            var ttypes = exprs.Select(x => x.Value).GetTypes(node.Method);
-            var mmm = Expression.Call(node.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes), exprs.Select(x => x.Value));
-            return mmm;
-        }
-
-        public Expression Visit2(MethodCallExpression node, Expression[] args)
-        {
-            System.Diagnostics.Debug.WriteLine($"Visit {node.Method?.Name}");
-            this.PreparMethod(node, args, node.Method);
-
-            foreach (var arg in args.Skip(1))
-            {
-                var aaaa = this.Visit(arg);
-            }
-
-            var exprs = this.m_ExpressionSaves.Clone(node);
-            var list = exprs.Select(x => x.Value).ToList();
-            list.Insert(0, args[0]);
-            var ttypes = list.GetTypes(node.Method);
-            var mmm = Expression.Call(node.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes), list);
-            return mmm;
-        }
-
         protected override Expression VisitBinary(BinaryExpression node)
         {
             this.m_ExpressionSaves[node] = null;
@@ -143,7 +108,16 @@ namespace QSoft.Registry.Linq
             }
             if (expr.Members == null)
             {
-                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value));
+                var pps = exprs.Select(x =>
+                {
+                    Expression p = x.Value;
+                    if(x.Key.Type == typeof(TData))
+                    {
+                        p = typeof(TData).ToData(x.Value as ParameterExpression);
+                    }
+                    return p;
+                });
+                var expr_new = Expression.New(expr.Constructor, pps);
                 this.m_ExpressionSaves[expr] = expr_new;
             }
             else
@@ -167,13 +141,18 @@ namespace QSoft.Registry.Linq
             if(this.m_Lastnode != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-                List<MemberBinding> bindings = new List<MemberBinding>();
-                var members = exprs.Skip(1).Select(x => x.Value);
-                for (int i = 0; i < expr.Bindings.Count; i++)
+                //List<MemberBinding> bindings = new List<MemberBinding>();
+                //var members = exprs.Skip(1).Select(x => x.Value);
+                //for (int i = 0; i < expr.Bindings.Count; i++)
+                //{
+                //    var binding = Expression.Bind(expr.Bindings[i].Member, members.ElementAt(i));
+                //    bindings.Add(binding);
+                //}
+                var bindings = exprs.Skip(1).Select((x,i) =>
                 {
-                    var binding = Expression.Bind(expr.Bindings[i].Member, members.ElementAt(i));
-                    bindings.Add(binding);
-                }
+                    var binding = Expression.Bind(expr.Bindings[i].Member, x.Value);
+                    return binding;
+                });
                 var expr_memberinit = Expression.MemberInit(exprs.First().Value as NewExpression, bindings);
                 this.m_ExpressionSaves[expr] = expr_memberinit;
             }

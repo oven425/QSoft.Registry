@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
@@ -122,21 +123,144 @@ namespace ConsoleApp1
 
     class Program
     {
-        static void TestTypeBuild()
+        public static Type BuildDynamicTypeWithProperties()
+        {
+            AppDomain myDomain = Thread.GetDomain();
+            AssemblyName myAsmName = new AssemblyName();
+            myAsmName.Name = "MyDynamicAssembly";
+
+            // To generate a persistable assembly, specify AssemblyBuilderAccess.RunAndSave.
+            AssemblyBuilder myAsmBuilder = myDomain.DefineDynamicAssembly(myAsmName,
+                                                            AssemblyBuilderAccess.RunAndSave);
+            // Generate a persistable single-module assembly.
+            ModuleBuilder myModBuilder =
+                myAsmBuilder.DefineDynamicModule(myAsmName.Name, myAsmName.Name + ".dll");
+
+            TypeBuilder myTypeBuilder = myModBuilder.DefineType("CustomerData",
+                                                            TypeAttributes.Public);
+
+            FieldBuilder customerNameBldr = myTypeBuilder.DefineField("customerName",
+                                                            typeof(string),
+                                                            FieldAttributes.Private);
+
+            // The last argument of DefineProperty is null, because the
+            // property has no parameters. (If you don't specify null, you must
+            // specify an array of Type objects. For a parameterless property,
+            // use an array with no elements: new Type[] {})
+            PropertyBuilder custNamePropBldr = myTypeBuilder.DefineProperty("CustomerName",
+                                                             PropertyAttributes.HasDefault,
+                                                             typeof(string),
+                                                             null);
+
+            // The property set and property get methods require a special
+            // set of attributes.
+            MethodAttributes getSetAttr =
+                MethodAttributes.Public | MethodAttributes.SpecialName |
+                    MethodAttributes.HideBySig;
+
+            // Define the "get" accessor method for CustomerName.
+            MethodBuilder custNameGetPropMthdBldr =
+                myTypeBuilder.DefineMethod("get_CustomerName",
+                                           getSetAttr,
+                                           typeof(string),
+                                           Type.EmptyTypes);
+
+            ILGenerator custNameGetIL = custNameGetPropMthdBldr.GetILGenerator();
+
+            custNameGetIL.Emit(OpCodes.Ldarg_0);
+            custNameGetIL.Emit(OpCodes.Ldfld, customerNameBldr);
+            custNameGetIL.Emit(OpCodes.Ret);
+
+            // Define the "set" accessor method for CustomerName.
+            MethodBuilder custNameSetPropMthdBldr =
+                myTypeBuilder.DefineMethod("set_CustomerName",
+                                           getSetAttr,
+                                           null,
+                                           new Type[] { typeof(string) });
+
+            ILGenerator custNameSetIL = custNameSetPropMthdBldr.GetILGenerator();
+
+            custNameSetIL.Emit(OpCodes.Ldarg_0);
+            custNameSetIL.Emit(OpCodes.Ldarg_1);
+            custNameSetIL.Emit(OpCodes.Stfld, customerNameBldr);
+            custNameSetIL.Emit(OpCodes.Ret);
+
+            // Last, we must map the two methods created above to our PropertyBuilder to
+            // their corresponding behaviors, "get" and "set" respectively.
+            custNamePropBldr.SetGetMethod(custNameGetPropMthdBldr);
+            custNamePropBldr.SetSetMethod(custNameSetPropMthdBldr);
+
+            Type retval = myTypeBuilder.CreateType();
+            var cons = retval.GetConstructors();
+            // Save the assembly so it can be examined with Ildasm.exe,
+            // or referenced by a test program.
+            myAsmBuilder.Save(myAsmName.Name + ".dll");
+            return retval;
+        }
+
+        static void AddProperty(TypeBuilder tb, FieldBuilder fbNumber)
+        {
+            // Define a property named Number that gets and sets the private
+            // field.
+            //
+            // The last argument of DefineProperty is null, because the
+            // property has no parameters. (If you don't specify null, you must
+            // specify an array of Type objects. For a parameterless property,
+            // use the built-in array with no elements: Type.EmptyTypes)
+            PropertyBuilder pbNumber = tb.DefineProperty(
+                "Number",
+                PropertyAttributes.HasDefault,
+                typeof(int),
+                null);
+
+            // The property "set" and property "get" methods require a special
+            // set of attributes.
+            MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+
+            // Define the "get" accessor method for Number. The method returns
+            // an integer and has no arguments. (Note that null could be
+            // used instead of Types.EmptyTypes)
+            MethodBuilder mbNumberGetAccessor = tb.DefineMethod("get_Number", getSetAttr, typeof(int), Type.EmptyTypes);
+
+            ILGenerator numberGetIL = mbNumberGetAccessor.GetILGenerator();
+            // For an instance property, argument zero is the instance. Load the
+            // instance, then load the private field and return, leaving the
+            // field value on the stack.
+            numberGetIL.Emit(OpCodes.Ldarg_0);
+            numberGetIL.Emit(OpCodes.Ldfld, fbNumber);
+            numberGetIL.Emit(OpCodes.Ret);
+
+            // Define the "set" accessor method for Number, which has no return
+            // type and takes one argument of type int (Int32).
+            MethodBuilder mbNumberSetAccessor = tb.DefineMethod(
+                "set_Number",
+                getSetAttr,
+                null,
+                new Type[] { typeof(int) });
+
+            ILGenerator numberSetIL = mbNumberSetAccessor.GetILGenerator();
+            // Load the instance and then the numeric argument, then store the
+            // argument in the field.
+            numberSetIL.Emit(OpCodes.Ldarg_0);
+            numberSetIL.Emit(OpCodes.Ldarg_1);
+            numberSetIL.Emit(OpCodes.Stfld, fbNumber);
+            numberSetIL.Emit(OpCodes.Ret);
+
+            // Last, map the "get" and "set" accessor methods to the
+            // PropertyBuilder. The property is now complete.
+            pbNumber.SetGetMethod(mbNumberGetAccessor);
+            pbNumber.SetSetMethod(mbNumberSetAccessor);
+        }
+        static void TestTestTypeBuild1()
         {
             AssemblyName aName = new AssemblyName("DynamicAssemblyExample");
-            AssemblyBuilder ab =
-                AppDomain.CurrentDomain.DefineDynamicAssembly(
-                    aName, AssemblyBuilderAccess.RunAndSave);
+            AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
 
             // For a single-module assembly, the module name is usually
             // the assembly name plus an extension.
-            ModuleBuilder mb =
-                ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+            ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
-            TypeBuilder tb = mb.DefineType(
-                "MyDynamicType",
-                 TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType("MyDynamicType1", TypeAttributes.Public);
 
             // Add a private field of type int (Int32).
             FieldBuilder fbNumber = tb.DefineField("m_number", typeof(int), FieldAttributes.Private);
@@ -144,10 +268,59 @@ namespace ConsoleApp1
             // Define a constructor that takes an integer argument and
             // stores it in the private field.
             Type[] parameterTypes = { typeof(int) };
-            ConstructorBuilder ctor1 = tb.DefineConstructor(
-                MethodAttributes.Public,
-                CallingConventions.Standard,
-                parameterTypes);
+            ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
+
+            ILGenerator ctor1IL = ctor1.GetILGenerator();
+            // For a constructor, argument zero is a reference to the new
+            // instance. Push it on the stack before calling the base
+            // class constructor. Specify the default constructor of the
+            // base class (System.Object) by passing an empty array of
+            // types (Type.EmptyTypes) to GetConstructor.
+            ctor1IL.Emit(OpCodes.Ldarg_0);
+            ctor1IL.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes));
+            // Push the instance on the stack before pushing the argument
+            // that is to be assigned to the private field m_number.
+            ctor1IL.Emit(OpCodes.Ldarg_0);
+            ctor1IL.Emit(OpCodes.Ldarg_1);
+            ctor1IL.Emit(OpCodes.Stfld, fbNumber);
+            ctor1IL.Emit(OpCodes.Ret);
+
+
+            AddProperty(tb, fbNumber);
+            
+
+            Type t = tb.CreateType();
+            var pros = t.GetProperties();
+            var cons = t.GetConstructors();
+            var pps = t.GetFields();
+            //var fields = t.GetFields();
+        }
+        static void TestTypeBuild()
+        {
+            var types = new Type[] { typeof(int), typeof(string) };
+            var runtime = types.BuildType();
+            var dyy = new {A=1 }.GetType();
+            var attrs = dyy.GetCustomAttributes();
+            var cons = dyy.GetConstructors();
+            var ffs = dyy.GetRuntimeFields();
+            //var dy = BuildDynamicTypeWithProperties();
+            TestTestTypeBuild1();
+            AssemblyName aName = new AssemblyName("DynamicAssemblyExample");
+            AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
+
+            // For a single-module assembly, the module name is usually
+            // the assembly name plus an extension.
+            ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+
+            TypeBuilder tb = mb.DefineType("MyDynamicType1", TypeAttributes.Public);
+
+            // Add a private field of type int (Int32).
+            FieldBuilder fbNumber = tb.DefineField("m_number", typeof(int), FieldAttributes.Private);
+
+            // Define a constructor that takes an integer argument and
+            // stores it in the private field.
+            Type[] parameterTypes = { typeof(int) };
+            ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
 
             ILGenerator ctor1IL = ctor1.GetILGenerator();
             // For a constructor, argument zero is a reference to the new
@@ -196,17 +369,12 @@ namespace ConsoleApp1
 
             // The property "set" and property "get" methods require a special
             // set of attributes.
-            MethodAttributes getSetAttr = MethodAttributes.Public |
-                MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+            MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 
             // Define the "get" accessor method for Number. The method returns
             // an integer and has no arguments. (Note that null could be
             // used instead of Types.EmptyTypes)
-            MethodBuilder mbNumberGetAccessor = tb.DefineMethod(
-                "get_Number",
-                getSetAttr,
-                typeof(int),
-                Type.EmptyTypes);
+            MethodBuilder mbNumberGetAccessor = tb.DefineMethod("get_Number", getSetAttr, typeof(int), Type.EmptyTypes);
 
             ILGenerator numberGetIL = mbNumberGetAccessor.GetILGenerator();
             // For an instance property, argument zero is the instance. Load the
@@ -273,6 +441,7 @@ namespace ConsoleApp1
             // executed immediately. Start by getting reflection objects for
             // the method and the property.
             MethodInfo mi = t.GetMethod("MyMethod");
+            var ppoi = t.GetProperties();
             PropertyInfo pi = t.GetProperty("Number");
 
             // Create an instance of MyDynamicType using the default
@@ -302,8 +471,10 @@ namespace ConsoleApp1
                 new object[] { 5280 });
             Console.WriteLine("o2.Number: {0}", pi.GetValue(o2, null));
         }
+        static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
+            
             TestTypeBuild();
             return;
 
@@ -458,11 +629,11 @@ namespace ConsoleApp1
 
             //var jj = regt_user.Join(regt_city, x => x.CityID, x => x.ID, (x, y) => new { Name = x.Name, City = y.Name }).OrderBy(x => x.Name);
             //jj.ToList();
-            var groupby_age = regt_user.GroupBy(x => x).Select(x=>x.Key);
-            foreach(var oo in groupby_age)
-            {
+            //var groupby_age = regt_user.GroupBy(x => x).Select(x=>x.Key);
+            //foreach(var oo in groupby_age)
+            //{
 
-            }
+            //}
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
@@ -478,6 +649,8 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
+            //regt1.Update(x => new { DisplayName = x.DisplayName });
+            //regt1.Update(x => new InstalledApp(x) {DisplayName=x.DisplayName, Version = new Version(10,10,10,10) });
             //regt.Insert(Enumerable.Repeat(new InstalledApp(), 3));
             //int remove_count2 = regt.RemoveAll();
             //var yj = regt1.Take(2);

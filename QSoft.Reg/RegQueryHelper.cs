@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,6 +13,76 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryHelper
     {
+        static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber)
+        {
+            PropertyBuilder pbNumber = tb.DefineProperty("Number", PropertyAttributes.HasDefault, typeof(int), null);
+
+            MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+            MethodBuilder mbNumberGetAccessor = tb.DefineMethod("get_Number", getSetAttr, typeof(int), Type.EmptyTypes);
+
+            ILGenerator numberGetIL = mbNumberGetAccessor.GetILGenerator();
+
+            numberGetIL.Emit(OpCodes.Ldarg_0);
+            numberGetIL.Emit(OpCodes.Ldfld, fbNumber);
+            numberGetIL.Emit(OpCodes.Ret);
+
+
+            MethodBuilder mbNumberSetAccessor = tb.DefineMethod("set_Number", getSetAttr, null, new Type[] { typeof(int) });
+
+            ILGenerator numberSetIL = mbNumberSetAccessor.GetILGenerator();
+
+            numberSetIL.Emit(OpCodes.Ldarg_0);
+            numberSetIL.Emit(OpCodes.Ldarg_1);
+            numberSetIL.Emit(OpCodes.Stfld, fbNumber);
+            numberSetIL.Emit(OpCodes.Ret);
+
+            pbNumber.SetGetMethod(mbNumberGetAccessor);
+            pbNumber.SetSetMethod(mbNumberSetAccessor);
+        }
+
+        public static Type BuildType(this IEnumerable<Type> types)
+        {
+            AssemblyName aName = new AssemblyName("DynamicAssemblyExample");
+            AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
+
+            // For a single-module assembly, the module name is usually
+            // the assembly name plus an extension.
+            ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+
+            TypeBuilder tb = mb.DefineType("MyDynamicType1", TypeAttributes.Public);
+
+            // Add a private field of type int (Int32).
+            FieldBuilder fbNumber = tb.DefineField("m_number", typeof(int), FieldAttributes.Private);
+            var oioi = types.Select(x => x.Name);
+            var fileds = types.Select(x => tb.DefineField("m_number", x, FieldAttributes.Private));
+            // Define a constructor that takes an integer argument and
+            // stores it in the private field.
+            //Type[] parameterTypes = { typeof(int) };
+            Type[] parameterTypes = types.ToArray();
+            ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
+
+            ILGenerator ctor1IL = ctor1.GetILGenerator();
+            // For a constructor, argument zero is a reference to the new
+            // instance. Push it on the stack before calling the base
+            // class constructor. Specify the default constructor of the
+            // base class (System.Object) by passing an empty array of
+            // types (Type.EmptyTypes) to GetConstructor.
+            ctor1IL.Emit(OpCodes.Ldarg_0);
+            ctor1IL.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes));
+            // Push the instance on the stack before pushing the argument
+            // that is to be assigned to the private field m_number.
+            ctor1IL.Emit(OpCodes.Ldarg_0);
+            ctor1IL.Emit(OpCodes.Ldarg_1);
+            ctor1IL.Emit(OpCodes.Stfld, fbNumber);
+            ctor1IL.Emit(OpCodes.Ret);
+
+
+            AddProperty(tb, fbNumber);
+
+            
+
+            return tb.CreateType();
+        }
         static public int Replace(this Type[] datas, Type src, Type dst)
         {
             int count = 0;

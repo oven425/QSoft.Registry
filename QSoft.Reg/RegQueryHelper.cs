@@ -13,34 +13,42 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryHelper
     {
-        static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber)
+        static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber, bool canread, bool canwrite)
         {
-            PropertyBuilder pbNumber = tb.DefineProperty("Number", PropertyAttributes.HasDefault, typeof(int), null);
-
+            if(canread == false && canwrite==false)
+            {
+                return;
+            }
+            string name = fbNumber.Name.Remove(0,2);
+            PropertyBuilder pbNumber = tb.DefineProperty(name, PropertyAttributes.HasDefault, fbNumber.FieldType, null);
+            
             MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
-            MethodBuilder mbNumberGetAccessor = tb.DefineMethod("get_Number", getSetAttr, typeof(int), Type.EmptyTypes);
 
-            ILGenerator numberGetIL = mbNumberGetAccessor.GetILGenerator();
+            if(canread == true)
+            {
+                MethodBuilder mbNumberGetAccessor = tb.DefineMethod($"get_{name}", getSetAttr, fbNumber.FieldType, Type.EmptyTypes);
+                ILGenerator numberGetIL = mbNumberGetAccessor.GetILGenerator();
 
-            numberGetIL.Emit(OpCodes.Ldarg_0);
-            numberGetIL.Emit(OpCodes.Ldfld, fbNumber);
-            numberGetIL.Emit(OpCodes.Ret);
+                numberGetIL.Emit(OpCodes.Ldarg_0);
+                numberGetIL.Emit(OpCodes.Ldfld, fbNumber);
+                numberGetIL.Emit(OpCodes.Ret);
+                pbNumber.SetGetMethod(mbNumberGetAccessor);
+            }
 
+            if (canwrite == true)
+            {
+                MethodBuilder mbNumberSetAccessor = tb.DefineMethod($"set_{name}", getSetAttr, null, new Type[] { fbNumber.FieldType });
+                ILGenerator numberSetIL = mbNumberSetAccessor.GetILGenerator();
+                numberSetIL.Emit(OpCodes.Ldarg_0);
+                numberSetIL.Emit(OpCodes.Ldarg_1);
+                numberSetIL.Emit(OpCodes.Stfld, fbNumber);
+                numberSetIL.Emit(OpCodes.Ret);
 
-            MethodBuilder mbNumberSetAccessor = tb.DefineMethod("set_Number", getSetAttr, null, new Type[] { typeof(int) });
-
-            ILGenerator numberSetIL = mbNumberSetAccessor.GetILGenerator();
-
-            numberSetIL.Emit(OpCodes.Ldarg_0);
-            numberSetIL.Emit(OpCodes.Ldarg_1);
-            numberSetIL.Emit(OpCodes.Stfld, fbNumber);
-            numberSetIL.Emit(OpCodes.Ret);
-
-            pbNumber.SetGetMethod(mbNumberGetAccessor);
-            pbNumber.SetSetMethod(mbNumberSetAccessor);
+                pbNumber.SetSetMethod(mbNumberSetAccessor);
+            }
         }
 
-        public static Type BuildType(this IEnumerable<Type> types)
+        public static Type BuildType(this IEnumerable<Tuple<Type, string>> types)
         {
             AssemblyName aName = new AssemblyName("DynamicAssemblyExample");
             AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
@@ -49,39 +57,58 @@ namespace QSoft.Registry.Linq
             // the assembly name plus an extension.
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
-            TypeBuilder tb = mb.DefineType("MyDynamicType1", TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType($"AnyoumusType_{DateTime.Now.ToString("yyyyMmddHHmmssffffff")}", TypeAttributes.Public);
 
             // Add a private field of type int (Int32).
-            FieldBuilder fbNumber = tb.DefineField("m_number", typeof(int), FieldAttributes.Private);
-            var oioi = types.Select(x => x.Name);
-            var fileds = types.Select(x => tb.DefineField("m_number", x, FieldAttributes.Private));
+            //FieldBuilder fbNumber = tb.DefineField("m_number", typeof(int), FieldAttributes.Private);
+
+            var fileds = types.Select((x, i) => tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private)).ToList();
             // Define a constructor that takes an integer argument and
             // stores it in the private field.
             //Type[] parameterTypes = { typeof(int) };
-            Type[] parameterTypes = types.ToArray();
+            Type[] parameterTypes = types.Select(x => x.Item1).ToArray();
             ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
 
             ILGenerator ctor1IL = ctor1.GetILGenerator();
-            // For a constructor, argument zero is a reference to the new
-            // instance. Push it on the stack before calling the base
-            // class constructor. Specify the default constructor of the
-            // base class (System.Object) by passing an empty array of
-            // types (Type.EmptyTypes) to GetConstructor.
             ctor1IL.Emit(OpCodes.Ldarg_0);
             ctor1IL.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes));
-            // Push the instance on the stack before pushing the argument
-            // that is to be assigned to the private field m_number.
-            ctor1IL.Emit(OpCodes.Ldarg_0);
-            ctor1IL.Emit(OpCodes.Ldarg_1);
-            ctor1IL.Emit(OpCodes.Stfld, fbNumber);
+            for (int i = 0; i < fileds.Count; i++)
+            {
+                ctor1IL.Emit(OpCodes.Ldarg_0);
+                ctor1IL.Emit(OpCodes.Ldarg_S, i + 1);
+                ctor1IL.Emit(OpCodes.Stfld, fileds[i]);
+            }
+            //ctor1IL.Emit(OpCodes.Ldarg_0);
+            //ctor1IL.Emit(OpCodes.Ldarg_1);
+            //ctor1IL.Emit(OpCodes.Stfld, fileds[0]);
+            //ctor1IL.Emit(OpCodes.Ldarg_0);
+            //ctor1IL.Emit(OpCodes.Ldarg_2);
+            //ctor1IL.Emit(OpCodes.Stfld, fileds[1]);
+            //ctor1IL.Emit(OpCodes.Ldarg_0);
+            //ctor1IL.Emit(OpCodes.Ldarg_3);
+            //ctor1IL.Emit(OpCodes.Stfld, fileds[2]);
+
+            //ctor1IL.Emit(OpCodes.Ldarg_0);
+            //ctor1IL.Emit(OpCodes.Ldarg_S, 4);
+            //ctor1IL.Emit(OpCodes.Stfld, fileds[3]);
+            //ctor1IL.Emit(OpCodes.Ldarg_0);
+            //ctor1IL.Emit(OpCodes.Ldarg_S, 5);
+            //ctor1IL.Emit(OpCodes.Stfld, fileds[4]);
+
             ctor1IL.Emit(OpCodes.Ret);
 
 
-            AddProperty(tb, fbNumber);
-
-            
+            foreach (var oo in fileds)
+            {
+                AddProperty(tb, oo, true, false);
+            }
 
             return tb.CreateType();
+        }
+
+        public static Type BuildType(this IEnumerable<PropertyInfo> types)
+        {
+            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType();
         }
         static public int Replace(this Type[] datas, Type src, Type dst)
         {

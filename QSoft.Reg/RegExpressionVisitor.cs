@@ -123,8 +123,7 @@ namespace QSoft.Registry.Linq
             else
             {
                 var members = expr.Members.ToArray();
-                var pps = expr.Constructor.GetParameters();
-                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), members);
+                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
                 this.m_ExpressionSaves[expr] = expr_new;
             }
 
@@ -135,26 +134,31 @@ namespace QSoft.Registry.Linq
 
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
+            System.Diagnostics.Debug.WriteLine($"VisitMemberInit");
             this.m_ExpressionSaves[node] = null;
             var expr = base.VisitMemberInit(node) as MemberInitExpression;
 
             if(this.m_Lastnode != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-                //List<MemberBinding> bindings = new List<MemberBinding>();
-                //var members = exprs.Skip(1).Select(x => x.Value);
-                //for (int i = 0; i < expr.Bindings.Count; i++)
-                //{
-                //    var binding = Expression.Bind(expr.Bindings[i].Member, members.ElementAt(i));
-                //    bindings.Add(binding);
-                //}
+
+                
                 var bindings = exprs.Skip(1).Select((x,i) =>
                 {
                     var binding = Expression.Bind(expr.Bindings[i].Member, x.Value);
                     return binding;
                 });
-                var expr_memberinit = Expression.MemberInit(exprs.First().Value as NewExpression, bindings);
-                this.m_ExpressionSaves[expr] = expr_memberinit;
+                if(this.LastMethodName != "Update")
+                {
+                    var expr_memberinit = Expression.MemberInit(exprs.First().Value as NewExpression, bindings);
+                    this.m_ExpressionSaves[expr] = expr_memberinit;
+                }
+                else
+                {
+                    var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
+                    var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
+                    this.m_ExpressionSaves[expr] = expr_new;
+                }
             }
             this.m_Lastnode = expr;
             return expr;
@@ -556,7 +560,8 @@ namespace QSoft.Registry.Linq
         DictionaryList<Expression, Expression> m_ExpressionSaves = new DictionaryList<Expression, Expression>();
         Dictionary<Expression, Type> m_ExpressionSaves1 = new Dictionary<Expression, Type>();
         Expression m_Lastnode = null;
-        Dictionary<Expression, string> GenericTypes = new Dictionary<Expression, string>();
+        //Dictionary<Expression, string> GenericTypes = new Dictionary<Expression, string>();
+        string LastMethodName = "";
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitMethodCall {node.Method?.Name}");
@@ -566,6 +571,7 @@ namespace QSoft.Registry.Linq
                 this.m_ExpressionSaves[node] = aaa;
                 return node;
             }
+            LastMethodName = node.Method.Name;
             this.PreparMethod(node, node.Arguments.ToArray(), node.Method);
 
             var expr = base.VisitMethodCall(node) as MethodCallExpression;

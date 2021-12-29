@@ -297,12 +297,21 @@ namespace ConsoleApp1
         }
         static void TestTypeBuild()
         {
-            var types = new Type[] { typeof(int), typeof(string) };
-            var runtime = types.BuildType();
-            var dyy = new {A=1 }.GetType();
-            var attrs = dyy.GetCustomAttributes();
-            var cons = dyy.GetConstructors();
-            var ffs = dyy.GetRuntimeFields();
+            var dyy = new { A = 1, B = "2", C = 3, D = 4, E = 5, F = 6, G = 7, H = 8, I = 9, J = "10" };
+            var type_dyy = dyy.GetType();
+            var cons_dyy = type_dyy.GetConstructors();
+            var cons_dyy_pps = type_dyy.GetConstructors()[0].GetParameters();
+            var props_dyy = type_dyy.GetProperties();
+
+            var types = new Type[] { typeof(string),typeof(int), typeof(int), typeof(int), typeof(int) };
+            var runtime = type_dyy.GetProperties().BuildType();
+            
+            
+            var cons_runtime = runtime.GetConstructors();
+            var cons_runtime_pps = runtime.GetConstructors()[0].GetParameters();
+            var props_runtime = runtime.GetProperties();
+            object run = Activator.CreateInstance(runtime, new object[] { 1, "2", 3,4,5,6,7,8,9,"10"  });
+            //props_runtime[1].SetValue(run, 5678);
             //var dy = BuildDynamicTypeWithProperties();
             TestTestTypeBuild1();
             AssemblyName aName = new AssemblyName("DynamicAssemblyExample");
@@ -474,9 +483,9 @@ namespace ConsoleApp1
         static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
-            
-            TestTypeBuild();
-            return;
+
+            //TestTypeBuild();
+            //return;
 
             ////List<int> testlist = Enumerable.Range(1, 5).ToList();
             ////var qur = testlist.AsQueryable();
@@ -511,6 +520,10 @@ namespace ConsoleApp1
             installs.Add(new InstalledApp() { DisplayName = "A", IsOfficial = true });
             installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
+
+            List<int> l1 = new List<int>() { 1, 2, 3, 4, 5 };
+            List<string> l2 = new List<string>() { "1", "2", "3"};
+            
 
             List<int> lll = new List<int>();
             lll.Add(1);
@@ -649,8 +662,9 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
-            //regt1.Update(x => new { DisplayName = x.DisplayName });
-            //regt1.Update(x => new InstalledApp(x) {DisplayName=x.DisplayName, Version = new Version(10,10,10,10) });
+            //regt1.Select(x => new InstalledApp() { DisplayName = x.DisplayName });
+            //regt1.Update(x => new { DisplayName = x.DisplayName, EstimatedSize = x.EstimatedSize });
+            regt1.Update(x => new InstalledApp() {DisplayName=x.DisplayName, EstimatedSize=x.EstimatedSize });
             //regt.Insert(Enumerable.Repeat(new InstalledApp(), 3));
             //int remove_count2 = regt.RemoveAll();
             //var yj = regt1.Take(2);

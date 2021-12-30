@@ -50,22 +50,16 @@ namespace QSoft.Registry.Linq
 
         public static Type BuildType(this IEnumerable<Tuple<Type, string>> types)
         {
-            AssemblyName aName = new AssemblyName("DynamicAssemblyExample");
+            AssemblyName aName = new AssemblyName("RegQuery");
             AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
 
-            // For a single-module assembly, the module name is usually
-            // the assembly name plus an extension.
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
-            TypeBuilder tb = mb.DefineType($"AnyoumusType_{DateTime.Now.ToString("yyyyMmddHHmmssffffff")}", TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{{{types.Count()}}}", TypeAttributes.Public);
 
-            // Add a private field of type int (Int32).
-            //FieldBuilder fbNumber = tb.DefineField("m_number", typeof(int), FieldAttributes.Private);
 
             var fileds = types.Select((x, i) => tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private)).ToList();
-            // Define a constructor that takes an integer argument and
-            // stores it in the private field.
-            //Type[] parameterTypes = { typeof(int) };
+
             Type[] parameterTypes = types.Select(x => x.Item1).ToArray();
             ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
 
@@ -78,22 +72,6 @@ namespace QSoft.Registry.Linq
                 ctor1IL.Emit(OpCodes.Ldarg_S, i + 1);
                 ctor1IL.Emit(OpCodes.Stfld, fileds[i]);
             }
-            //ctor1IL.Emit(OpCodes.Ldarg_0);
-            //ctor1IL.Emit(OpCodes.Ldarg_1);
-            //ctor1IL.Emit(OpCodes.Stfld, fileds[0]);
-            //ctor1IL.Emit(OpCodes.Ldarg_0);
-            //ctor1IL.Emit(OpCodes.Ldarg_2);
-            //ctor1IL.Emit(OpCodes.Stfld, fileds[1]);
-            //ctor1IL.Emit(OpCodes.Ldarg_0);
-            //ctor1IL.Emit(OpCodes.Ldarg_3);
-            //ctor1IL.Emit(OpCodes.Stfld, fileds[2]);
-
-            //ctor1IL.Emit(OpCodes.Ldarg_0);
-            //ctor1IL.Emit(OpCodes.Ldarg_S, 4);
-            //ctor1IL.Emit(OpCodes.Stfld, fileds[3]);
-            //ctor1IL.Emit(OpCodes.Ldarg_0);
-            //ctor1IL.Emit(OpCodes.Ldarg_S, 5);
-            //ctor1IL.Emit(OpCodes.Stfld, fileds[4]);
 
             ctor1IL.Emit(OpCodes.Ret);
 
@@ -104,6 +82,11 @@ namespace QSoft.Registry.Linq
             }
 
             return tb.CreateType();
+        }
+
+        public static Type BuildType(this IEnumerable<ParameterInfo> types)
+        {
+            return types.Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType();
         }
 
         public static Type BuildType(this IEnumerable<PropertyInfo> types)
@@ -124,7 +107,7 @@ namespace QSoft.Registry.Linq
             return count;
         }
 
-        static public MethodInfo SelectMethod(this Type datatype)
+        static public MethodInfo SelectMethod(this Type dst, Type src=null)
         {
             var select_method = typeof(Queryable).GetMethods().FirstOrDefault(x =>
             {
@@ -143,7 +126,16 @@ namespace QSoft.Registry.Linq
                 }
                 return hr;
             });
-            return select_method?.MakeGenericMethod(typeof(RegistryKey), datatype);
+            MethodInfo method = null;
+            if(src == null)
+            {
+                method = select_method?.MakeGenericMethod(typeof(RegistryKey), dst);
+            }
+            else
+            {
+                method = select_method?.MakeGenericMethod(src, dst);
+            }
+            return method;
         }
 
         static public MethodInfo SelectMethod_Enumerable(this Type datatype)
@@ -168,16 +160,39 @@ namespace QSoft.Registry.Linq
             return select_method?.MakeGenericMethod(typeof(RegistryKey), datatype);
         }
 
-        static public Expression ToSelectData(this Type datatype, ParameterExpression pp = null)
+        static public Expression ToSelectData(this Type dst, ParameterExpression pp = null, Type src=null)
         {
             if (pp == null)
             {
-                pp = Expression.Parameter(typeof(RegistryKey), "x");
+                if(src == null)
+                {
+                    pp = Expression.Parameter(typeof(RegistryKey), "x");
+                }
+                else
+                {
+                    pp = Expression.Parameter(src, "x");
+                }
             }
-            var todata = datatype.ToData(pp);
-            var lambda = Expression.Lambda(todata, pp);
-            var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            Expression todata = null;
+            if(src == null)
+            {
+                todata = dst.ToData(pp);
+            }
+            else
+            {
+                todata = dst.CopyData(src, pp);
+            }
 
+            var lambda = Expression.Lambda(todata, pp);
+            UnaryExpression unary = null;
+            if (src == null)
+            {
+                unary = Expression.MakeUnary(ExpressionType.Quote, lambda, typeof(RegistryKey));
+            }
+            else
+            {
+                unary = Expression.MakeUnary(ExpressionType.Quote, lambda, src);
+            }
             return unary;
         }
 
@@ -200,11 +215,41 @@ namespace QSoft.Registry.Linq
             return lambda;
         }
 
-        static public Expression ToData(this Type datatype, ParameterExpression param)
+        static public Expression CopyData(this Type dst, Type src, ParameterExpression param)
+        {
+            var dst_pps = dst.GetProperties();
+            var dst_ccs = dst.GetConstructors();
+
+            var src_pps = src.GetProperties();
+            var src_ccs = src.GetConstructors();
+
+            var pps = src_pps.Zip(dst_pps, (x, y) => new { src = x, dst = y });
+            List<Expression> exprs = new List<Expression>();
+            foreach(var pp in pps)
+            {
+                if(pp.src.PropertyType == typeof(RegistryKey))
+                {
+                    var param1 = Expression.Property(param, pp.dst.Name);
+                    var expr = pp.dst.PropertyType.ToData(param1);
+                    exprs.Add(expr);
+                    
+                }
+                else
+                {
+                    var param1 = Expression.Property(param, pp.dst.Name);
+                    exprs.Add(param1);
+                }
+            }
+            var memberinit = Expression.New(dst_ccs[0], exprs, dst.GetProperties());
+            return memberinit;
+            return null;
+        }
+
+        static public Expression ToData(this Type dst, Expression param)
         {
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-            var pps = datatype.GetProperties().Where(x => x.CanWrite == true && x.GetCustomAttributes(typeof(RegIgnore), true).Length == 0);
-            var ccs = datatype.GetConstructors();
+            var pps = dst.GetProperties().Where(x => x.CanWrite == true && x.GetCustomAttributes(typeof(RegIgnore), true).Length == 0);
+            var ccs = dst.GetConstructors();
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
             {

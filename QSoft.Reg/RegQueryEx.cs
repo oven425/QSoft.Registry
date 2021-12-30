@@ -14,7 +14,7 @@ namespace QSoft.Registry.Linq
     {
         public static int Insert<TSource, TData>(this RegQuery<TSource> source, IEnumerable<TData> datas) where TData : class
         {
-            var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Insert");
+            var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic|BindingFlags.Static).Where(x => x.Name == "Insert");
             //var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TData)), source.Expression, Expression.Constant(datas, typeof(IEnumerable<TData>)));
             var reg = source.ToRegistryKey();
             var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TData)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TData>)));
@@ -23,7 +23,7 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
-        public static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas)
+        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas)
         {
             int count = 0;
             var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
@@ -63,12 +63,12 @@ namespace QSoft.Registry.Linq
 
         public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) where TResult : class
         {
-            var updates = typeof(RegQueryEx).GetMethods().Where(x => x.Name == "Update");
+            var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic|BindingFlags.Static).Where(x => x.Name == "Update");
             var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
             return source.Provider.Execute<int>(methdodcall);
         }
 
-        public static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> data)
+        static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> data)
         {
             var regs = source as IEnumerable<RegistryKey>;
             if (regs == null)
@@ -109,7 +109,7 @@ namespace QSoft.Registry.Linq
 
         //public static int RemoveAll<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
         //{
-        //    var removeall = typeof(RegQueryEx).GetMethods().FirstOrDefault(x =>
+        //    var removeall = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic|BindingFlags.Static).FirstOrDefault(x =>
         //    {
         //        Type[] types = new Type[] { typeof(IEnumerable<TSource>).GetGenericTypeDefinition(), typeof(Func<TSource, bool>).GetGenericTypeDefinition() };
         //        bool result = false;
@@ -124,7 +124,7 @@ namespace QSoft.Registry.Linq
         //    return source.Provider.Execute<int>(methdodcall);
         //}
 
-        //public static int RemoveAll<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        //static int RemoveAll<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         //{
         //    Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
         //    var regs = source as IEnumerable<RegistryKey>;
@@ -161,7 +161,7 @@ namespace QSoft.Registry.Linq
 
         public static int RemoveAll<TSource>(this IQueryable<TSource> source)
         {
-            var removeall = typeof(RegQueryEx).GetMethods().FirstOrDefault(x =>
+            var removeall = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).FirstOrDefault(x =>
             {
                 bool result = false;
                 if (x.Name == "RemoveAll" && x.IsGenericMethod == true)
@@ -178,7 +178,7 @@ namespace QSoft.Registry.Linq
             return source.Provider.Execute<int>(methdodcall);
         }
 
-        public static int RemoveAll<TSource>(this IEnumerable<TSource> source)
+        static int RemoveAll<TSource>(this IEnumerable<TSource> source)
         {
             Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
             var regs = source as IEnumerable<RegistryKey>;

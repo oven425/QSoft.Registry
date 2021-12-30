@@ -206,39 +206,11 @@ namespace QSoft.Registry.Linq
         }
 
         bool m_IsWritable = false;
-        //IQueryable<RegistryKey> m_Regs;
-        //public IQueryable<RegistryKey> CreateRegs()
-        //{
-        //    RegistryKey reg = this.Setting.Open();
-        //    var subkeynames = reg.GetSubKeyNames();
 
-        //    if (this.m_Regs?.Count() > 0)
-        //    {
-        //        foreach (var oo in this.m_Regs)
-        //        {
-        //            oo.Close();
-        //            oo.Dispose();
-        //        }
-        //    }
-
-        //    List<RegistryKey> regs = new List<RegistryKey>();
-
-
-        //    foreach (var subkeyname in subkeynames)
-        //    {
-        //        regs.Add(reg.OpenSubKey(subkeyname, m_IsWritable));
-        //    }
-        //    return m_Regs = regs.AsQueryable();
-        //}
 
         List<RegistryKey> m_Regs = new List<RegistryKey>();
         public IQueryable<RegistryKey> CreateRegs()
         {
-            //foreach (var oo in this.m_Regs)
-            //{
-            //    oo.Close();
-            //}
-            //this.m_Regs.Clear();
             if (this.m_Regs.Count == 0)
             {
                 RegistryKey reg = this.Setting.Create();
@@ -249,11 +221,6 @@ namespace QSoft.Registry.Linq
                 }
             }
             return m_Regs.AsQueryable();
-        }
-
-        void CheckRefresh()
-        {
-
         }
 
         public TResult Execute<TResult>(Expression expression)
@@ -287,7 +254,6 @@ namespace QSoft.Registry.Linq
                     var sd = typeof(TData).ToSelectData();
                     var select = typeof(TData).SelectMethod();
                     updatemethod = Expression.Call(select, updatemethod, sd);
-
                 }
                 else if (updatemethod?.Method.Name == "GroupBy")
                 {
@@ -318,6 +284,21 @@ namespace QSoft.Registry.Linq
                     var pps = updatemethod.Method.GetParameters();
                     var join = updatemethod.Type.GetGenericArguments()[0].GetGenericArguments();
                     
+                }
+                else
+                {
+                    var ttype1 = updatemethod.Type;
+                    if(ttype1.GetGenericTypeDefinition() == typeof(IQueryable<>))
+                    {
+                        var ty = ttype1.GetGenericArguments()[0].GetProperties();
+                    }
+                    var sd = type.GetGenericArguments()[0].ToSelectData(null, updatemethod.Type.GetGenericArguments()[0]);
+                    var select = typeof(TResult).GetGenericArguments()[0].SelectMethod(updatemethod.Type.GetGenericArguments()[0]);
+                    updatemethod = Expression.Call(select, updatemethod, sd);
+
+                    //var args = exprs1.Select(x => x.Value).ToList();
+                    //args[0] = selectexpr;
+                    //methodcall = Expression.Call(expr.Method, args);
                 }
 
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);

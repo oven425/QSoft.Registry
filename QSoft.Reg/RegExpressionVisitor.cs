@@ -92,6 +92,7 @@ namespace QSoft.Registry.Linq
                             var param = this.m_Parameters[parameter.Name];
                             var todata = typeof(TData).ToData(param);
                             exprs[exprs.ElementAt(i).Key] = todata;
+                            exprs[exprs.ElementAt(i).Key] = this.m_Parameters[parameter.Name];
                         }
                     }
                     else
@@ -123,7 +124,22 @@ namespace QSoft.Registry.Linq
             else
             {
                 var members = expr.Members.ToArray();
-                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
+                var con_pps = expr.Constructor.GetParameters();
+                var pps1 = con_pps.Select(x =>
+                {
+                    Type type = x.ParameterType;
+                    if(x.ParameterType == typeof(TData))
+                    {
+                        type = typeof(RegistryKey);
+                    }
+                    return Tuple.Create(type, x.Name);
+                });
+                
+                var anyt = pps1.BuildType();
+                var anyt_con = anyt.GetConstructors();
+                var mems = anyt.GetMembers();
+                 var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value), anyt.GetProperties());
+                //var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
                 this.m_ExpressionSaves[expr] = expr_new;
             }
 

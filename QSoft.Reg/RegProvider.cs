@@ -223,6 +223,7 @@ namespace QSoft.Registry.Linq
             return m_Regs.AsQueryable();
         }
 
+
         public TResult Execute<TResult>(Expression expression)
         {
             var tte = new List<RegistryKey>().AsQueryable();
@@ -279,12 +280,12 @@ namespace QSoft.Registry.Linq
 
                     }
                 }
-                else if (updatemethod?.Method.Name == "Join")
-                {
-                    var pps = updatemethod.Method.GetParameters();
-                    var join = updatemethod.Type.GetGenericArguments()[0].GetGenericArguments();
+                //else if (updatemethod?.Method.Name == "Join")
+                //{
+                //    var pps = updatemethod.Method.GetParameters();
+                //    var join = updatemethod.Type.GetGenericArguments()[0].GetGenericArguments();
                     
-                }
+                //}
                 else
                 {
                     var ttype1 = updatemethod.Type;
@@ -293,8 +294,12 @@ namespace QSoft.Registry.Linq
                         var ty = ttype1.GetGenericArguments()[0].GetProperties();
                     }
                     var sd = type.GetGenericArguments()[0].ToSelectData(null, updatemethod.Type.GetGenericArguments()[0]);
-                    var select = typeof(TResult).GetGenericArguments()[0].SelectMethod(updatemethod.Type.GetGenericArguments()[0]);
-                    updatemethod = Expression.Call(select, updatemethod, sd);
+                    if(sd != null)
+                    {
+                        var select = typeof(TResult).GetGenericArguments()[0].SelectMethod(updatemethod.Type.GetGenericArguments()[0]);
+                        updatemethod = Expression.Call(select, updatemethod, sd);
+                    }
+                    
 
                     //var args = exprs1.Select(x => x.Value).ToList();
                     //args[0] = selectexpr;

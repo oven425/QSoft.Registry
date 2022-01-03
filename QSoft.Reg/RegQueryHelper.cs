@@ -48,19 +48,54 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static Type BuildType(this IEnumerable<Tuple<Type, string>> types)
+        public static Type BuildType(this IEnumerable<Tuple<Type, string>> types, IEnumerable<Type> exists)
         {
+            
             AssemblyName aName = new AssemblyName("RegQuery");
             AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
 
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
+            
             TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{{{types.Count()}}}", TypeAttributes.Public);
 
+            var tts = new List<Tuple<Type, string>>();
+            var types1 = types.ToList();
+            int existindex = types1.Count - exists.Count();
+            for (int i=0; i<types1.Count; i++)
+            {
+                if(i< existindex)
+                {
+                    tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
+                }
+                else
+                {
+                    tts.Add(Tuple.Create(exists.ElementAt(i-existindex), types1[i].Item2));
+                }
+            }
+            //int existindex = types.Count() - exists.Count();
+            //foreach(var oo in types)
+            //{
+            //    tts.Add(Tuple.Create(oo.Item1, oo.Item2));
+            //    if(--existindex <= 0)
+            //    {
+            //        break;
+            //    }
+            //}
+            //foreach(var oo in exists)
+            //{
+            //    tts.Add(Tuple.Create(oo.Item1, oo.Item2));
+            //}
+            var fileds = tts.Select((x, i) =>
+            {
+                if (Type.GetTypeCode(x.Item1) == TypeCode.Object && x.Item1 != typeof(RegistryKey))
+                {
+                    //x.Item1.GetConstructors()[0].GetParameters().BuildType();
+                }
+                return tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private);
+            }).ToList();
 
-            var fileds = types.Select((x, i) => tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private)).ToList();
-
-            Type[] parameterTypes = types.Select(x => x.Item1).ToArray();
+            Type[] parameterTypes = tts.Select(x => x.Item1).ToArray();
             ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
 
             ILGenerator ctor1IL = ctor1.GetILGenerator();
@@ -81,17 +116,22 @@ namespace QSoft.Registry.Linq
                 AddProperty(tb, oo, true, false);
             }
 
+            foreach(var oo in exists)
+            {
+
+            }
+
             return tb.CreateType();
         }
 
         public static Type BuildType(this IEnumerable<ParameterInfo> types)
         {
-            return types.Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType();
+            return types.Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType(null);
         }
 
         public static Type BuildType(this IEnumerable<PropertyInfo> types)
         {
-            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType();
+            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType(null);
         }
         static public int Replace(this Type[] datas, Type src, Type dst)
         {
@@ -105,6 +145,21 @@ namespace QSoft.Registry.Linq
             }
 
             return count;
+        }
+
+        public static IEnumerable<Tuple<Type, string>> Replace(this IEnumerable<ParameterInfo> datas, Type src, Type dst)
+        {
+            foreach(var oo in datas)
+            {
+                if(oo.ParameterType == src)
+                {
+                    yield return Tuple.Create(dst, oo.Name);
+                }
+                else
+                {
+                    yield return Tuple.Create(oo.ParameterType, oo.Name);
+                }
+            }
         }
 
         static public MethodInfo SelectMethod(this Type dst, Type src=null)
@@ -182,7 +237,10 @@ namespace QSoft.Registry.Linq
             {
                 todata = dst.CopyData(src, pp);
             }
-
+            if(todata == null)
+            {
+                return null;
+            }
             var lambda = Expression.Lambda(todata, pp);
             UnaryExpression unary = null;
             if (src == null)
@@ -215,7 +273,7 @@ namespace QSoft.Registry.Linq
             return lambda;
         }
 
-        static public Expression CopyData(this Type dst, Type src, ParameterExpression param)
+        static public Expression CopyData(this Type dst, Type src, Expression param)
         {
             var dst_pps = dst.GetProperties();
             var dst_ccs = dst.GetConstructors();
@@ -224,6 +282,7 @@ namespace QSoft.Registry.Linq
             var src_ccs = src.GetConstructors();
 
             var pps = src_pps.Zip(dst_pps, (x, y) => new { src = x, dst = y });
+            bool hasreg = false;
             List<Expression> exprs = new List<Expression>();
             foreach(var pp in pps)
             {
@@ -232,7 +291,20 @@ namespace QSoft.Registry.Linq
                     var param1 = Expression.Property(param, pp.dst.Name);
                     var expr = pp.dst.PropertyType.ToData(param1);
                     exprs.Add(expr);
-                    
+                    hasreg = true;
+                }
+                else if(pp.src.PropertyType.IsGenericType == true&&pp.src.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+
+                }
+                else if(Type.GetTypeCode(pp.src.PropertyType) == TypeCode.Object)
+                {
+                    var expr = CopyData(pp.dst.PropertyType, pp.src.PropertyType, Expression.Property(param, pp.dst.Name));
+                    if(expr == null)
+                    {
+                        expr = Expression.Property(param, pp.dst.Name);
+                    }
+                    exprs.Add(expr);
                 }
                 else
                 {
@@ -240,9 +312,12 @@ namespace QSoft.Registry.Linq
                     exprs.Add(param1);
                 }
             }
-            var memberinit = Expression.New(dst_ccs[0], exprs, dst.GetProperties());
+            Expression memberinit = null;
+            if(hasreg == true)
+            {
+                memberinit = Expression.New(dst_ccs[0], exprs, dst.GetProperties());
+            }
             return memberinit;
-            return null;
         }
 
         static public Expression ToData(this Type dst, Expression param)

@@ -210,13 +210,19 @@ namespace ConsoleApp1
 
 
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-            var rr = queryable.Select((x,idx) => new { reg = x,index=idx }).Select(x => new
+            var rr = queryable.Select((x,idx) => new { reg = x,index=idx, a=new { x, idx} }).Select(x => new
             {
                 reg = new InstalledApp()
                 {
                     DisplayName = x.reg.GetValue<string>("DisplayName")
                 },
-                index= x.index
+                index= x.index,
+                a=new {
+                    x = new InstalledApp()
+                    {
+                        DisplayName = x.a.x.GetValue<string>("DisplayName")
+                    }
+                }
             });
             //var rr = queryable.Select(x => new
             //{
@@ -317,8 +323,15 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
-            var sli = regt1.Select((x,idx) => new { reg = x, index=idx });
-            foreach(var oo in sli)
+            //var sli = regt1.Select((x, idx) => new { reg = x, index = idx.ToString() });
+            //foreach (var oo in sli)
+            //{
+
+            //}
+
+            var j1 = regt1.Take(2).ToList();
+            var join = regt1.Join(j1, x => x.DisplayName, y => y.DisplayName, (x, y) => new {version = x.Version,name=y.DisplayName });
+            foreach(var oo in join)
             {
 
             }

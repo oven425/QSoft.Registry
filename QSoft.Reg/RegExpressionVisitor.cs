@@ -97,13 +97,12 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        var param = this.m_Parameters[parameter.Name];
-                        if(param.Type == typeof(TData))
-                        {
-                            var todata = typeof(TData).ToData(param);
-                            exprs[exprs.ElementAt(i).Key] = todata;
-                        }
-                        
+                        //var param = this.m_Parameters[parameter.Name];
+                        //if(param.Type == typeof(TData))
+                        //{
+                        //    var todata = typeof(TData).ToData(param);
+                        //    exprs[exprs.ElementAt(i).Key] = todata;
+                        //}
                     }
                 }
             }
@@ -123,22 +122,35 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-                var members = expr.Members.ToArray();
                 var con_pps = expr.Constructor.GetParameters();
-                var pps1 = con_pps.Select(x =>
+
+                //var pps1 = con_pps.Select(x =>
+                //{
+                //    Type type = x.ParameterType;
+                //    if(x.ParameterType == typeof(TData))
+                //    {
+                //        type = typeof(RegistryKey);
+                //    }
+                //    return Tuple.Create(type, x.Name);
+                //});
+
+                //var pps1 = con_pps.Replace(typeof(TData), typeof(RegistryKey));
+
+                Expression expr_new = null;
+                if (exprs.Select(x=>x.Value.Type).Any(x=>x == typeof(RegistryKey)))
                 {
-                    Type type = x.ParameterType;
-                    if(x.ParameterType == typeof(TData))
-                    {
-                        type = typeof(RegistryKey);
-                    }
-                    return Tuple.Create(type, x.Name);
-                });
+                    var pps1 = con_pps.Replace(typeof(TData), typeof(RegistryKey));
+
+                    var list = exprs.Where(x => Type.GetTypeCode(x.Value.Type) == TypeCode.Object && x.Value.Type != typeof(RegistryKey)).ToList();
+                    var anyt = pps1.BuildType(exprs.Where(x => Type.GetTypeCode(x.Value.Type) == TypeCode.Object && x.Value.Type != typeof(RegistryKey)).Select(x => x.Value.Type));
+                    var po = anyt.GetProperties();
+                    expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value), anyt.GetProperties());
+                }
+                else
+                {
+                    expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
+                }
                 
-                var anyt = pps1.BuildType();
-                var anyt_con = anyt.GetConstructors();
-                var mems = anyt.GetMembers();
-                 var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value), anyt.GetProperties());
                 //var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
                 this.m_ExpressionSaves[expr] = expr_new;
             }

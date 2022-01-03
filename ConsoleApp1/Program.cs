@@ -323,11 +323,11 @@ namespace ConsoleApp1
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                     x.View = RegistryView.Registry64;
                 });
-            //var sli = regt1.Select((x, idx) => new { reg = x, index = idx.ToString() });
-            //foreach (var oo in sli)
-            //{
+            var sli = regt1.Select((x, idx) => new { reg = x, index = idx.ToString() });
+            foreach (var oo in sli)
+            {
 
-            //}
+            }
 
             var j1 = regt1.Take(2).ToList();
             var join = regt1.Join(j1, x => x.DisplayName, y => y.DisplayName, (x, y) => new {version = x.Version,name=y.DisplayName });

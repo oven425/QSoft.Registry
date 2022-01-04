@@ -490,6 +490,11 @@ namespace QSoft.Registry.Linq
 
         void PreparMethod(Expression node, Expression[] args, MethodInfo method)
         {
+            var lo = args.Select((x,idx) =>
+            {
+                bool bb = x.Type.GetGenericTypeDefinition() == typeof(RegQuery<>);
+                return new { bb, idx };
+            }).Where(x=>x.bb==true);
             m_ExpressionSaves[node] = null;
             System.Diagnostics.Debug.WriteLine($"PreparMethod {method?.Name}");
            
@@ -500,7 +505,11 @@ namespace QSoft.Registry.Linq
                 var dicc = method.GetGenericMethodDefinition().GetGenericArguments();
                 for (int i = 0; i < dicc.Length; i++)
                 {
-                    if (i == 0)
+                    if(lo.Any(x => x.idx == i))
+                    {
+                        this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
+                    }
+                    else if (i==0)
                     {
                         if (dic[i].ParameterType == typeof(IEnumerable<TData>))
                         {
@@ -576,7 +585,16 @@ namespace QSoft.Registry.Linq
                         }
                         if (invoke != null)
                         {
-                            m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                            var invokepps = invoke.GetParameters().Select(x=>x.ParameterType.Name).First();
+                            if(this.m_GenericTypes.First().ContainsKey(invokepps) && this.m_GenericTypes.First()[invokepps] == typeof(RegistryKey))
+                            {
+                                m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                            }
+                            else
+                            {
+                                m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                            }
+                            
                         }
                     }
                 }

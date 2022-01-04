@@ -142,7 +142,7 @@ namespace ConsoleApp1
 
 
 
-            //TestDB();
+            TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -318,19 +318,19 @@ namespace ConsoleApp1
 
             var regt1 = new RegQuery<InstalledApp>()
                 .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-                    x.View = RegistryView.Registry64;
-                });
-            var sli = regt1.Select((x, idx) => new { reg = x, index = idx.ToString() });
-            foreach (var oo in sli)
-            {
+                    {
+                        x.Hive = RegistryHive.LocalMachine;
+                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                        x.View = RegistryView.Registry64;
+                    });
+            //var sli = regt1.Select((x, idx) => new { reg = x, index = idx.ToString() });
+            //foreach (var oo in sli)
+            //{
 
-            }
+            //}
 
-            var j1 = regt1.Take(2).ToList();
-            var join = regt1.Join(j1, x => x.DisplayName, y => y.DisplayName, (x, y) => new {version = x.Version,name=y.DisplayName });
+            //var j1 = regt1.Take(2).ToList();
+            var join = regt1.Join(regt, x => x.DisplayName, y => y.DisplayName, (x, y) => new {one=x,tow=y });
             foreach(var oo in join)
             {
 
@@ -687,28 +687,30 @@ namespace ConsoleApp1
             //    new Company(){Name = "Company_D", ID=4},
             //    new Company(){Name = "Company_E", ID=5},
             //});
-            regt_apps.RemoveAll();
-            regt_apps.Insert(new List<InstalledApp>()
-            {
-                new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0},
-                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 },
-                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 },
-                new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 },
-                new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 },
-                new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 },
-                new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
-                new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
-            });
+            //regt_apps.RemoveAll();
+            //regt_apps.Insert(new List<InstalledApp>()
+            //{
+            //    new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0},
+            //    new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 },
+            //    new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 },
+            //    new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 },
+            //    new InstalledApp() { Key = "CC", DisplayName = "CC", Version = new Version("3.3.3.3"), EstimatedSize = 30, ID = 4 },
+            //    new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 },
+            //    new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
+            //    new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
+            //});
 
-            regt_appmapping.RemoveAll();
-            regt_appmapping.Insert(new List<AppMapping>()
-            {
-                new AppMapping(){AppID = 0, CompanyID = 1},
-                new AppMapping(){AppID = 1, CompanyID = 1},
-                new AppMapping(){AppID = 2, CompanyID = 1},
-                new AppMapping(){AppID = 3, CompanyID = 1},
-                new AppMapping(){AppID = 4, CompanyID = 2}
-            });
+            //regt_appmapping.RemoveAll();
+            //regt_appmapping.Insert(new List<AppMapping>()
+            //{
+            //    new AppMapping(){AppID = 0, CompanyID = 1},
+            //    new AppMapping(){AppID = 1, CompanyID = 1},
+            //    new AppMapping(){AppID = 2, CompanyID = 1},
+            //    new AppMapping(){AppID = 3, CompanyID = 1},
+            //    new AppMapping(){AppID = 4, CompanyID = 2}
+            //});
+
+
             //var applist = from company in regt_company where company.ID==1 select new { company };
             //var applist = from company in regt_company
             //              join appmapping in regt_appmapping
@@ -726,14 +728,18 @@ namespace ConsoleApp1
             //var join = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new {x,y });
             //var gj = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
 
+            var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y });
+            foreach(var oo in left2)
+            {
 
-            var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
-                .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
+            }
+            //var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
+            //    .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
 
-            var left1 = from company in regt_company
-                       join map in regt_appmapping on company.ID equals map.CompanyID into temp
-                       from mapresult in temp.DefaultIfEmpty()
-                       select new { company, mapresult };
+            //var left1 = from company in regt_company
+            //           join map in regt_appmapping on company.ID equals map.CompanyID into temp
+            //           from mapresult in temp.DefaultIfEmpty()
+            //           select new { company, mapresult };
             //left1.Where(x => x.mapresult == null).Select(x => x.company).RemoveAll();
 
 

@@ -17,14 +17,14 @@ namespace QSoft.Registry.Linq
             this.Expression = Expression.Constant(this);
         }
 
-        RegSetting m_Setting;
+        //RegSetting m_Setting;
         
         public RegQuery<T> useSetting(Action<RegSetting> data)
         {
             var provider = new RegProvider<T>();
             
             data(provider.Setting);
-            m_Setting = provider.Setting;
+            //m_Setting = provider.Setting;
             this.Provider = provider;
             return this;
         }

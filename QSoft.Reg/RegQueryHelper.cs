@@ -61,7 +61,12 @@ namespace QSoft.Registry.Linq
 
             var tts = new List<Tuple<Type, string>>();
             var types1 = types.ToList();
-            int existindex = types1.Count - exists.Count();
+            var exists_count = 0;
+            if(exists != null)
+            {
+                exists_count = exists.Count();
+            }
+            int existindex = types1.Count - exists_count;
             for (int i=0; i<types1.Count; i++)
             {
                 if(i< existindex)
@@ -116,10 +121,6 @@ namespace QSoft.Registry.Linq
                 AddProperty(tb, oo, true, false);
             }
 
-            foreach(var oo in exists)
-            {
-
-            }
 
             return tb.CreateType();
         }
@@ -266,7 +267,7 @@ namespace QSoft.Registry.Linq
         {
             if (pp == null)
             {
-                pp = Expression.Parameter(typeof(RegistryKey), "x");
+                pp = Expression.Parameter(typeof(RegistryKey), "z");
             }
             var todata = datatype.ToData(pp);
             var lambda = Expression.Lambda(todata, pp);
@@ -296,6 +297,15 @@ namespace QSoft.Registry.Linq
                 else if(pp.src.PropertyType.IsGenericType == true&&pp.src.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
 
+                }
+                else if(pp.src.PropertyType.IsGenericType==true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    var param1 = Expression.Property(param, pp.dst.Name);
+                    var ppp = param1.Expression as ParameterExpression;
+                    var sd = pp.dst.PropertyType.GetGenericArguments()[0].ToLambdaData();
+                    var select_method = pp.dst.PropertyType.GetGenericArguments()[0].SelectMethod_Enumerable();
+                    var aaaaa = Expression.Call(select_method, param1, sd);
+                    exprs.Add(aaaaa);
                 }
                 else if(Type.GetTypeCode(pp.src.PropertyType) == TypeCode.Object)
                 {

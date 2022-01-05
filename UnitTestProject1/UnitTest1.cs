@@ -154,11 +154,11 @@ namespace UnitTestProject1
                 new AppMapping(){AppID = 3, CompanyID = 0},
                 new AppMapping(){AppID = 4, CompanyID = 1}
             });
-            var comapnys = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => y).Join(regt, x=>x.AppID, y=>y.ID,(x,y)=>y);
-            foreach(var oo in comapnys)
-            {
+            //var comapnys = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => y).Join(regt, x=>x.AppID, y=>y.ID,(x,y)=>y);
+            //foreach(var oo in comapnys)
+            //{
 
-            }
+            //}
             //RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
             //var reg = regbase.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
             //try

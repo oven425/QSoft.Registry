@@ -142,7 +142,7 @@ namespace ConsoleApp1
 
 
 
-            TestDB();
+            //TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -210,20 +210,33 @@ namespace ConsoleApp1
 
 
             //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-            var rr = queryable.Select((x,idx) => new { reg = x,index=idx, a=new { x, idx} }).Select(x => new
-            {
-                reg = new InstalledApp()
+            //var rr = queryable.Select((x,idx) => new { reg = x,index=idx, a=new { x, idx} }).Select(x => new
+            //{
+            //    reg = new InstalledApp()
+            //    {
+            //        DisplayName = x.reg.GetValue<string>("DisplayName")
+            //    },
+            //    index= x.index,
+            //    a=new {
+            //        x = new InstalledApp()
+            //        {
+            //            DisplayName = x.a.x.GetValue<string>("DisplayName")
+            //        }
+            //    }
+            //});
+            var rr = queryable.Join(queryable, x => x.GetValue<string>("DisplayName"), y => y.GetValue<string>("DisplayName"), (x, y) => new { x, y })
+                .Select(x => new
                 {
-                    DisplayName = x.reg.GetValue<string>("DisplayName")
-                },
-                index= x.index,
-                a=new {
-                    x = new InstalledApp()
+                    key = new InstalledApp()
                     {
-                        DisplayName = x.a.x.GetValue<string>("DisplayName")
-                    }
-                }
-            });
+                        DisplayName = x.x.GetValue<string>("DisplayName")
+                    },
+                    values = x.y.Select(z => new InstalledApp()
+                    {
+                        DisplayName = z.GetValue<string>("DisplayName")
+                    })
+
+                });
             //var rr = queryable.Select(x => new
             //{
             //    reg = new InstalledApp()
@@ -328,7 +341,8 @@ namespace ConsoleApp1
             //{
 
             //}
-
+            var selectr_tuple = regt.Select(x => Tuple.Create(x.DisplayName));
+            //int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
             //var j1 = regt1.Take(2).ToList();
             var join = regt1.Join(regt, x => x.DisplayName, y => y.DisplayName, (x, y) => new {one=x,tow=y });
             foreach(var oo in join)
@@ -727,7 +741,7 @@ namespace ConsoleApp1
 
             //var join = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new {x,y });
             //var gj = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
-
+            var comp = regt_company.First(x=>x.Name == "Company_A");
             var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y });
             foreach(var oo in left2)
             {

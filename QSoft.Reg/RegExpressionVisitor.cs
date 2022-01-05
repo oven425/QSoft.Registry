@@ -492,7 +492,7 @@ namespace QSoft.Registry.Linq
         {
             var lo = args.Select((x,idx) =>
             {
-                bool bb = x.Type.GetGenericTypeDefinition() == typeof(RegQuery<>);
+                bool bb = x.Type.IsGenericType==true&&x.Type.GetGenericTypeDefinition() == typeof(RegQuery<>);
                 return new { bb, idx };
             }).Where(x=>x.bb==true);
             m_ExpressionSaves[node] = null;
@@ -588,7 +588,7 @@ namespace QSoft.Registry.Linq
                             var invokepps = invoke.GetParameters().Select(x=>x.ParameterType.Name).First();
                             if(this.m_GenericTypes.First().ContainsKey(invokepps) && this.m_GenericTypes.First()[invokepps] == typeof(RegistryKey))
                             {
-                                m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
+                                m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, invokepps);
                             }
                             else
                             {
@@ -725,6 +725,19 @@ namespace QSoft.Registry.Linq
                 var regprovider = reguqery?.Provider as RegProvider<TData>;
                 //this.m_ExpressionSaves[expr] = regprovider.m_RegSource;
                 expr1 = regprovider.m_RegSource;
+            }
+            else if(node.Type.IsGenericType==true&&node.Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
+            {
+                var aa = Convert.ChangeType(node.Value, node.Type);
+                var regquerytype = typeof(RegQuery<>).MakeGenericType(node.Type.GetGenericArguments()[0]);
+                var regprovidertype = typeof(RegProvider<>).MakeGenericType(node.Type.GetGenericArguments()[0]);
+                var pp_provider = regquerytype.GetProperty("Provider");
+                var provider = pp_provider.GetValue(node.Value, null);
+                var mems = regprovidertype.GetField("m_RegSource");
+                var regsource = mems.GetValue(provider) as MethodCallExpression;
+                //var provider = node.Type.GetProperty("Provider");
+                //var dd = provider.PropertyType.GetMembers();
+                expr1 = regsource;
             }
             //else if(node.Value is RegQuery<TData>)
             //{

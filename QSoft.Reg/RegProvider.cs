@@ -382,7 +382,6 @@ namespace QSoft.Registry.Linq
                 excute = tte.Provider.Execute(expr);
 
                 var excute_reg = excute as RegistryKey;
-                //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                 if (excute_reg != null)
                 {
                     inst = excute_reg.ToDataFunc<TResult>()(excute_reg);
@@ -391,14 +390,7 @@ namespace QSoft.Registry.Linq
                 {
                     inst = excute;
                 }
-                //if(this.m_Regs != null)
-                //{
-                //    foreach (var oo in this.m_Regs)
-                //    {
-                //        oo.Close();
-                //        oo.Dispose();
-                //    }
-                //}
+
                 return_hr = (TResult)inst;
             }
 

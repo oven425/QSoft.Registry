@@ -148,6 +148,45 @@ namespace QSoft.Registry.Linq
             return count;
         }
 
+        public static bool HaseRegistryKey(this Type src)
+        {
+            bool bb = false;
+            if(src == typeof(RegistryKey))
+            {
+                return true;
+            }
+            else
+            {
+                var typecode = Type.GetTypeCode(src);
+                if(typecode == TypeCode.Object)
+                {
+
+                    if(src.IsGenericType==true&&src.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    {
+                        bb = src.GetGenericArguments()[0].HaseRegistryKey();
+                    }
+                    else if (src.IsGenericType == true && (src.GetGenericTypeDefinition() == typeof(Func<,>)|| src.GetGenericTypeDefinition() == typeof(Func<,,>)))
+                    {
+                        bb = src.GetGenericArguments().Last().HaseRegistryKey();
+                    }
+                    else
+                    {
+                        foreach (var oo in src.GetProperties())
+                        {
+                            bb = oo.PropertyType.HaseRegistryKey();
+                            if(bb==true)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    
+                }
+            }
+
+            return bb;
+        }
+
         public static IEnumerable<Tuple<Type, string>> Replace(this IEnumerable<ParameterInfo> datas, Type src, Type dst)
         {
             foreach(var oo in datas)

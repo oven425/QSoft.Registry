@@ -65,7 +65,9 @@ namespace QSoft.Registry.Linq
                 else if (ttype_def == typeof(IQueryable<>) || ttype_def == typeof(IEnumerable<>) || ttype_def == typeof(IOrderedQueryable<>))
                 {
                     var group = ttype.GetGenericArguments()[0];
+                    
                     bool has = group.GetGenericArguments().Any(x => x == typeof(RegistryKey));
+                    has = group.HaseRegistryKey();
                     if (has == true)
                     {
                         this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);

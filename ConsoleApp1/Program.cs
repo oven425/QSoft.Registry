@@ -237,19 +237,24 @@ namespace ConsoleApp1
             //        })
 
             //    });
-            var rr = queryable.GroupJoin(queryable, a => a.GetValue<string>("DisplayName"), b => b.GetValue<string>("DisplayName"), (c, d) => new { c, d })
-                .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g })
-                .Select(h => new
-                {
-                    f= new InstalledApp()
-                    {
-                        DisplayName = h.c.GetValue<string>("DisplayName")
-                    },
-                    g = new InstalledApp()
-                    {
-                        DisplayName = h.g.GetValue<string>("DisplayName")
-                    }
-                });
+
+
+            //var rr = queryable.GroupJoin(queryable, a => a.GetValue<string>("DisplayName"), b => b.GetValue<string>("DisplayName"), (c, d) => new { c, d })
+            //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g })
+            //    .Select(h => new
+            //    {
+            //        f= new InstalledApp()
+            //        {
+            //            DisplayName = h.c.GetValue<string>("DisplayName")
+            //        },
+            //        g = new InstalledApp()
+            //        {
+            //            DisplayName = h.g.GetValue<string>("DisplayName")
+            //        }
+            //    });
+
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (key, reg) => new { reg })
+                .Select(x => x.reg.Select(y => new InstalledApp()));
 
 
 
@@ -262,13 +267,13 @@ namespace ConsoleApp1
             //        DisplayName = x.GetValue<string>("DisplayName")
             //    }
             //}).Select((x,i)=> new { app = x, index=i});
-            var ttype = rr.GetType();
-            MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            var unary = methodcall.Arguments[1] as UnaryExpression;
-            var lambda = unary.Operand as LambdaExpression;
-            var new1 = lambda.Body as NewExpression;
-            var memberinit = new1.Arguments[0] as MemberInitExpression;
-            ttype = new1.Arguments[0].GetType();
+            //var ttype = rr.GetType();
+            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
+            //var unary = methodcall.Arguments[1] as UnaryExpression;
+            //var lambda = unary.Operand as LambdaExpression;
+            //var new1 = lambda.Body as NewExpression;
+            //var memberinit = new1.Arguments[0] as MemberInitExpression;
+            //ttype = new1.Arguments[0].GetType();
 
             //var binary = lambda.Body as BinaryExpression;
             //var property = binary.Right as MemberExpression;
@@ -359,7 +364,9 @@ namespace ConsoleApp1
             //{
 
             //}
-            var selectr_tuple = regt.Select(x => Tuple.Create(x.DisplayName));
+            //var allo = regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10);
+            var avg1 = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }).ToList();
+            var selectr_tuple = regt.Where(x=>x.DisplayName != "").ToList();
             //int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
             //var j1 = regt1.Take(2).ToList();
             var join = regt1.Join(regt, x => x.DisplayName, y => y.DisplayName, (x, y) => new {one=x,tow=y });
@@ -760,6 +767,31 @@ namespace ConsoleApp1
             //var join = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new {x,y });
             //var gj = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
             //var comp = regt_company.First(x=>x.Name == "Company_A");
+
+            var queryreg_company = RegistryHive.CurrentConfig.OpenView64(@"UnitTest\Company", false).ToList().AsQueryable();
+            var queryreg_appmapping = RegistryHive.CurrentConfig.OpenView64(@"UnitTest\AppMapping", false).ToList().AsQueryable();
+            var rr = queryreg_company.GroupJoin(queryreg_appmapping, a => a.GetValue<string>("ID"), b => b.GetValue<string>("CompanyID"), (c, d) => new { c, d })
+                .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g })
+                .Select(h => new
+                {
+                    f = new Company()
+                    {
+                        Name = h.c.GetValue<string>("Name")
+                    },
+                    g = h.g==null?null:new AppMapping()
+                    {
+                        CompanyID = h.g.GetValue<int>("CompanyID")
+                    }
+                });
+            var methodcall = rr.Expression as MethodCallExpression;
+            var unary = methodcall.Arguments[1] as UnaryExpression;
+            var lambda = unary.Operand as LambdaExpression;
+            var new1 = lambda.Body as NewExpression;
+            var ifelse = new1.Arguments[1] as ConditionalExpression;
+            var binary = ifelse.Test as BinaryExpression;
+            var yu = ifelse.Test.GetType();
+            var oioi  = Expression.Condition(ifelse.Test, ifelse.IfTrue, ifelse.IfFalse);
+
             var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
                 .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
             foreach (var oo in left2)

@@ -258,30 +258,30 @@ namespace QSoft.Registry.Linq
                     var select = typeof(TData).SelectMethod();
                     updatemethod = Expression.Call(select, updatemethod, sd);
                 }
-                else if (updatemethod?.Method.Name == "GroupBy")
-                {
-                    var groupby = updatemethod.Type.GetGenericArguments()[0].GetGenericArguments();
-                    if (groupby.Length == 2 && groupby[1] == typeof(RegistryKey))
-                    {
-                        var methods = updatemethod.Method.ReflectedType.GetMethods().Where(x => x.Name == updatemethod.Method.Name);
-                        methods = methods.Where(x => x.GetGenericArguments().Length == 3);
-                        Type[] type3 = new Type[3];
-                        Array.Copy(updatemethod.Method.GetGenericArguments(), type3, 2);
-                        if(type3[1] == typeof(RegistryKey))
-                        {
-                            type3[1] = typeof(TData);
-                        }
-                        type3[2] = typeof(TData);
-                        var oo = methods.ElementAt(0).MakeGenericMethod(type3);
-                        Expression arg2 = updatemethod.Arguments[1];
-                        if(type3[1] == typeof(TData))
-                        {
-                            arg2 = typeof(TData).ToSelectData();
-                        }
-                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, typeof(TData).ToSelectData());
+                //else if (updatemethod?.Method.Name == "GroupBy")
+                //{
+                //    var groupby = updatemethod.Type.GetGenericArguments()[0].GetGenericArguments();
+                //    if (groupby.Length == 2 && groupby[1] == typeof(RegistryKey))
+                //    {
+                //        var methods = updatemethod.Method.ReflectedType.GetMethods().Where(x => x.Name == updatemethod.Method.Name);
+                //        methods = methods.Where(x => x.GetGenericArguments().Length == 3);
+                //        Type[] type3 = new Type[3];
+                //        Array.Copy(updatemethod.Method.GetGenericArguments(), type3, 2);
+                //        if(type3[1] == typeof(RegistryKey))
+                //        {
+                //            type3[1] = typeof(TData);
+                //        }
+                //        type3[2] = typeof(TData);
+                //        var oo = methods.ElementAt(0).MakeGenericMethod(type3);
+                //        Expression arg2 = updatemethod.Arguments[1];
+                //        if(type3[1] == typeof(TData))
+                //        {
+                //            arg2 = typeof(TData).ToSelectData();
+                //        }
+                //        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, typeof(TData).ToSelectData());
 
-                    }
-                }
+                //    }
+                //}
                 //else if (updatemethod?.Method.Name == "Join")
                 //{
                 //    var pps = updatemethod.Method.GetParameters();

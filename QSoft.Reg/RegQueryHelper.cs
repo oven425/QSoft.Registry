@@ -57,7 +57,7 @@ namespace QSoft.Registry.Linq
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
             
-            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{{{types.Count()}}}", TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{Guid.NewGuid()}", TypeAttributes.Public);
 
             var tts = new List<Tuple<Type, string>>();
             var types1 = types.ToList();
@@ -313,60 +313,88 @@ namespace QSoft.Registry.Linq
             return lambda;
         }
 
+        static void CopyData_IEnumable(this Type dst, Type src, Expression param)
+        {
+
+        }
+
         static public Expression CopyData(this Type dst, Type src, Expression param)
         {
-            var dst_pps = dst.GetProperties();
-            var dst_ccs = dst.GetConstructors();
-
-            var src_pps = src.GetProperties();
-            var src_ccs = src.GetConstructors();
-
-            var pps = src_pps.Zip(dst_pps, (x, y) => new { src = x, dst = y });
-            bool hasreg = false;
-            List<Expression> exprs = new List<Expression>();
-            foreach(var pp in pps)
+            if(dst.IsGenericType==true&& src == typeof(IEnumerable<RegistryKey>))
             {
-                if(pp.src.PropertyType == typeof(RegistryKey))
-                {
-                    var param1 = Expression.Property(param, pp.dst.Name);
-                    var expr = pp.dst.PropertyType.ToData(param1);
-                    exprs.Add(expr);
-                    hasreg = true;
-                }
-                else if(pp.src.PropertyType.IsGenericType == true&&pp.src.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
+                var sd = dst.GetGenericArguments()[0].ToLambdaData();
+                var select_method = dst.GetGenericArguments()[0].SelectMethod_Enumerable();
 
-                }
-                else if(pp.src.PropertyType.IsGenericType==true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                return Expression.Call(select_method, param, sd);
+            }
+            else
+            {
+                var dst_pps = dst.GetProperties();
+                var dst_ccs = dst.GetConstructors();
+
+                var src_pps = src.GetProperties();
+                var src_ccs = src.GetConstructors();
+
+                var pps = src_pps.Zip(dst_pps, (x, y) => new { src = x, dst = y });
+                bool hasreg = false;
+                List<Expression> exprs = new List<Expression>();
+                foreach (var pp in pps)
                 {
-                    var param1 = Expression.Property(param, pp.dst.Name);
-                    var ppp = param1.Expression as ParameterExpression;
-                    var sd = pp.dst.PropertyType.GetGenericArguments()[0].ToLambdaData();
-                    var select_method = pp.dst.PropertyType.GetGenericArguments()[0].SelectMethod_Enumerable();
-                    var aaaaa = Expression.Call(select_method, param1, sd);
-                    exprs.Add(aaaaa);
-                }
-                else if(Type.GetTypeCode(pp.src.PropertyType) == TypeCode.Object)
-                {
-                    var expr = CopyData(pp.dst.PropertyType, pp.src.PropertyType, Expression.Property(param, pp.dst.Name));
-                    if(expr == null)
+                    if (pp.src.PropertyType == typeof(RegistryKey))
                     {
-                        expr = Expression.Property(param, pp.dst.Name);
+                        var param1 = Expression.Property(param, pp.dst.Name);
+                        var expr = pp.dst.PropertyType.ToData(param1);
+                        var test = Expression.Equal(param1, Expression.Constant(null));
+                        var ifelse = Expression.Condition(test, Expression.Constant(null, pp.dst.PropertyType), expr);
+                        exprs.Add(ifelse);
+                        hasreg = true;
                     }
-                    exprs.Add(expr);
+                    else if (pp.src.PropertyType.IsGenericType == true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+
+                    }
+                    else if (pp.src.PropertyType.IsGenericType == true && pp.src.PropertyType == typeof(IEnumerable<RegistryKey>))
+                    {
+                        var param1 = Expression.Property(param, pp.dst.Name);
+                        var ppp = param1.Expression as ParameterExpression;
+                        var sd = pp.dst.PropertyType.GetGenericArguments()[0].ToLambdaData();
+                        var select_method = pp.dst.PropertyType.GetGenericArguments()[0].SelectMethod_Enumerable();
+                        var aaaaa = Expression.Call(select_method, param1, sd);
+                        exprs.Add(aaaaa);
+                        hasreg = true;
+                    }
+                    else if (pp.src.PropertyType.IsGenericType == true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    {
+                        var param1 = Expression.Property(param, pp.dst.Name);
+                        var ppp = param1.Expression as ParameterExpression;
+                        var sd = pp.dst.PropertyType.GetGenericArguments()[0].ToLambdaData();
+                        var select_method = pp.dst.PropertyType.GetGenericArguments()[0].SelectMethod_Enumerable();
+                        var aaaaa = Expression.Call(select_method, param1, sd);
+                        exprs.Add(aaaaa);
+                    }
+                    else if (Type.GetTypeCode(pp.src.PropertyType) == TypeCode.Object)
+                    {
+                        var expr = CopyData(pp.dst.PropertyType, pp.src.PropertyType, Expression.Property(param, pp.dst.Name));
+                        if (expr == null)
+                        {
+                            expr = Expression.Property(param, pp.dst.Name);
+                        }
+                        exprs.Add(expr);
+                    }
+                    else
+                    {
+                        var param1 = Expression.Property(param, pp.dst.Name);
+                        exprs.Add(param1);
+                    }
                 }
-                else
+                Expression memberinit = null;
+                if (hasreg == true)
                 {
-                    var param1 = Expression.Property(param, pp.dst.Name);
-                    exprs.Add(param1);
+                    memberinit = Expression.New(dst_ccs[0], exprs, dst.GetProperties());
                 }
+                return memberinit;
             }
-            Expression memberinit = null;
-            if(hasreg == true)
-            {
-                memberinit = Expression.New(dst_ccs[0], exprs, dst.GetProperties());
-            }
-            return memberinit;
+            
         }
 
         static public Expression ToData(this Type dst, Expression param)
@@ -453,7 +481,7 @@ namespace QSoft.Registry.Linq
                             }
 
                         }
-                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>))
+                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>) || paramtype == typeof(Func<,,>))
                         {
                             var func = oo.ParameterType.GetGenericArguments().Last().Name;
                             infos[func] = oo;
@@ -489,7 +517,7 @@ namespace QSoft.Registry.Linq
                         {
                             types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
                         }
-                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>))
+                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>) || paramtype == typeof(Func<,,>))
                         {
                             types.Add(src.ElementAt(oo).Type.GetGenericArguments().Last());
                         }
@@ -501,7 +529,25 @@ namespace QSoft.Registry.Linq
                                 var uu = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericTypeDefinition();
                                 if (uu == typeof(Func<>) || uu == typeof(Func<,>) || uu == typeof(Func<,,>))
                                 {
-                                    types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
+                                    var ttype = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last();
+                                    if(ttype.IsGenericType==true&&ttype.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                                    {
+                                        if(oo == infos.Count -1)
+                                        {
+                                            types.Add(ttype);
+                                            
+                                        }
+                                        else
+                                        {
+                                            types.Add(ttype.GetGenericArguments()[0]);
+                                        }
+                                        
+                                    }
+                                    else
+                                    {
+                                        types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
+                                    }
+                                   
                                 }
                             }
                             else if(type.IsGenericType == true&&type.GetGenericTypeDefinition() == typeof(Nullable<>))

@@ -313,11 +313,6 @@ namespace QSoft.Registry.Linq
             return lambda;
         }
 
-        static void CopyData_IEnumable(this Type dst, Type src, Expression param)
-        {
-
-        }
-
         static public Expression CopyData(this Type dst, Type src, Expression param)
         {
             if(dst.IsGenericType==true&& src == typeof(IEnumerable<RegistryKey>))
@@ -462,7 +457,7 @@ namespace QSoft.Registry.Linq
                 types.AddRange(src.Select(x => x.Type));
             }
             else
-            {
+            {                
                 var args1 = method.GetGenericMethodDefinition().GetGenericArguments().Select(x => x.Name);
                 var args2 = method.GetGenericMethodDefinition().GetParameters().ToList();
 

@@ -38,6 +38,7 @@ namespace QSoft.Registry.Linq
 
         public Expression Visit(MethodInfo method, params Expression[] nodes)
         {
+            this.LastMethodName = method?.Name;
             System.Diagnostics.Debug.WriteLine($"Visit {method?.Name}");
             this.PreparMethod(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
 
@@ -325,9 +326,21 @@ namespace QSoft.Registry.Linq
                     else if(expr.Type.IsGenericType==true && expr.Type.GetGenericTypeDefinition()==typeof(IGrouping<,>))
                     {
                         var find = this.m_GenericTypes.FirstOrDefault(x => x.ContainsKey(pp1.Name));
-                        var ie = expr.Type.GetGenericTypeDefinition().MakeGenericType(find.Values.ToArray());
-                        var pp = Expression.Parameter(ie, expr.Name);
-                        this.m_Parameters[expr.Name] = pp;
+                        var igroup = find.Select(x=>x.Value).FirstOrDefault(x => x.IsGenericType == true && x.GetGenericTypeDefinition() == typeof(IGrouping<,>));
+                        if(igroup == null)
+                        {
+                            var ie = expr.Type.GetGenericTypeDefinition().MakeGenericType(find.Values.ToArray());
+                            var pp = Expression.Parameter(ie, expr.Name);
+                            this.m_Parameters[expr.Name] = pp;
+                        }
+                        else
+                        {
+                            var ggs = igroup.GetGenericArguments();
+                            var ie = expr.Type.GetGenericTypeDefinition().MakeGenericType(ggs);
+                            var pp = Expression.Parameter(ie, expr.Name);
+                            this.m_Parameters[expr.Name] = pp;
+                        }
+                        
                     }
                     else if(this.m_Parameters.Count ==0)
                     {
@@ -491,17 +504,6 @@ namespace QSoft.Registry.Linq
                 var pp = this.m_ExpressionSaves1[expr];
                 if (pp != null)
                 {
-                    //var dic = pp.GetGenericArguments()[0].GetGenericArguments()
-                    //    .ToDictionary(x =>
-                    //    {
-                    //        string name = x.Name;
-                    //        if(x.IsGenericType==true&&x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    //        {
-                    //            name = x.GetGenericArguments()[0].Name;
-                    //        }
-
-                    //        return name;
-                    //    });
                     var kkey = pp.GetGenericArguments()[0].GetGenericArguments().Select(x =>
                     {
                         string name = x.Name;
@@ -554,7 +556,7 @@ namespace QSoft.Registry.Linq
                 var dic = method.GetParameters();
                 
                 var dicc = method.GetGenericMethodDefinition().GetGenericArguments();
-                if (lo.Any(x => x.bb == true) == false && this.m_Saves.ContainsKey(args[0])==true)
+                if (lo.Any(x => x.bb == true) == false && this.m_Saves!=null&& this.m_Saves.ContainsKey(args[0])==true)
                 {
                     //var dsttype = method.GetParameters().Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType(null);
                     var sourcetype = this.m_Saves[args[0]].Type.GetGenericArguments()[0];
@@ -585,13 +587,21 @@ namespace QSoft.Registry.Linq
                         }
                     }
                 }
-                else if(this.m_GenericTypes.Count>1 && this.m_GenericTypes.ElementAt(1).ContainsKey("TSource"))
+                else if(this.m_GenericTypes.Count>1)
                 {
+                    var bt = this.m_ExpressionSaves1.ContainsKey(args[0]);
                     for (int i = 0; i < dicc.Length; i++)
                     {
-                        if (i == 0)
+
+                        if(this.m_ExpressionSaves1.ContainsKey(args[i]) == true)
                         {
-                            this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
+                            var aaa = this.m_ExpressionSaves1[args[i]];
+                            if(aaa.IsGenericType==true&&aaa.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                            {
+                                string ssssss = aaa.GetGenericArguments()[0].Name;
+                                this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)[ssssss];
+                            }
+                            //this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
                         }
                         else
                         {
@@ -778,6 +788,7 @@ namespace QSoft.Registry.Linq
                         {
                             if(expr.Method.IsGenericMethod == true)
                             {
+                                var ggs = expr.Method.GetGenericArguments();
                                 methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
                             }
                             else

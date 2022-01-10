@@ -142,7 +142,7 @@ namespace ConsoleApp1
 
 
 
-            TestDB();
+            //TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -164,8 +164,8 @@ namespace ConsoleApp1
 #if Queryable
             var uy = typeof(InstalledApp).GetProperties();
             List<int> l1 = new List<int>() { 1, 2, 3, 4, 5 };
-            List<string> l2 = new List<string>() { "1", "2", "3"};
-            
+            List<string> l2 = new List<string>() { "1", "2", "3" };
+
 
             List<int> lll = new List<int>();
             lll.Add(1);
@@ -252,9 +252,9 @@ namespace ConsoleApp1
             //            DisplayName = h.g.GetValue<string>("DisplayName")
             //        }
             //    });
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"))
+                .Select(x => x.Select(y => new InstalledApp()));
 
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (key, reg) => new { reg })
-                .Select(x => x.reg.Select(y => new InstalledApp()));
 
 
 
@@ -365,6 +365,9 @@ namespace ConsoleApp1
 
             //}
             //var allo = regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10);
+            int uu = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
+            var ggt1 = regt.Select((x, index) => Tuple.Create(x.DisplayName, index)).ToList();
+            var ggt = regt.GroupBy(x => x.DisplayName, (key, reg) => reg).ToList();
             var avg1 = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }).ToList();
             var selectr_tuple = regt.Where(x=>x.DisplayName != "").ToList();
             //int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });

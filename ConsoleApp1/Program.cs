@@ -120,8 +120,114 @@ namespace ConsoleApp1
     }
 
 
+    public class Grouping<TKey, TElement, TResult> : IGrouping<TKey, TResult>, IList<TResult>
+    {
+        internal TKey key;
+        internal int hashCode;
+        internal TResult[] elements;
+        internal int count;
+        internal Grouping<TKey, TElement, TResult> hashNext;
+        internal Grouping<TKey, TElement, TResult> next;
 
-    class Program
+
+        public Grouping(IGrouping<TKey, TElement> data)
+        {
+            this.key = data.Key;
+
+            //this.elements = data.ToArray();
+        }
+        //internal void Add(TElement element)
+        //{
+        //    if (elements.Length == count) Array.Resize(ref elements, checked(count * 2));
+        //    elements[count] = element;
+        //    count++;
+        //}
+
+        public IEnumerator<TResult> GetEnumerator()
+        {
+            for (int i = 0; i < count; i++) yield return elements[i];
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        // DDB195907: implement IGrouping<>.Key implicitly
+        // so that WPF binding works on this property.
+        public TKey Key
+        {
+            get { return key; }
+        }
+
+        int ICollection<TResult>.Count
+        {
+            get { return count; }
+        }
+
+        bool ICollection<TResult>.IsReadOnly
+        {
+            get { return true; }
+        }
+
+        void ICollection<TResult>.Add(TResult item)
+        {
+            throw new NotSupportedException();
+        }
+
+        void ICollection<TResult>.Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        bool ICollection<TResult>.Contains(TResult item)
+        {
+            return Array.IndexOf(elements, item, 0, count) >= 0;
+        }
+
+        void ICollection<TResult>.CopyTo(TResult[] array, int arrayIndex)
+        {
+            Array.Copy(elements, 0, array, arrayIndex, count);
+        }
+
+        bool ICollection<TResult>.Remove(TResult item)
+        {
+            throw new NotSupportedException();
+        }
+
+        int IList<TResult>.IndexOf(TResult item)
+        {
+            return Array.IndexOf(elements, item, 0, count);
+        }
+
+        void IList<TResult>.Insert(int index, TResult item)
+        {
+            throw new NotSupportedException();
+        }
+
+        void IList<TResult>.RemoveAt(int index)
+        {
+            throw new NotSupportedException();
+        }
+
+        TResult IList<TResult>.this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= count) throw new ArgumentOutOfRangeException("index");
+                return elements[index];
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+    }
+
+
+
+
+class Program
     {
 
         static object dyy = new { A = 1 };
@@ -142,7 +248,7 @@ namespace ConsoleApp1
 
 
 
-            //TestDB();
+            TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -252,11 +358,23 @@ namespace ConsoleApp1
             //            DisplayName = h.g.GetValue<string>("DisplayName")
             //        }
             //    });
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"))
-                .Select(x => x.Select(y => new InstalledApp()));
 
 
+            var grouping = Assembly.GetAssembly(typeof(Enumerable)).GetTypes().Where(x => x.Name== "Grouping").First();
+            var ggg = grouping.MakeGenericType(typeof(int), typeof(int));
+            var ggo = Activator.CreateInstance(ggg);
 
+
+            //var r1 = queryable.Where(x => x.GetValue<string>("DisplayName")!="");
+            var r2 = queryable.GroupBy(x => x.GetValue<string>("DisplayName"))
+                .Select(x=> new Grouping<string, RegistryKey, InstalledApp>(x));
+            foreach(var oo in r2)
+            {
+                foreach(var ii in oo)
+                {
+
+                }
+            }
 
             //.SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
 
@@ -365,10 +483,17 @@ namespace ConsoleApp1
 
             //}
             //var allo = regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10);
-            int uu = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            var ggt1 = regt.Select((x, index) => Tuple.Create(x.DisplayName, index)).ToList();
-            var ggt = regt.GroupBy(x => x.DisplayName, (key, reg) => reg).ToList();
-            var avg1 = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }).ToList();
+            //int uu = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
+            //var ggt1 = regt.Select((x, index) => Tuple.Create(x.DisplayName, index)).ToList();
+            var ggt = regt.GroupBy(x => x.DisplayName);
+            foreach(var oo in ggt)
+            {
+                if(oo.Key == "AA")
+                {
+
+                }
+            }
+
             var selectr_tuple = regt.Where(x=>x.DisplayName != "").ToList();
             //int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
             //var j1 = regt1.Take(2).ToList();

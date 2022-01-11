@@ -405,8 +405,15 @@ namespace QSoft.Registry.Linq
                         else if(node.Type.IsGenericType == true && node.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                         {
                             var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
-                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
-                            this.m_ExpressionSaves[expr] = expr_member;
+                            if(mem.Length == 0)
+                            {
+                                this.m_ExpressionSaves[expr] = node;
+                            }
+                            else
+                            {
+                                var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
+                                this.m_ExpressionSaves[expr] = expr_member;
+                            }
                         }
                         else if(Type.GetTypeCode(node.Type) == TypeCode.Object && node.Type.IsGenericType==true&&node.Type.GetGenericTypeDefinition()!=typeof(Nullable<>))
                         {
@@ -602,6 +609,10 @@ namespace QSoft.Registry.Linq
                                 this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)[ssssss];
                             }
                             //this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
+                        }
+                        else if(this.m_GenericTypes.ElementAt(1).ContainsKey("TSource") ==true)
+                        {
+                            this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
                         }
                         else
                         {

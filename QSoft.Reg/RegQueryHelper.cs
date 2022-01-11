@@ -169,6 +169,10 @@ namespace QSoft.Registry.Linq
                     {
                         bb = src.GetGenericArguments().Last().HaseRegistryKey();
                     }
+                    else if(src.IsGenericType==true&& src.GetGenericTypeDefinition() == typeof(IGrouping<,>))
+                    {
+                        bb = src.GetGenericArguments().Any(x=>x==typeof(RegistryKey));
+                    }
                     else
                     {
                         foreach (var oo in src.GetProperties())
@@ -530,19 +534,16 @@ namespace QSoft.Registry.Linq
                                         if(oo == infos.Count -1)
                                         {
                                             types.Add(ttype);
-                                            
                                         }
                                         else
                                         {
                                             types.Add(ttype.GetGenericArguments()[0]);
                                         }
-                                        
                                     }
                                     else
                                     {
                                         types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
                                     }
-                                   
                                 }
                             }
                             else if(type.IsGenericType == true&&type.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -560,7 +561,6 @@ namespace QSoft.Registry.Linq
                                 {
                                     types.Add(type);
                                 }
-                                
                             }
                             else
                             {

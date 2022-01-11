@@ -206,6 +206,7 @@ namespace UnitTestProject1
         public void GroupBy1_Select()
         {
             this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }
 
         [TestMethod]

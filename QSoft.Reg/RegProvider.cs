@@ -97,90 +97,6 @@ namespace QSoft.Registry.Linq
 
 
 
-            //var ttype = typeof(TElement);
-            //RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
-
-            //MethodCallExpression method1 = expression as MethodCallExpression;
-            //if (method1.Arguments[0].NodeType == ExpressionType.Constant)
-            //{
-            //    this.m_Errors.Clear();
-            //    this.m_RegMethod = reg.Visit(expression, this.m_RegSource);
-            //    if (reg.Fail != null)
-            //    {
-            //        this.m_Errors.Add(Tuple.Create(expression, this.m_RegMethod, reg.Fail));
-            //    }
-            //}
-            //else
-            //{
-            //    var expr = expression;
-            //    bool bb = typeof(IQueryable<RegistryKey>) == this.m_RegMethod.Type;
-            //    if(bb == false)
-            //    {
-            //        bb = typeof(IOrderedQueryable<RegistryKey>) == this.m_RegMethod.Type;
-            //    }
-            //    if (bb == false)
-            //    {
-            //        var aaaa = this.m_RegMethod.Type.GetGenericArguments();
-            //        var bbbb = aaaa.ElementAt(0).GetGenericArguments();
-            //        if(bbbb.Length>0)
-            //        {
-            //            bb = typeof(RegistryKey) == bbbb.Last();
-            //        }
-
-            //    }
-            //    if (bb == true)
-            //    {
-            //        expr = reg.Visit(method1.Method, method1.Arguments[0], method1.Arguments[1]);
-            //        if (reg.Fail != null)
-            //        {
-            //            this.m_Errors.Add(Tuple.Create(expression, expr, reg.Fail));
-            //        }
-            //        var methods = method1.Method.ReflectedType.GetMethods().Where(x => x.Name == method1.Method.Name);
-
-            //        methods = methods.Where(x => x.IsGenericMethod == method1.Method.IsGenericMethod);
-            //        methods = methods.Where(x => x.GetParameters().Length == method1.Method.GetParameters().Length);
-            //        var pps = method1.Method.GetGenericArguments();
-            //        if (pps[0] == typeof(TData))
-            //        {
-            //            pps[0] = typeof(RegistryKey);
-            //            pps[pps.Length-1] = reg.ReturnType;
-            //        }
-            //        if (pps[0].Name.Contains("IGrouping"))
-            //        {
-            //            var gpps = pps[0].GetGenericArguments();
-            //            gpps.Replace(typeof(TData), typeof(RegistryKey));
-
-            //            pps[0] = typeof(IGrouping<,>).MakeGenericType(gpps);
-            //            if (pps[1] == typeof(TData))
-            //            {
-            //                pps[1] = typeof(RegistryKey);
-            //            }
-            //        }
-            //        if (pps.Length>1&&pps[1].Name.Contains("IGrouping"))
-            //        {
-            //            var gpps = pps[1].GetGenericArguments();
-            //            gpps.Replace(typeof(TData), typeof(RegistryKey));
-
-            //            pps[1] = typeof(IGrouping<,>).MakeGenericType(gpps);
-
-            //        }
-
-            //        var ooi = methods.ElementAt(0).MakeGenericMethod(pps);
-            //        var ppps = method1.Method.GetGenericMethodDefinition().GetParameters();
-            //        ooi = method1.Method.GetGenericMethodDefinition().MakeGenericMethod(pps);
-            //        //if(this.m_RegMethod.Type != ooi.ReturnType)
-            //        {
-            //            this.m_RegMethod = Expression.Call(ooi, this.m_RegMethod, expr);
-            //        }
-
-            //    }
-            //    else
-            //    {
-            //        this.m_RegMethod = Expression.Call(method1.Method, this.m_RegMethod, method1.Arguments[1]);
-            //    }
-
-            //    expr = null;
-            //}
 
             return hr;
         }
@@ -225,9 +141,13 @@ namespace QSoft.Registry.Linq
             return m_Regs.AsQueryable();
         }
 
-
+        Dictionary<Expression, Expression> m_ProcessExprs = new Dictionary<Expression, Expression>();
         public TResult Execute<TResult>(Expression expression)
         {
+            if(m_ProcessExprs.ContainsKey(expression) == false)
+            {
+
+            }
             var tte = new List<RegistryKey>().AsQueryable();
             TResult return_hr = default(TResult);
 
@@ -258,7 +178,7 @@ namespace QSoft.Registry.Linq
                     var select = typeof(TData).SelectMethod();
                     updatemethod = Expression.Call(select, updatemethod, sd);
                 }
-                else if (updatemethod.Type.GetGenericTypeDefinition() == typeof(IQueryable<>) && updatemethod.Type.GetGenericArguments()[0].IsGenericType==true&&updatemethod.Type.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(IGrouping<,>))
+                else if (updatemethod.Type.GetGenericTypeDefinition() == typeof(IQueryable<>) && updatemethod.Type.GetGenericArguments()[0].IsGenericType == true && updatemethod.Type.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(IGrouping<,>))
                 {
                     //var oiou = updatemethod.Type.GetGenericTypeDefinition() == typeof(IQueryable<>);
                     //var popo = updatemethod.Type.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(IGrouping<,>);
@@ -268,6 +188,7 @@ namespace QSoft.Registry.Linq
                         var methods = updatemethod.Method.ReflectedType.GetMethods().Where(x => x.Name == updatemethod.Method.Name);
                         methods = methods.Where(x => x.GetGenericArguments().Length == 3);
                         Type[] type3 = new Type[3];
+                        var vvv = updatemethod.Method.GetGenericArguments();
                         Array.Copy(updatemethod.Method.GetGenericArguments(), type3, 2);
                         if (type3[1] == typeof(RegistryKey))
                         {

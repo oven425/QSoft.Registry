@@ -452,6 +452,64 @@ namespace QSoft.Registry.Linq
             return memberinit;
         }
 
+
+        public static Type Find(this Type src, MethodInfo method, string target)
+        {
+            var args1 = method.GetGenericMethodDefinition().GetGenericArguments().Select(x => x.Name);
+            var args2 = method.GetGenericMethodDefinition().GetParameters().ToList();
+            var args = args2[1].ParameterType.GetGenericArguments();
+            var args_1 = src.GetGenericArguments();
+            foreach (var oo in args)
+            {
+                var define = oo.GetGenericTypeDefinition();
+                if (define == typeof(Func<,>) || define == typeof(Func<,,>))
+                {
+                    var gg = oo.GetGenericArguments().Select(x => x.Name);
+                    var tty = oo.GetGenericArguments()[1];
+                    if(tty == typeof(IEnumerable<>))
+                    {
+
+                    }
+                    var aaa = tty.GetGenericArguments();
+                }
+
+                
+            }
+            foreach (var oo in args_1)
+            {
+                var define = oo.GetGenericTypeDefinition();
+                if (define == typeof(Func<,>) || define == typeof(Func<,,>))
+                {
+                    var gg = oo.GetGenericArguments().Select(x => x.Name);
+                    var tty = oo.GetGenericArguments()[1];
+                    if (tty == typeof(IEnumerable<>))
+                    {
+
+                    }
+                    var aaa = tty.GetGenericArguments();
+                }
+
+
+            }
+            //if(src.IsGenericType == true)
+            //{
+            //    var args = src.GetGenericArguments();
+            //    foreach(var oo in args)
+            //    {
+            //        var define = oo.GetGenericTypeDefinition();
+            //        if (define == typeof(Func<,>) || define == typeof(Func<,,>))
+            //        {
+            //            var gg = define.GetGenericArguments().Select(x => x.Name);
+            //            var tty = oo.GetGenericArguments()[1];
+
+            //        }
+            //    }
+            //}
+
+
+            return null;
+        }
+
         public static Type[] GetTypes(this IEnumerable<Expression> src, MethodInfo method)
         {
             List<Type> types = new List<Type>();
@@ -471,6 +529,8 @@ namespace QSoft.Registry.Linq
                 {
                     if (oo.ParameterType.IsGenericType == true)
                     {
+                        var paramtype1 = oo.ParameterType;
+                        
                         var paramtype = oo.ParameterType.GetGenericTypeDefinition();
                         if (paramtype == typeof(IQueryable<>) || paramtype == typeof(IEnumerable<>))
                         {
@@ -508,6 +568,10 @@ namespace QSoft.Registry.Linq
                     if (src.ElementAt(oo).Type.IsGenericType == true)
                     {
                         var paramtype = src.ElementAt(oo).Type.GetGenericTypeDefinition();
+                        if(src.ElementAt(oo).Type == typeof(Expression))
+                        {
+
+                        }
                         if (paramtype == typeof(IQueryable<>))
                         {
                             types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
@@ -531,7 +595,11 @@ namespace QSoft.Registry.Linq
                                     var ttype = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last();
                                     if(ttype.IsGenericType==true&&ttype.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                                     {
-                                        if(oo == infos.Count -1)
+                                        if (method.Name == "SelectMany")
+                                        {
+                                            var find = src.ElementAt(oo).Type.Find(method, "TResult");
+                                        }
+                                        if (oo == infos.Count -1)
                                         {
                                             types.Add(ttype);
                                         }

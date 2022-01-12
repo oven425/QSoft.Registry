@@ -746,7 +746,7 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitMethodCall {node.Method?.Name}");
-            if (this.m_Saves.ContainsKey(node) == true)
+            if (this.m_Saves!=null&&this.m_Saves.ContainsKey(node) == true)
             {
                 var aaa = this.m_Saves[node];
                 this.m_ExpressionSaves[node] = aaa;
@@ -800,6 +800,10 @@ namespace QSoft.Registry.Linq
                             if(expr.Method.IsGenericMethod == true)
                             {
                                 var ggs = expr.Method.GetGenericArguments();
+                                //if(expr.Method.Name == "SelectMany")
+                                //{
+                                //    ttypes1[1] = ttypes1[1].GetGenericArguments()[0];
+                                //}
                                 methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
                             }
                             else
@@ -842,7 +846,7 @@ namespace QSoft.Registry.Linq
 
             var expr = base.VisitConstant(node) as ConstantExpression;
             Expression expr1 = null;
-            var ttype = node.Value.GetType();
+            var ttype = node.Type;
             if (ttype.GetCustomAttributes(true).Any(x=>x is CompilerGeneratedAttribute) ==true)
             {
                 var pps = ttype.GetFields();

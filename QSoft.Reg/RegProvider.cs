@@ -23,30 +23,31 @@ namespace QSoft.Registry.Linq
             this.m_RegSource = Expression.Call(Expression.Constant(this), method);
         }
 
-        public IQueryable CreateQuery(Expression expression)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         Expression m_RegMethod = null;
         List<Tuple<Expression, Expression, string>> m_Errors = new List<Tuple<Expression, Expression, string>>();
         Dictionary<Expression, Expression> m_Exprs = new Dictionary<Expression, Expression>();
+        List<Expression> m_CreateQuerys = new List<Expression>();
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            System.Diagnostics.Debug.WriteLine($"CreateQuery {(expression as MethodCallExpression).Method?.Name}");
+            //return new RegQuery<TElement>(this, expression);
+            var methodcall = expression as MethodCallExpression;
 
+            this.m_CreateQuerys.Add(methodcall);
+
+            System.Diagnostics.Debug.WriteLine($"CreateQuery {methodcall?.Method?.Name}");
+            
             IQueryable<TElement> hr = default(IQueryable<TElement>);
             hr = new RegQuery<TElement>(this, expression);
 
             RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
             MethodCallExpression method1 = expression as MethodCallExpression;
-            
+
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
                 this.m_Exprs.Clear();
             }
-            //this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-            //this.m_Exprs[expression] = this.m_RegMethod;
 
             if (this.m_RegMethod == null || method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
@@ -65,7 +66,7 @@ namespace QSoft.Registry.Linq
                 else if (ttype_def == typeof(IQueryable<>) || ttype_def == typeof(IEnumerable<>) || ttype_def == typeof(IOrderedQueryable<>))
                 {
                     var group = ttype.GetGenericArguments()[0];
-                    
+
                     bool has = group.GetGenericArguments().Any(x => x == typeof(RegistryKey));
                     has = group.HaseRegistryKey();
                     if (has == true)
@@ -93,39 +94,25 @@ namespace QSoft.Registry.Linq
                 args[0] = this.m_RegMethod;
                 this.m_RegMethod = Expression.Call(method1.Method, args);
             }
-
-
-
-
-
             return hr;
-        }
-
-
-
-        public object Execute(Expression expression)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<T> Enumerable<T>(IQueryable<RegistryKey> query)
-        {
-            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
-            foreach (var oo in query)
-            {
-                var inst = Activator.CreateInstance(typeof(T));
-                foreach (var pp in pps)
-                {
-                    pp.SetValue(inst, oo.GetValue(pp.Name), null);
-                }
-                yield return (T)inst;
-            }
 
         }
+
+        //public IEnumerable<T> Enumerable<T>(IQueryable<RegistryKey> query)
+        //{
+        //    var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
+        //    foreach (var oo in query)
+        //    {
+        //        var inst = Activator.CreateInstance(typeof(T));
+        //        foreach (var pp in pps)
+        //        {
+        //            pp.SetValue(inst, oo.GetValue(pp.Name), null);
+        //        }
+        //        yield return (T)inst;
+        //    }
+        //}
 
         bool m_IsWritable = false;
-
-
         List<RegistryKey> m_Regs = new List<RegistryKey>();
         public IQueryable<RegistryKey> CreateRegs()
         {
@@ -141,13 +128,32 @@ namespace QSoft.Registry.Linq
             return m_Regs.AsQueryable();
         }
 
+
+        void ProcessExpr(Expression expression)
+        {
+            //while(true)
+            //{
+            //    var methodcall = expression as MethodCallExpression;
+            //    if(methodcall == null)
+            //    {
+            //        break;
+            //    }
+            //    else
+            //    {
+                    
+            //    }
+            //}
+            RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
+            var expr = reg.Visit(expression, this.m_RegSource);
+        }
+
         Dictionary<Expression, Expression> m_ProcessExprs = new Dictionary<Expression, Expression>();
         public TResult Execute<TResult>(Expression expression)
         {
-            if(m_ProcessExprs.ContainsKey(expression) == false)
-            {
-
-            }
+            //if (m_ProcessExprs.ContainsKey(expression) == false)
+            //{
+            //    ProcessExpr(expression);
+            //}
             var tte = new List<RegistryKey>().AsQueryable();
             TResult return_hr = default(TResult);
 
@@ -331,6 +337,16 @@ namespace QSoft.Registry.Linq
                 excpt = new Exception(first.Item3);
             }
             return excpt;
+        }
+
+        public IQueryable CreateQuery(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object Execute(Expression expression)
+        {
+            throw new NotImplementedException();
         }
     }
 }

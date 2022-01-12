@@ -248,7 +248,7 @@ class Program
 
 
 
-            TestDB();
+            //TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -477,14 +477,9 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            //var sli = regt1.Select((x, idx) => new { reg = x, index = idx.ToString() });
-            //foreach (var oo in sli)
-            //{
-
-            //}
-            //var allo = regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10);
-            //int uu = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            //var ggt1 = regt.Select((x, index) => Tuple.Create(x.DisplayName, index)).ToList();
+            var r12 = regt.ToList().GroupBy(x => x.DisplayName, x => x, (x, y) => y).SelectMany(x => x).ToList();
+            var r1 = regt.GroupBy(x => x.DisplayName, x => x, (x, y) => y).SelectMany(x => x).RemoveAll();
+            var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
             var ggt = regt.GroupBy(x => x.DisplayName);
             foreach(var oo in ggt)
             {

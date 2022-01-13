@@ -510,140 +510,215 @@ namespace QSoft.Registry.Linq
             return null;
         }
 
+        static Type Findd(this string src, Type expr, Type method)
+        {
+            Type result = null;
+            if(method.GetGenericArguments().Length ==0 && method.Name == src)
+            {
+                return expr;
+            }
+            var zip = expr.GetGenericArguments().Zip(method.GetGenericArguments(), (ee, mm) => new { ee, mm });
+            foreach (var oo in zip)
+            {
+                if (oo.mm.Name == src)
+                {
+                    return oo.ee;
+                }
+                else
+                {
+                    result = src.Findd(oo.ee, oo.mm);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }
+            return result;
+        }
+
         public static Type[] GetTypes(this IEnumerable<Expression> src, MethodInfo method)
         {
-            List<Type> types = new List<Type>();
-            var args = method.GetGenericArguments();
-            if (args.Length == 0)
+            //if (method.Name == "SelectMany")
             {
-                types.AddRange(src.Select(x => x.Type));
-            }
-            else
-            {                
-                var args1 = method.GetGenericMethodDefinition().GetGenericArguments().Select(x => x.Name);
-                var args2 = method.GetGenericMethodDefinition().GetParameters().ToList();
-
-                var names = args1.ToDictionary(x => x);
-                Dictionary<string, ParameterInfo> infos = new Dictionary<string, ParameterInfo>();
-                foreach (var oo in args2)
+                if(method.IsGenericMethod==true)
                 {
-                    if (oo.ParameterType.IsGenericType == true)
+                    var method_define = method.GetGenericMethodDefinition();
+                    var names = method_define.GetGenericArguments().Select(x => x.Name).ToArray();
+
+                    var method_pps = method_define.GetParameters();
+
+                    Type[] types1 = new Type[names.Length];
+                    for (int i = 0; i < types1.Length; i++)
                     {
-                        var paramtype1 = oo.ParameterType;
+                        for(int j=0; j< method_pps.Length; j++)
+                        {
+                            //if (method_pps[j].ParameterType.GetGenericArguments().Length == 0)
+                            //{
+                            //    types1[i] = src.ElementAt(j).Type;
+                            //}
+                            //else
+                            {
+                                types1[i] = names.ElementAt(i).Findd(src.ElementAt(j).Type, method_pps[j].ParameterType);
+                            }
+                            if(types1[i] != null)
+                            {
+                                break;
+                            }
+                        }
                         
-                        var paramtype = oo.ParameterType.GetGenericTypeDefinition();
-                        if (paramtype == typeof(IQueryable<>) || paramtype == typeof(IEnumerable<>))
-                        {
-                            if (names.ContainsKey(oo.ParameterType.GetGenericArguments()[0].Name) == true)
-                            {
-                                infos[oo.ParameterType.GetGenericArguments()[0].Name] = oo;
-                            }
 
-                        }
-                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>) || paramtype == typeof(Func<,,>))
-                        {
-                            var func = oo.ParameterType.GetGenericArguments().Last().Name;
-                            infos[func] = oo;
-                        }
-                        else
-                        {
-                            var func = oo.ParameterType.GetGenericArguments()[0].GetGenericArguments().Last().Name;
-                            infos[func] = oo;
-                        }
                     }
-                    else if (oo.ParameterType.IsGenericParameter == true)
-                    {
-                        var aaaaa = oo.ParameterType;
-                        infos[aaaaa.Name] = oo;
-                    }
-
-                    if (infos.Count >= args.Length)
-                    {
-                        break;
-                    }
+                    return types1;
                 }
-
-                foreach (var oo in infos.Select(x => x.Value.Position))
+                else
                 {
-                    if (src.ElementAt(oo).Type.IsGenericType == true)
-                    {
-                        var paramtype = src.ElementAt(oo).Type.GetGenericTypeDefinition();
-                        if(src.ElementAt(oo).Type == typeof(Expression))
-                        {
-
-                        }
-                        if (paramtype == typeof(IQueryable<>))
-                        {
-                            types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
-                        }
-                        else if (paramtype == typeof(IEnumerable<>))
-                        {
-                            types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
-                        }
-                        else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>) || paramtype == typeof(Func<,,>))
-                        {
-                            types.Add(src.ElementAt(oo).Type.GetGenericArguments().Last());
-                        }
-                        else
-                        {
-                            var type = src.ElementAt(oo).Type.GetGenericArguments()[0];
-                            if (type.IsGenericType == true)
-                            {
-                                var uu = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericTypeDefinition();
-                                if (uu == typeof(Func<>) || uu == typeof(Func<,>) || uu == typeof(Func<,,>))
-                                {
-                                    var ttype = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last();
-                                    if(ttype.IsGenericType==true&&ttype.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                                    {
-                                        if (method.Name == "SelectMany")
-                                        {
-                                            var find = src.ElementAt(oo).Type.Find(method, "TResult");
-                                        }
-                                        if (oo == infos.Count -1)
-                                        {
-                                            types.Add(ttype);
-                                        }
-                                        else
-                                        {
-                                            types.Add(ttype.GetGenericArguments()[0]);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
-                                    }
-                                }
-                            }
-                            else if(type.IsGenericType == true&&type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                            {
-                                types.Add(src.ElementAt(oo).Type);
-                            }
-                            else if (src.ElementAt(oo).Type.IsGenericType == true)
-                            {
-                                var ttype = src.ElementAt(oo).Type;
-                                if(ttype.GetGenericTypeDefinition() == typeof(Nullable<>))
-                                {
-                                    types.Add(src.ElementAt(oo).Type);
-                                }
-                                else
-                                {
-                                    types.Add(type);
-                                }
-                            }
-                            else
-                            {
-                                types.Add(src.ElementAt(oo).Type);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        types.Add(src.ElementAt(oo).Type);
-                    }
+                    return src.Select(x=>x.Type).ToArray();
                 }
-            }
+                
+                //var args2 = method.GetGenericMethodDefinition().GetParameters()[1].ParameterType;
+                //var args3 = src.ElementAt(1).Type;
+                //if (args2.BaseType == typeof(LambdaExpression))
+                //{
+                //    var tresult = "TResult".Findd(args3, args2);
+                //    var tresult1 = args2.GetGenericArguments()[0].GetGenericArguments().Last().GetGenericArguments()[0];
+                //    var tresult2 = args3.GetGenericArguments()[0].GetGenericArguments().Last().GetGenericArguments()[0];
+                //}
 
-            return types.Take(args.Length).ToArray();
+                //System.Diagnostics.Trace.WriteLine("");
+            }
+            //List<Type> types = new List<Type>();
+            //var args = method.GetGenericArguments();
+            //if (args.Length == 0)
+            //{
+            //    types.AddRange(src.Select(x => x.Type));
+            //}
+            //else
+            //{
+            //    var args11 = method.GetGenericMethodDefinition().GetGenericArguments();
+            //    var args1 = args11.Select(x => x.Name);
+            //    var args2 = method.GetGenericMethodDefinition().GetParameters().ToList();
+
+            //    var names = args1.ToDictionary(x => x);
+            //    Dictionary<string, ParameterInfo> infos = new Dictionary<string, ParameterInfo>();
+            //    foreach (var oo in args2)
+            //    {
+            //        if (oo.ParameterType.IsGenericType == true)
+            //        {
+            //            var paramtype1 = oo.ParameterType;
+                        
+            //            var paramtype = oo.ParameterType.GetGenericTypeDefinition();
+            //            if (paramtype == typeof(IQueryable<>) || paramtype == typeof(IEnumerable<>))
+            //            {
+            //                if (names.ContainsKey(oo.ParameterType.GetGenericArguments()[0].Name) == true)
+            //                {
+            //                    infos[oo.ParameterType.GetGenericArguments()[0].Name] = oo;
+            //                }
+
+            //            }
+            //            else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>) || paramtype == typeof(Func<,,>))
+            //            {
+            //                var func = oo.ParameterType.GetGenericArguments().Last().Name;
+            //                infos[func] = oo;
+            //            }
+            //            else
+            //            {
+            //                var func = oo.ParameterType.GetGenericArguments()[0].GetGenericArguments().Last().Name;
+            //                infos[func] = oo;
+            //            }
+            //        }
+            //        else if (oo.ParameterType.IsGenericParameter == true)
+            //        {
+            //            var aaaaa = oo.ParameterType;
+            //            infos[aaaaa.Name] = oo;
+            //        }
+
+            //        if (infos.Count >= args.Length)
+            //        {
+            //            break;
+            //        }
+            //    }
+
+            //    foreach (var oo in infos.Select(x => x.Value.Position))
+            //    {
+            //        if (src.ElementAt(oo).Type.IsGenericType == true)
+            //        {
+            //            var paramtype = src.ElementAt(oo).Type.GetGenericTypeDefinition();
+            //            if(src.ElementAt(oo).Type == typeof(Expression))
+            //            {
+
+            //            }
+            //            if (paramtype == typeof(IQueryable<>))
+            //            {
+            //                types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
+            //            }
+            //            else if (paramtype == typeof(IEnumerable<>))
+            //            {
+            //                types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0]);
+            //            }
+            //            else if (paramtype == typeof(Func<>) || paramtype == typeof(Func<,>) || paramtype == typeof(Func<,,>))
+            //            {
+            //                types.Add(src.ElementAt(oo).Type.GetGenericArguments().Last());
+            //            }
+            //            else
+            //            {
+            //                var type = src.ElementAt(oo).Type.GetGenericArguments()[0];
+            //                if (type.IsGenericType == true)
+            //                {
+            //                    var uu = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericTypeDefinition();
+            //                    if (uu == typeof(Func<>) || uu == typeof(Func<,>) || uu == typeof(Func<,,>))
+            //                    {
+            //                        var ttype = src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last();
+            //                        if(ttype.IsGenericType==true&&ttype.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            //                        {
+            //                            if (method.Name == "SelectMany")
+            //                            {
+            //                                var find = src.ElementAt(oo).Type.Find(method, "TResult");
+            //                            }
+            //                            if (oo == infos.Count -1)
+            //                            {
+            //                                types.Add(ttype);
+            //                            }
+            //                            else
+            //                            {
+            //                                types.Add(ttype.GetGenericArguments()[0]);
+            //                            }
+            //                        }
+            //                        else
+            //                        {
+            //                            types.Add(src.ElementAt(oo).Type.GetGenericArguments()[0].GetGenericArguments().Last());
+            //                        }
+            //                    }
+            //                }
+            //                else if(type.IsGenericType == true&&type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            //                {
+            //                    types.Add(src.ElementAt(oo).Type);
+            //                }
+            //                else if (src.ElementAt(oo).Type.IsGenericType == true)
+            //                {
+            //                    var ttype = src.ElementAt(oo).Type;
+            //                    if(ttype.GetGenericTypeDefinition() == typeof(Nullable<>))
+            //                    {
+            //                        types.Add(src.ElementAt(oo).Type);
+            //                    }
+            //                    else
+            //                    {
+            //                        types.Add(type);
+            //                    }
+            //                }
+            //                else
+            //                {
+            //                    types.Add(src.ElementAt(oo).Type);
+            //                }
+            //            }
+            //        }
+            //        else
+            //        {
+            //            types.Add(src.ElementAt(oo).Type);
+            //        }
+            //    }
+            //}
+
+            //return types.Take(args.Length).ToArray();
         }
 
 

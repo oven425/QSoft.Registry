@@ -477,8 +477,10 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+            //var dst = regt.Take(2).ToList();
+            var ioi = regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize));
             var r12 = regt.ToList().GroupBy(x => x.DisplayName, x => x, (x, y) => y).SelectMany(x => x).ToList();
-            var r1 = regt.GroupBy(x => x.DisplayName, x => x, (x, y) => y).SelectMany(x => x).RemoveAll();
+            //var r1 = regt.GroupBy(x => x.DisplayName, x => x, (x, y) => y).SelectMany(x => x).RemoveAll();
             var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
             var ggt = regt.GroupBy(x => x.DisplayName);
             foreach(var oo in ggt)

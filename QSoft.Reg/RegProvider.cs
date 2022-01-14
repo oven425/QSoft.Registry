@@ -28,89 +28,76 @@ namespace QSoft.Registry.Linq
         Expression m_RegMethod = null;
         List<Tuple<Expression, Expression, string>> m_Errors = new List<Tuple<Expression, Expression, string>>();
         Dictionary<Expression, Expression> m_Exprs = new Dictionary<Expression, Expression>();
-        List<Expression> m_CreateQuerys = new List<Expression>();
+        HashSet<Expression> m_CreateQuerys = new HashSet<Expression>();
         public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
         {
-            //return new RegQuery<TElement>(this, expression);
+            
             var methodcall = expression as MethodCallExpression;
 
             this.m_CreateQuerys.Add(methodcall);
 
             System.Diagnostics.Debug.WriteLine($"CreateQuery {methodcall?.Method?.Name}");
-            
-            IQueryable<TElement> hr = default(IQueryable<TElement>);
-            hr = new RegQuery<TElement>(this, expression);
+            return new RegQuery<TElement>(this, expression);
 
-            RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
-            MethodCallExpression method1 = expression as MethodCallExpression;
+            //IQueryable<TElement> hr = default(IQueryable<TElement>);
+            //hr = new RegQuery<TElement>(this, expression);
 
-            if (method1.Arguments[0].NodeType == ExpressionType.Constant)
-            {
-                this.m_Exprs.Clear();
-            }
+            //RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
+            //MethodCallExpression method1 = expression as MethodCallExpression;
 
-            if (this.m_RegMethod == null || method1.Arguments[0].NodeType == ExpressionType.Constant)
-            {
-                this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-                this.m_Exprs[expression] = this.m_RegMethod;
-            }
-            else if (this.m_RegMethod.Type.IsGenericType == true)
-            {
-                var ttype = this.m_RegMethod.Type;
-                var ttype_def = ttype.GetGenericTypeDefinition();
-                if (ttype == typeof(IQueryable<RegistryKey>) || ttype == typeof(IEnumerable<RegistryKey>) || ttype == typeof(IOrderedQueryable<RegistryKey>))
-                {
-                    this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-                    this.m_Exprs[expression] = this.m_RegMethod;
-                }
-                else if (ttype_def == typeof(IQueryable<>) || ttype_def == typeof(IEnumerable<>) || ttype_def == typeof(IOrderedQueryable<>))
-                {
-                    var group = ttype.GetGenericArguments()[0];
+            //if (method1.Arguments[0].NodeType == ExpressionType.Constant)
+            //{
+            //    this.m_Exprs.Clear();
+            //}
 
-                    bool has = group.GetGenericArguments().Any(x => x == typeof(RegistryKey));
-                    has = group.HaseRegistryKey();
-                    if (has == true)
-                    {
-                        this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-                        this.m_Exprs[expression] = this.m_RegMethod;
-                    }
-                    else
-                    {
-                        var args = method1.Arguments.ToArray();
-                        args[0] = this.m_RegMethod;
-                        this.m_RegMethod = Expression.Call(method1.Method, args);
-                    }
-                }
-                else
-                {
-                    var args = method1.Arguments.ToArray();
-                    args[0] = this.m_RegMethod;
-                    this.m_RegMethod = Expression.Call(method1.Method, args);
-                }
-            }
-            else
-            {
-                var args = method1.Arguments.ToArray();
-                args[0] = this.m_RegMethod;
-                this.m_RegMethod = Expression.Call(method1.Method, args);
-            }
-            return hr;
+            //if (this.m_RegMethod == null || method1.Arguments[0].NodeType == ExpressionType.Constant)
+            //{
+            //    this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+            //    this.m_Exprs[expression] = this.m_RegMethod;
+            //}
+            //else if (this.m_RegMethod.Type.IsGenericType == true)
+            //{
+            //    var ttype = this.m_RegMethod.Type;
+            //    var ttype_def = ttype.GetGenericTypeDefinition();
+            //    if (ttype == typeof(IQueryable<RegistryKey>) || ttype == typeof(IEnumerable<RegistryKey>) || ttype == typeof(IOrderedQueryable<RegistryKey>))
+            //    {
+            //        this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+            //        this.m_Exprs[expression] = this.m_RegMethod;
+            //    }
+            //    else if (ttype_def == typeof(IQueryable<>) || ttype_def == typeof(IEnumerable<>) || ttype_def == typeof(IOrderedQueryable<>))
+            //    {
+            //        var group = ttype.GetGenericArguments()[0];
+
+            //        bool has = group.GetGenericArguments().Any(x => x == typeof(RegistryKey));
+            //        has = group.HaseRegistryKey();
+            //        if (has == true)
+            //        {
+            //            this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+            //            this.m_Exprs[expression] = this.m_RegMethod;
+            //        }
+            //        else
+            //        {
+            //            var args = method1.Arguments.ToArray();
+            //            args[0] = this.m_RegMethod;
+            //            this.m_RegMethod = Expression.Call(method1.Method, args);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        var args = method1.Arguments.ToArray();
+            //        args[0] = this.m_RegMethod;
+            //        this.m_RegMethod = Expression.Call(method1.Method, args);
+            //    }
+            //}
+            //else
+            //{
+            //    var args = method1.Arguments.ToArray();
+            //    args[0] = this.m_RegMethod;
+            //    this.m_RegMethod = Expression.Call(method1.Method, args);
+            //}
+            //return hr;
 
         }
-
-        //public IEnumerable<T> Enumerable<T>(IQueryable<RegistryKey> query)
-        //{
-        //    var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true);
-        //    foreach (var oo in query)
-        //    {
-        //        var inst = Activator.CreateInstance(typeof(T));
-        //        foreach (var pp in pps)
-        //        {
-        //            pp.SetValue(inst, oo.GetValue(pp.Name), null);
-        //        }
-        //        yield return (T)inst;
-        //    }
-        //}
 
         bool m_IsWritable = false;
         List<RegistryKey> m_Regs = new List<RegistryKey>();
@@ -129,31 +116,110 @@ namespace QSoft.Registry.Linq
         }
 
 
-        void ProcessExpr(Expression expression)
+        void ProcessExpr(Expression excuteexpr)
         {
-            //while(true)
-            //{
-            //    var methodcall = expression as MethodCallExpression;
-            //    if(methodcall == null)
-            //    {
-            //        break;
-            //    }
-            //    else
-            //    {
-                    
-            //    }
-            //}
-            RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
-            var expr = reg.Visit(expression, this.m_RegSource);
+            Stack<Expression> exprs = new Stack<Expression>();
+            if(this.m_CreateQuerys.Contains(excuteexpr) == true)
+            {
+                exprs.Push(excuteexpr);
+                this.m_CreateQuerys.Remove(excuteexpr);
+            }
+            MethodCallExpression methodcall = excuteexpr as MethodCallExpression;
+            while (true)
+            {
+                if (methodcall == null)
+                {
+                    break;
+                }
+                else
+                {
+                    var ll = methodcall.Arguments.Where(x => this.m_CreateQuerys.Contains(x) == true);
+                    int findcount = ll.Count();
+                    if(findcount > 1)
+                    {
+                        System.Diagnostics.Trace.WriteLine("");
+                    }
+                    else if(findcount == 1)
+                    {
+                        exprs.Push(ll.ElementAt(0));
+                        
+                        methodcall = ll.ElementAt(0) as MethodCallExpression;
+                        this.m_CreateQuerys.Remove(ll.ElementAt(0));
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+            foreach(var expression in exprs)
+            {
+                RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
+                MethodCallExpression method1 = expression as MethodCallExpression;
+
+                if (method1.Arguments[0].NodeType == ExpressionType.Constant)
+                {
+                    this.m_Exprs.Clear();
+                }
+
+                if (this.m_RegMethod == null || method1.Arguments[0].NodeType == ExpressionType.Constant)
+                {
+                    this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+                    this.m_Exprs[expression] = this.m_RegMethod;
+                }
+                else if (this.m_RegMethod.Type.IsGenericType == true)
+                {
+                    var ttype = this.m_RegMethod.Type;
+                    var ttype_def = ttype.GetGenericTypeDefinition();
+                    if (ttype == typeof(IQueryable<RegistryKey>) || ttype == typeof(IEnumerable<RegistryKey>) || ttype == typeof(IOrderedQueryable<RegistryKey>))
+                    {
+                        this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+                        this.m_Exprs[expression] = this.m_RegMethod;
+                    }
+                    else if (ttype_def == typeof(IQueryable<>) || ttype_def == typeof(IEnumerable<>) || ttype_def == typeof(IOrderedQueryable<>))
+                    {
+                        var group = ttype.GetGenericArguments()[0];
+
+                        bool has = group.GetGenericArguments().Any(x => x == typeof(RegistryKey));
+                        has = group.HaseRegistryKey();
+                        if (has == true)
+                        {
+                            this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
+                            this.m_Exprs[expression] = this.m_RegMethod;
+                        }
+                        else
+                        {
+                            var args = method1.Arguments.ToArray();
+                            args[0] = this.m_RegMethod;
+                            this.m_RegMethod = Expression.Call(method1.Method, args);
+                        }
+                    }
+                    else
+                    {
+                        var args = method1.Arguments.ToArray();
+                        args[0] = this.m_RegMethod;
+                        this.m_RegMethod = Expression.Call(method1.Method, args);
+                    }
+                }
+                else
+                {
+                    var args = method1.Arguments.ToArray();
+                    args[0] = this.m_RegMethod;
+                    this.m_RegMethod = Expression.Call(method1.Method, args);
+                }
+            }
+            this.m_ProcessExprs[excuteexpr] = this.m_RegMethod;
         }
+
 
         Dictionary<Expression, Expression> m_ProcessExprs = new Dictionary<Expression, Expression>();
         public TResult Execute<TResult>(Expression expression)
         {
-            //if (m_ProcessExprs.ContainsKey(expression) == false)
-            //{
-            //    ProcessExpr(expression);
-            //}
+            if (m_ProcessExprs.ContainsKey(expression) == false)
+            {
+                ProcessExpr(expression);
+            }
+            this.m_RegMethod = this.m_ProcessExprs[expression];
             var tte = new List<RegistryKey>().AsQueryable();
             TResult return_hr = default(TResult);
 

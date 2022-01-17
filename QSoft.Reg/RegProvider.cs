@@ -213,21 +213,30 @@ namespace QSoft.Registry.Linq
 
 
         Dictionary<Expression, Expression> m_ProcessExprs = new Dictionary<Expression, Expression>();
+        IQueryable<RegistryKey> m_RegsQuery;
+        MethodInfo m_CreateQuery = typeof(IQueryProvider).GetMethods().FirstOrDefault(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
         public TResult Execute<TResult>(Expression expression)
         {
+            var type = typeof(TResult);
+            Type[] tts = type.GetGenericArguments();
             if (m_ProcessExprs.ContainsKey(expression) == false)
             {
                 ProcessExpr(expression);
             }
+
+
+            if(this.m_RegsQuery == null)
+            {
+                this.m_RegsQuery = new List<RegistryKey>().AsQueryable();
+            }
             this.m_RegMethod = this.m_ProcessExprs[expression];
-            var tte = new List<RegistryKey>().AsQueryable();
+
             TResult return_hr = default(TResult);
 
 
             var expr_org = expression as MethodCallExpression;
             var updatemethod = this.m_RegMethod as MethodCallExpression;
-            var type = typeof(TResult);
-            Type[] tts = type.GetGenericArguments();
+            
             string methodname = (expression as MethodCallExpression)?.Method?.Name;
 
             if (expression is ConstantExpression && tts[0] == typeof(TData))
@@ -236,9 +245,10 @@ namespace QSoft.Registry.Linq
                 var sd = typeof(TData).ToSelectData();
                 var select = typeof(TData).SelectMethod();
                 updatemethod = Expression.Call(select, this.m_RegSource, sd);
-                var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
-                var creatquery = creatquerys.First().MakeGenericMethod(tts);
-                var excute = creatquery.Invoke(tte.Provider, new object[] { updatemethod });
+                this.m_ProcessExprs[expression] = updatemethod;
+                //var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
+                var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
+                var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { updatemethod });
                 return (TResult)excute;
             }
 
@@ -290,12 +300,11 @@ namespace QSoft.Registry.Linq
                         var select = typeof(TResult).GetGenericArguments()[0].SelectMethod(updatemethod.Type.GetGenericArguments()[0]);
                         updatemethod = Expression.Call(select, updatemethod, sd);
                     }
-
                 }
 
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
                 var creatquery = creatquerys.First().MakeGenericMethod(tts);
-                var excute = creatquery.Invoke(tte.Provider, new object[] { updatemethod });
+                var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { updatemethod });
                 return_hr = (TResult)excute;
             }
             else
@@ -366,7 +375,7 @@ namespace QSoft.Registry.Linq
                     throw fail;
                 }
                 object excute = null;
-                excute = tte.Provider.Execute(expr);
+                excute = this.m_RegsQuery.Provider.Execute(expr);
 
                 var excute_reg = excute as RegistryKey;
                 if (excute_reg != null)

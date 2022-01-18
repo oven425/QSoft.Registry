@@ -561,7 +561,7 @@ namespace QSoft.Registry.Linq
             {
                 this.m_GenericTypes.Push(new Dictionary<string, Type>());
                 var dic = method.GetParameters();
-                
+                var dicc1 = method.GetGenericMethodDefinition();
                 var dicc = method.GetGenericMethodDefinition().GetGenericArguments();
                 if (lo.Any(x => x.bb == true) == false && this.m_Saves!=null&& this.m_Saves.ContainsKey(args[0])==true)
                 {
@@ -582,6 +582,7 @@ namespace QSoft.Registry.Linq
                             }
                             else
                             {
+                                var dui = dic[i].ParameterType.GetGenericTypeDefinition();
                                 if (dic[i].ParameterType.IsGenericType == true)
                                 {
                                     this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
@@ -754,7 +755,7 @@ namespace QSoft.Registry.Linq
             }
             LastMethodName = node.Method.Name;
             this.PreparMethod(node, node.Arguments.ToArray(), node.Method);
-
+            var yu = node.Arguments.GetTypess(node.Method);
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
@@ -800,10 +801,10 @@ namespace QSoft.Registry.Linq
                             if(expr.Method.IsGenericMethod == true)
                             {
                                 var ggs = expr.Method.GetGenericArguments();
-                                //if(expr.Method.Name == "SelectMany")
-                                //{
-                                //    ttypes1[1] = ttypes1[1].GetGenericArguments()[0];
-                                //}
+                                if (expr.Method.Name == "SelectMany")
+                                {
+                                    //ttypes1[1] = typeof(RegistryKey);
+                                }
                                 methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
                             }
                             else

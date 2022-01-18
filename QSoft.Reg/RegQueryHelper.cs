@@ -557,6 +557,40 @@ namespace QSoft.Registry.Linq
             }
         }
 
+        public static Dictionary<string,Type> GetTypess(this IEnumerable<Expression> src, MethodInfo method)
+        {
+            if (method.IsGenericMethod == true)
+            {
+                var method_define = method.GetGenericMethodDefinition();
+                var names = method_define.GetGenericArguments().Select(x => x.Name).ToArray();
+
+                var method_pps = method_define.GetParameters();
+                var types1 = new Dictionary<string, Type>();
+
+
+                for (int i = 0; i < names.Length; i++)
+                {
+                    for (int j = 0; j < method_pps.Length; j++)
+                    {
+                        var ttype = names.ElementAt(i).Findd(src.ElementAt(j).Type, method_pps[j].ParameterType);
+                        if (ttype != null)
+                        {
+                            types1[names.ElementAt(i)] = ttype;
+                            break;
+                        }
+                    }
+
+
+                }
+                return types1;
+            }
+            else
+            {
+                return src.ToDictionary(x => x.Type.Name, x => x.Type);
+               // return src.Select(x => x.Type).ToArray();
+            }
+        }
+
 
         public static string GetLastSegement(this string src)
         {

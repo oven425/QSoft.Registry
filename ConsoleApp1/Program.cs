@@ -119,114 +119,6 @@ namespace ConsoleApp1
         }
     }
 
-
-    public class Grouping<TKey, TElement, TResult> : IGrouping<TKey, TResult>, IList<TResult>
-    {
-        internal TKey key;
-        internal int hashCode;
-        internal TResult[] elements;
-        internal int count;
-        internal Grouping<TKey, TElement, TResult> hashNext;
-        internal Grouping<TKey, TElement, TResult> next;
-
-
-        public Grouping(IGrouping<TKey, TElement> data)
-        {
-            this.key = data.Key;
-
-            //this.elements = data.ToArray();
-        }
-        //internal void Add(TElement element)
-        //{
-        //    if (elements.Length == count) Array.Resize(ref elements, checked(count * 2));
-        //    elements[count] = element;
-        //    count++;
-        //}
-
-        public IEnumerator<TResult> GetEnumerator()
-        {
-            for (int i = 0; i < count; i++) yield return elements[i];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-
-        // DDB195907: implement IGrouping<>.Key implicitly
-        // so that WPF binding works on this property.
-        public TKey Key
-        {
-            get { return key; }
-        }
-
-        int ICollection<TResult>.Count
-        {
-            get { return count; }
-        }
-
-        bool ICollection<TResult>.IsReadOnly
-        {
-            get { return true; }
-        }
-
-        void ICollection<TResult>.Add(TResult item)
-        {
-            throw new NotSupportedException();
-        }
-
-        void ICollection<TResult>.Clear()
-        {
-            throw new NotSupportedException();
-        }
-
-        bool ICollection<TResult>.Contains(TResult item)
-        {
-            return Array.IndexOf(elements, item, 0, count) >= 0;
-        }
-
-        void ICollection<TResult>.CopyTo(TResult[] array, int arrayIndex)
-        {
-            Array.Copy(elements, 0, array, arrayIndex, count);
-        }
-
-        bool ICollection<TResult>.Remove(TResult item)
-        {
-            throw new NotSupportedException();
-        }
-
-        int IList<TResult>.IndexOf(TResult item)
-        {
-            return Array.IndexOf(elements, item, 0, count);
-        }
-
-        void IList<TResult>.Insert(int index, TResult item)
-        {
-            throw new NotSupportedException();
-        }
-
-        void IList<TResult>.RemoveAt(int index)
-        {
-            throw new NotSupportedException();
-        }
-
-        TResult IList<TResult>.this[int index]
-        {
-            get
-            {
-                if (index < 0 || index >= count) throw new ArgumentOutOfRangeException("index");
-                return elements[index];
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
-    }
-
-
-
-
 class Program
     {
 
@@ -344,6 +236,14 @@ class Program
 
             //    });
 
+            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"))
+                //.SelectMany(x => x, (x, y) => new { x.Key, y});
+                .SelectMany(x => x);
+            foreach (var oo in rr)
+            {
+
+            }
+
 
             //var rr = queryable.GroupJoin(queryable, a => a.GetValue<string>("DisplayName"), b => b.GetValue<string>("DisplayName"), (c, d) => new { c, d })
             //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g })
@@ -360,21 +260,8 @@ class Program
             //    });
 
 
-            var grouping = Assembly.GetAssembly(typeof(Enumerable)).GetTypes().Where(x => x.Name== "Grouping").First();
-            var ggg = grouping.MakeGenericType(typeof(int), typeof(int));
-            var ggo = Activator.CreateInstance(ggg);
-
-
             //var r1 = queryable.Where(x => x.GetValue<string>("DisplayName")!="");
-            var r2 = queryable.GroupBy(x => x.GetValue<string>("DisplayName"))
-                .Select(x=> new Grouping<string, RegistryKey, InstalledApp>(x));
-            foreach(var oo in r2)
-            {
-                foreach(var ii in oo)
-                {
 
-                }
-            }
 
             //.SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
 
@@ -481,16 +368,15 @@ class Program
             //var dst11 = regt.ToList();
             //var ioi = regt.Where(x => x.DisplayName != "").ToList();
             //var re = regt.Where(x => x.DisplayName != "").RemoveAll();
-            var r1 = regt.GroupBy(x => x.DisplayName.Contains("A"), x => x, (x, y) =>y).SelectMany(x=>x);
-            
-            var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
-            var ggt = regt.GroupBy(x => x.DisplayName);
-            foreach(var oo in ggt)
-            {
-                if(oo.Key == "AA")
-                {
+            //var r1 = regt.GroupBy(x => x.DisplayName.Contains("A"), x => x, (x, y) =>y).SelectMany(x=>x);
 
-                }
+            //var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
+            var ggt = regt.GroupBy(x => x.DisplayName)
+                .SelectMany(x => x);
+            //.SelectMany(x=>x, (x,y)=>new { x.Key, y});
+            foreach (var oo in ggt)
+            {
+                //oo.y.
             }
 
             var selectr_tuple = regt.Where(x=>x.DisplayName != "").ToList();

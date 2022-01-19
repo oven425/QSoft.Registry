@@ -57,7 +57,9 @@ namespace QSoft.Registry.Linq
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
             
-            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{Guid.NewGuid()}", TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{types.Count()}_{exists?.Count()}", TypeAttributes.Public);
+            
+            List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
 
             var tts = new List<Tuple<Type, string>>();
             var types1 = types.ToList();
@@ -72,12 +74,20 @@ namespace QSoft.Registry.Linq
                 if(i< existindex)
                 {
                     tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
+                    typekeys.Add(new KeyValuePair<string, Type>(types1[i].Item2, types1[i].Item1));
                 }
                 else
                 {
                     tts.Add(Tuple.Create(exists.ElementAt(i-existindex), types1[i].Item2));
+
+                    typekeys.Add(new KeyValuePair<string, Type>(types1[i].Item2, exists.ElementAt(i - existindex)));
                 }
             }
+
+
+            //var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
+            //return oiop;
+
             //int existindex = types.Count() - exists.Count();
             //foreach(var oo in types)
             //{
@@ -517,6 +527,43 @@ namespace QSoft.Registry.Linq
                 }
             }
             return result;
+        }
+
+        public static Type ChangeType(this Type src, Dictionary<Type, Type> changes)
+        {
+            if(src.IsGenericType == true)
+            {
+                var args = src.GetGenericArguments();
+                for(int i=0; i<args.Length; i++)
+                {
+                    if(args[i].IsGenericType == true)
+                    {
+                        if (changes.ContainsKey(args[i]))
+                        {
+                            args[i] = changes[args[i]];
+                        }
+                        args[i] = args[i].ChangeType(changes);
+                    }
+                    else
+                    {
+                        if (changes.ContainsKey(args[i]))
+                        {
+                            args[i] = changes[args[i]];
+                        }
+                    }
+
+                }
+                return src.GetGenericTypeDefinition().MakeGenericType(args);
+            }
+            else
+            {
+                if(changes.ContainsKey(src))
+                {
+                    return changes[src];
+                }
+                return src;
+            }
+            return null;
         }
 
         public static Type[] GetTypes(this IEnumerable<Expression> src, MethodInfo method)

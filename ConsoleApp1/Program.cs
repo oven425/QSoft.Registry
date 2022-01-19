@@ -121,11 +121,10 @@ namespace ConsoleApp1
 
 class Program
     {
-
+        
         static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
-
 
             ////List<int> testlist = Enumerable.Range(1, 5).ToList();
             ////var qur = testlist.AsQueryable();
@@ -364,16 +363,17 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            //var dst = regt.ToList();
+            //var dst = regt.Take(2).ToList();
             //var dst11 = regt.ToList();
+            //var join1 = regt.Join(dst, x => x.DisplayName, y => y.DisplayName, (x, y) => new { x, y }).ToList();
             //var ioi = regt.Where(x => x.DisplayName != "").ToList();
             //var re = regt.Where(x => x.DisplayName != "").RemoveAll();
             //var r1 = regt.GroupBy(x => x.DisplayName.Contains("A"), x => x, (x, y) =>y).SelectMany(x=>x);
 
             //var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
             var ggt = regt.GroupBy(x => x.DisplayName)
-                .SelectMany(x => x);
-            //.SelectMany(x=>x, (x,y)=>new { x.Key, y});
+                //.SelectMany(x => x);
+            .SelectMany(x=>x, (x,y)=>new { x.Key, y});
             foreach (var oo in ggt)
             {
                 //oo.y.

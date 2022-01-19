@@ -35,6 +35,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AnonymousTypeUtils.cs" />
     <Compile Include="DictionaryList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegAttribute.cs" />

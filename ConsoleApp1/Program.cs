@@ -139,7 +139,7 @@ class Program
 
 
 
-            //TestDB();
+            TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -363,7 +363,7 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            //var dst = regt.Take(2).ToList();
+            var dst = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }).ToList();
             //var dst11 = regt.ToList();
             //var join1 = regt.Join(dst, x => x.DisplayName, y => y.DisplayName, (x, y) => new { x, y }).ToList();
             //var ioi = regt.Where(x => x.DisplayName != "").ToList();
@@ -371,9 +371,9 @@ class Program
             //var r1 = regt.GroupBy(x => x.DisplayName.Contains("A"), x => x, (x, y) =>y).SelectMany(x=>x);
 
             //var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
-            var ggt = regt.GroupBy(x => x.DisplayName)
-                //.SelectMany(x => x);
-            .SelectMany(x=>x, (x,y)=>new { x.Key, y});
+            var ggt = regt.GroupBy(x => x.DisplayName, (key, reg) => key);
+            //.SelectMany(x => x);
+            //.SelectMany(x=>x, (x,y)=>new { x.Key, y});
             foreach (var oo in ggt)
             {
                 //oo.y.
@@ -805,12 +805,20 @@ class Program
             var yu = ifelse.Test.GetType();
             var oioi  = Expression.Condition(ifelse.Test, ifelse.IfTrue, ifelse.IfFalse);
 
-            var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
-                .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
-            foreach (var oo in left2)
+            //var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
+            //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
+
+            var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
+            var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
+
+
+            //var removenall = selectmany.Where(x => x.g == null);
+            //removenall.RemoveAll();
+            foreach (var oo in selectmany)
             {
 
             }
+
             //var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
             //    .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
 

@@ -57,7 +57,7 @@ namespace QSoft.Registry.Linq
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
             
-            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{types.Count()}_{exists?.Count()}", TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{types.Count()}_{exists?.Count()}_{DateTime.Now.Ticks}", TypeAttributes.Public);
             
             List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
 
@@ -372,7 +372,7 @@ namespace QSoft.Registry.Linq
                         exprs.Add(aaaaa);
                         hasreg = true;
                     }
-                    else if (pp.src.PropertyType.IsGenericType == true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    else if (pp.src.PropertyType.IsGenericType == true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>)&& pp.src.PropertyType==typeof(IEnumerable<RegistryKey>))
                     {
                         var param1 = Expression.Property(param, pp.dst.Name);
                         var ppp = param1.Expression as ParameterExpression;
@@ -657,6 +657,44 @@ namespace QSoft.Registry.Linq
             }
             var segement = src.Replace(basekeyname, "").Replace(path, "").TrimStart('\\');
             return segement;
+        }
+
+        static public List<string> FindAllGeneric(this Type src)
+        {
+            List<string> types = new List<string>();
+            if(src.IsGenericParameter == true)
+            {
+                types.Add(src.Name);
+                
+            }
+            else if(src.IsGenericType == true)
+            {
+                var pps = src.GetGenericArguments();
+
+                if (pps.Length == 0)
+                {
+                    types.Add(src.Name);
+                }
+                else
+                {
+                    foreach (var oo in pps)
+                    {
+                        if (oo.IsGenericParameter == true)
+                        {
+                            types.AddRange(oo.FindAllGeneric());
+                        }
+                        else
+                        {
+                            types.Add(oo.Name);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                types.Add(src.Name);
+            }
+            return types;
         }
 
         static public RegistryKey GetParent(this RegistryKey src)

@@ -630,6 +630,22 @@ namespace QSoft.Registry.Linq
                 if (pp != null)
                 {
 #if RegToEnd
+                    var kkey = pp.GetGenericArguments()[0].GetGenericArguments().Select(x =>
+                    {
+                        string name = x.Name;
+                        if (x.IsGenericType == true && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                        {
+                            name = x.GetGenericArguments()[0].Name;
+                        }
+
+                        return name;
+                    }).Last();
+                    var lambda = exprs.First().Value as LambdaExpression;
+                    if (lambda != null)
+                    {
+                        this.m_GenericTypes.First()[kkey] = lambda.ReturnType;
+
+                    }
 #else
                     var kkey = pp.GetGenericArguments()[0].GetGenericArguments().Select(x =>
                     {
@@ -741,10 +757,11 @@ namespace QSoft.Registry.Linq
                 }
                 else if (this.m_GenericTypes.Count > 1)
                 {
-                    var bt = this.m_ExpressionSaves1.ContainsKey(args[0]);
-                    for (int i = 0; i < dicc.Length; i++)
+                    var newargs = new Expression[args.Length];
+                    Array.Copy(args, newargs, args.Length);
+                    var types = newargs.GetTypes(method);
+                    for (int i = 0; i < types.Length; i++)
                     {
-
                         if (this.m_ExpressionSaves1.ContainsKey(args[i]) == true)
                         {
                             var aaa = this.m_ExpressionSaves1[args[i]];
@@ -761,23 +778,45 @@ namespace QSoft.Registry.Linq
                         }
                         else
                         {
-                            if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                            }
-                            else
-                            {
-                                if (dic[i].ParameterType.IsGenericType == true)
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                                }
-                                else
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                                }
-                            }
+                            this.m_GenericTypes.First()[dicc[i].Name] = types[i];
                         }
                     }
+                    //for (int i = 0; i < dicc.Length; i++)
+                    //{
+
+                    //    if (this.m_ExpressionSaves1.ContainsKey(args[i]) == true)
+                    //    {
+                    //        var aaa = this.m_ExpressionSaves1[args[i]];
+                    //        if (aaa.IsGenericType == true && aaa.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    //        {
+                    //            string ssssss = aaa.GetGenericArguments()[0].Name;
+                    //            this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)[ssssss];
+                    //        }
+                    //        //this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
+                    //    }
+                    //    else if (this.m_GenericTypes.ElementAt(1).ContainsKey("TSource") == true)
+                    //    {
+                    //        this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
+                    //    }
+                    //    else
+                    //    {
+                    //        if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                    //        {
+                    //            this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
+                    //        }
+                    //        else
+                    //        {
+                    //            if (dic[i].ParameterType.IsGenericType == true)
+                    //            {
+                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
+                    //            }
+                    //            else
+                    //            {
+                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
+                    //            }
+                    //        }
+                    //    }
+                    //}
                 }
                 else
                 {

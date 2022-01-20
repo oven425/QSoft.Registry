@@ -809,11 +809,11 @@ class Program
             //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
 
             var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
-            var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
+            var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });
 
 
-            //var removenall = selectmany.Where(x => x.g == null);
-            //removenall.RemoveAll();
+            var removenall = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
+            removenall.RemoveAll();
             foreach (var oo in selectmany)
             {
 

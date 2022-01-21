@@ -159,6 +159,22 @@ namespace QSoft.Registry.Linq
         //}
 
 
+        public static int InsertOrUpdate<TFirst, TSecond, TResult>(this IQueryable<TFirst> source, RegQuery<TSecond> reg, Expression<Func<TFirst, TResult>> selector)
+        {
+            var inserorupdate = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "InsertOrUpdate");
+            var methdodcall = Expression.Call(inserorupdate.First().MakeGenericMethod(typeof(TFirst), typeof(TSecond), typeof(TResult)), source.Expression, Expression.Constant(reg, reg.GetType()), selector);
+            return source.Provider.Execute<int>(methdodcall);
+            return 1;
+        }
+
+        static int InsertOrUpdate<TFirst, TSecond, TResult>(this IEnumerable<TFirst> source, IEnumerable<TSecond> reg, Func<TFirst, TResult> data)
+        {
+            return 0;
+        }
+
+
+
+
         public static int RemoveAll<TSource>(this IQueryable<TSource> source)
         {
             var removeall = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).FirstOrDefault(x =>

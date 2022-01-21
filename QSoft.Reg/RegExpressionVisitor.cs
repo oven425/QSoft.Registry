@@ -222,17 +222,24 @@ namespace QSoft.Registry.Linq
                     var binding = Expression.Bind(expr.Bindings[i].Member, x.Value);
                     return binding;
                 });
-                if(this.LastMethodName != "Update")
+                switch(this.LastMethodName)
                 {
-                    var expr_memberinit = Expression.MemberInit(exprs.First().Value as NewExpression, bindings);
-                    this.m_ExpressionSaves[expr] = expr_memberinit;
+                    case "Update":
+                    case "InsertOrUpdate":
+                        {
+                            var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
+                            var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
+                            this.m_ExpressionSaves[expr] = expr_new;
+                        }
+                        break;
+                    default:
+                        {
+                            var expr_memberinit = Expression.MemberInit(exprs.First().Value as NewExpression, bindings);
+                            this.m_ExpressionSaves[expr] = expr_memberinit;
+                        }
+                        break;
                 }
-                else
-                {
-                    var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
-                    var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
-                    this.m_ExpressionSaves[expr] = expr_new;
-                }
+
             }
             this.m_Lastnode = expr;
             return expr;
@@ -280,6 +287,14 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Debug.WriteLine($"VisitLambda T:{typeof(T)}");
 
 #if RegToEnd
+            if(this.m_PP == null)
+            {
+                if (m_PPs.ContainsKey(node) == true)
+                {
+                    m_PP = m_PPs[node];
+                }
+            }
+            
             if (m_PP != null)
             {
                 var pps = m_PP.Item2.GetParameters().ToList();
@@ -1174,6 +1189,10 @@ namespace QSoft.Registry.Linq
                 return node;
             }
             LastMethodName = node.Method.Name;
+            if (node.Method.Name == "InsertOrUpdate")
+            {
+                //ttypes1[1] = typeof(RegistryKey);
+            }
 #if RegToEnd
             this.PreparMethod1(node, node.Arguments.ToArray(), node.Method);
 #else

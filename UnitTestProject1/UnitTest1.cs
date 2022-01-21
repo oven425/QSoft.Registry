@@ -378,11 +378,11 @@ namespace UnitTestProject1
             this.Check(this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install), regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install));
         }
 
-        //[TestMethod]
-        //public void GroupJoin()
-        //{
-        //    //this.Check(this.m_Apps.GroupJoin(regt, x => x.Name, y => y.DisplayName, (test, install) => install), regt.GroupJoin(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install));
-        //}
+        [TestMethod]
+        public void Select_Min()
+        {
+            Assert.IsTrue(this.m_Tests.Select(x => x.DisplayName.Length).Min() == regt.Select(x => x.DisplayName.Length).Min(), "Select_Min fail");
+        }
 
         [TestMethod]
         public void Select()
@@ -569,7 +569,6 @@ namespace UnitTestProject1
         public void Min()
         {
             Assert.IsTrue(this.m_Tests.Min(x => x.EstimatedSize) == regt.Min(x => x.EstimatedSize), "Min fail");
-            Assert.IsTrue(this.m_Tests.Select(x => x.DisplayName.Length).Min() == regt.Select(x => x.DisplayName.Length).Min(), "Min fail");
         }
 
         [TestMethod]

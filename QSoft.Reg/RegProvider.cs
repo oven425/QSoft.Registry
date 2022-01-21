@@ -309,25 +309,36 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-                
                 System.Diagnostics.Debug.WriteLine($"Execute<TResult> {methodname}");
                
                 object inst = null;
                 Expression expr = expression;
 
-                if (methodname == "Insert" || methodname == "RemoveAll"|| methodname=="Update")
+                switch(methodname)
                 {
-                    if(this.m_IsWritable == false)
-                    {
-                        foreach (var oo in this.m_Regs)
+                    case "Insert":
+                    case "RemoveAll":
+                    case "Update":
                         {
-                            oo.Close();
-                            oo.Dispose();
+                            if (this.m_IsWritable == false)
+                            {
+                                foreach (var oo in this.m_Regs)
+                                {
+                                    oo.Close();
+                                    oo.Dispose();
+                                }
+                                this.m_Regs.Clear();
+                            }
+                            this.m_IsWritable = true;
                         }
-                        this.m_Regs.Clear();
-                    }
+                        break;
+                    default:
+                        {
+                            this.m_IsWritable = false;
+                        }
+                        break;
                 }
-                this.m_IsWritable = methodname == "Update" || methodname == "Insert" || methodname == "RemoveAll";
+
                 if (methodname == "Insert")
                 {
 
@@ -343,29 +354,69 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
+                    //List<Expression> args = new List<Expression>();
+                    //saves[updatemethod.Arguments[0]] = this.m_RegMethod;
+                    //args.Add(this.m_RegMethod);
+
+                    //for (int i = 1; i < updatemethod.Arguments.Count; i++)
+                    //{
+                    //    RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
+                    //    arg1 = regvisitor.VisitA(updatemethod, this.m_RegSource, saves);
+
+                    //    //arg1 = regvisitor.Visit(updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
+                    //    if (regvisitor.Fail != null)
+                    //    {
+                    //        this.m_Errors.Add(Tuple.Create(expression, arg1, regvisitor.Fail));
+                    //    }
+                    //    args.Add(arg1);
+                    //    saves[updatemethod.Arguments[i]] = arg1;
+                    //}
+
+                    //var oioi = args.GetTypes(updatemethod.Method);
+
+                    //expr = arg1;
+
+                    
                     Expression arg1 = null;
                     updatemethod = expr as MethodCallExpression;
-                    List<Expression> args = new List<Expression>();
-                    args.Add(this.m_RegMethod);
-                    for (int i=1; i< updatemethod.Arguments.Count; i++)
+                    if(updatemethod.Arguments.Count == 1)
+                    {
+                        var ggs = updatemethod.Method.GetGenericArguments();
+                        if (ggs[0] == typeof(TData))
+                        {
+                            ggs[0] = typeof(RegistryKey);
+                        }
+                        var mmethod = updatemethod.Method.GetGenericMethodDefinition().MakeGenericMethod(ggs);
+                        expr = MethodCallExpression.Call(mmethod, this.m_RegMethod);
+                    }
+                    else
                     {
                         RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
-                        arg1 = regvisitor.Visit(updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
-                        if (regvisitor.Fail != null)
-                        {
-                            this.m_Errors.Add(Tuple.Create(expression, arg1, regvisitor.Fail));
-                        }
-                        args.Add(arg1);
+                        Dictionary<Expression, Expression> saves = new Dictionary<Expression, Expression>();
+                        saves[updatemethod.Arguments[0]] = this.m_RegMethod;
+                        expr = regvisitor.VisitA(updatemethod, this.m_RegSource, saves);
                     }
+                    //List<Expression> args = new List<Expression>();
+                    //args.Add(this.m_RegMethod);
+                    //for (int i=1; i< updatemethod.Arguments.Count; i++)
+                    //{
+                    //    RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
+                    //    arg1 = regvisitor.Visit(updatemethod.Method, updatemethod.Arguments[i-1], updatemethod.Arguments[i]);
+                    //    if (regvisitor.Fail != null)
+                    //    {
+                    //        this.m_Errors.Add(Tuple.Create(expression, arg1, regvisitor.Fail));
+                    //    }
+                    //    args.Add(arg1);
+                    //}
 
-                    var ggs = updatemethod.Method.GetGenericArguments();
-                    if(ggs[0] == typeof(TData))
-                    {
-                        ggs[0] = typeof(RegistryKey);
-                    }
-                    var oioi = args.GetTypes(updatemethod.Method);
-                    var mmethod = updatemethod.Method.GetGenericMethodDefinition().MakeGenericMethod(oioi);
-                    expr = MethodCallExpression.Call(mmethod, args);
+                    //var ggs = updatemethod.Method.GetGenericArguments();
+                    //if(ggs[0] == typeof(TData))
+                    //{
+                    //    ggs[0] = typeof(RegistryKey);
+                    //}
+                    //var oioi = args.GetTypes(updatemethod.Method);
+                    //var mmethod = updatemethod.Method.GetGenericMethodDefinition().MakeGenericMethod(oioi);
+                    //expr = MethodCallExpression.Call(mmethod, args);
 
                 }
                 

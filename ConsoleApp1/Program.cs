@@ -363,7 +363,8 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            var dst = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }).ToList();
+            regt.Select(x => x.DisplayName.Length).Min();
+            var dst = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize+ 10000 });
             //var dst11 = regt.ToList();
             //var join1 = regt.Join(dst, x => x.DisplayName, y => y.DisplayName, (x, y) => new { x, y }).ToList();
             //var ioi = regt.Where(x => x.DisplayName != "").ToList();
@@ -813,7 +814,8 @@ class Program
 
 
             var removenall = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
-            removenall.RemoveAll();
+            removenall.InsertOrUpdate(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
+            //removenall.RemoveAll();
             foreach (var oo in selectmany)
             {
 
@@ -885,5 +887,5 @@ class Program
         public string SystemProductName { set; get; }
         public string SystemSKU { set; get; }
         public string SystemVersion { set; get; }
-    }
+    } 
 }

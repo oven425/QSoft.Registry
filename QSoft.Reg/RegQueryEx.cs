@@ -1,11 +1,9 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
@@ -15,7 +13,6 @@ namespace QSoft.Registry.Linq
         public static int Insert<TSource, TData>(this RegQuery<TSource> source, IEnumerable<TData> datas) where TData : class
         {
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic|BindingFlags.Static).Where(x => x.Name == "Insert");
-            //var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TData)), source.Expression, Expression.Constant(datas, typeof(IEnumerable<TData>)));
             var reg = source.ToRegistryKey();
             var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TData)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TData>)));
             int hr = source.Provider.Execute<int>(methdodcall);
@@ -26,28 +23,71 @@ namespace QSoft.Registry.Linq
         static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas)
         {
             int count = 0;
-            var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
             Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
-            foreach (var pp in pps)
+            //var pps = typeof(TData).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
+
+            var group = typeof(TData).GetProperties().Where(x => x.CanRead == true)
+                .Select(x => new { x, attr = x.GetCustomAttributes(true).Where(y => y is RegIgnore || y is RegSubKeyName || y is RegPropertyName).FirstOrDefault() })
+                .GroupBy(x => x.attr);
+
+            PropertyInfo subkey = null;
+            foreach (var items in group)
             {
-                dicpps[pp] = pp.Name;
-                var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
-                if (regnames.Length > 0)
+                if (items.Key is RegPropertyName)
                 {
-                    dicpps[pp] = regnames[0].Name;
+                    foreach (var oo in items)
+                    {
+                        dicpps[oo.x] = (oo.attr as RegPropertyName)?.Name ?? oo.x.Name;
+                    }
+                }
+                else if (items.Key == null)
+                {
+                    foreach (var oo in items)
+                    {
+                        dicpps[oo.x] = oo.x.Name;
+                    }
+                }
+                else if (items.Key is RegSubKeyName)
+                {
+                    foreach (var oo in items)
+                    {
+                        subkey = oo.x;
+                    }
                 }
             }
-            int index = 0;
-            var names = source.GetSubKeyNames();
-            if(names.Length > 0)
-            {
-                index = int.Parse(names.Last());
-            }
+
+
+
+            //foreach (var pp in pps)
+            //{
+            //    dicpps[pp] = pp.Name;
+            //    var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
+            //    if (regnames.Length > 0)
+            //    {
+            //        dicpps[pp] = regnames[0].Name;
+            //    }
+            //}
+            //int index = 0;
+            //var names = source.GetSubKeyNames();
+            //if(names.Length > 0)
+            //{
+            //    index = int.Parse(names.Last());
+            //}
             foreach (var data in datas)
             {
-                var child = source.CreateSubKey($"{index++:0000000000}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                //var child = source.CreateSubKey($"{index++:0000000000}", RegistryKeyPermissionCheck.ReadWriteSubTree);
                 //var child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                foreach (var pp in pps)
+                RegistryKey child = null;
+                if (subkey == null)
+                {
+                    child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                else
+                {
+                    var vv = subkey.GetValue(data, null);
+                    child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                foreach (var pp in dicpps.Select(x=>x.Key))
                 {
                     var vv = pp.GetValue(data, null);
                     if(vv != null)

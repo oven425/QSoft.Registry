@@ -62,9 +62,13 @@ namespace ConsoleApp1
 
     public class Company
     {
+        //[RegSubKeyName]
+        public int Key { set; get; }
+        [RegPropertyName(Name = "Name1")]
         public string Name { set; get; }
+        [RegPropertyName(Name="ID1")]
         public int ID { set; get; }
-
+        public string Address { set; get; }
     }
 
     public class InstalledApp
@@ -731,15 +735,15 @@ class Program
                     x.Hive = RegistryHive.CurrentConfig;
                     x.SubKey = @"UnitTest\Apps";
                 });
-            //regt_company.RemoveAll();
-            //regt_company.Insert(new List<Company>()
-            //{
-            //    new Company(){Name = "Company_A", ID=1},
-            //    new Company(){Name = "Company_B", ID=2},
-            //    new Company(){Name = "Company_C", ID=3},
-            //    new Company(){Name = "Company_D", ID=4},
-            //    new Company(){Name = "Company_E", ID=5},
-            //});
+            regt_company.RemoveAll();
+            regt_company.Insert(new List<Company>()
+            {
+                new Company(){Name = "Company_A", ID=1, Key=100},
+                new Company(){Name = "Company_B", ID=2, Key=101},
+                new Company(){Name = "Company_C", ID=3, Key=102},
+                new Company(){Name = "Company_D", ID=4, Key=103},
+                new Company(){Name = "Company_E", ID=5, Key=104},
+            });
             //regt_apps.RemoveAll();
             //regt_apps.Insert(new List<InstalledApp>()
             //{

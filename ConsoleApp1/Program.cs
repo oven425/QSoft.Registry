@@ -744,6 +744,7 @@ class Program
                 new Company(){Name = "Company_D", ID=4, Key=103},
                 new Company(){Name = "Company_E", ID=5, Key=104},
             });
+
             //regt_apps.RemoveAll();
             //regt_apps.Insert(new List<InstalledApp>()
             //{
@@ -757,15 +758,27 @@ class Program
             //    new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
             //});
 
-            //regt_appmapping.RemoveAll();
-            //regt_appmapping.Insert(new List<AppMapping>()
-            //{
-            //    new AppMapping(){AppID = 0, CompanyID = 1},
-            //    new AppMapping(){AppID = 1, CompanyID = 1},
-            //    new AppMapping(){AppID = 2, CompanyID = 1},
-            //    new AppMapping(){AppID = 3, CompanyID = 1},
-            //    new AppMapping(){AppID = 4, CompanyID = 2}
-            //});
+            regt_appmapping.RemoveAll();
+            regt_appmapping.Insert(new List<AppMapping>()
+            {
+                new AppMapping(){AppID = 0, CompanyID = 1},
+                new AppMapping(){AppID = 1, CompanyID = 1},
+                new AppMapping(){AppID = 2, CompanyID = 1},
+                new AppMapping(){AppID = 3, CompanyID = 1},
+                new AppMapping(){AppID = 4, CompanyID = 2},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+                new AppMapping(){AppID = 33, CompanyID = 1},
+            });
 
 
             //var applist = from company in regt_company where company.ID==1 select new { company };
@@ -813,14 +826,19 @@ class Program
             //var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
             //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
 
+            //remove no mapping appmapping
+            var appaming = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
+                .SelectMany(e => e.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app })
+                .Where(x => x.app == null).Select(x=>x.mapping).RemoveAll();
+
             var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
             var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });
 
 
-            var removenall = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
-            removenall.InsertOrUpdate(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
+            var nulldata_company = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
+            nulldata_company.Insert(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
             //removenall.RemoveAll();
-            foreach (var oo in selectmany)
+            foreach (var oo in groupjoin)
             {
 
             }

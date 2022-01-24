@@ -563,7 +563,6 @@ namespace QSoft.Registry.Linq
                 }
                 return src;
             }
-            return null;
         }
 
         public static Type[] GetTypes(this IEnumerable<Expression> src, MethodInfo method)
@@ -580,9 +579,9 @@ namespace QSoft.Registry.Linq
                 {
                     for (int j = 0; j < method_pps.Length; j++)
                     {
-                        //if (method_pps[j].ParameterType.GetGenericArguments().Length == 0)
+                        //if(method_pps[j].ParameterType.IsGenericType == false)
                         //{
-                        //    types1[i] = src.ElementAt(j).Type;
+                        //    types1[i] = method_pps[j].ParameterType;
                         //}
                         //else
                         {

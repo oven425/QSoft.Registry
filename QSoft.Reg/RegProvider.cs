@@ -382,6 +382,7 @@ namespace QSoft.Registry.Linq
                     if(updatemethod.Arguments.Count == 1)
                     {
                         var ggs = updatemethod.Method.GetGenericArguments();
+                        //var ggs = (this.m_RegMethod as MethodCallExpression)?.Method.GetGenericArguments();
                         if (ggs[0] == typeof(TData))
                         {
                             ggs[0] = typeof(RegistryKey);

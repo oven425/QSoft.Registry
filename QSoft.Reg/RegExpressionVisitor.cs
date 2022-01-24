@@ -1189,7 +1189,7 @@ namespace QSoft.Registry.Linq
                 return node;
             }
             LastMethodName = node.Method.Name;
-            if (node.Method.Name == "InsertOrUpdate")
+            if (node.Method.Name == "Insert1")
             {
                 //ttypes1[1] = typeof(RegistryKey);
             }

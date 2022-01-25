@@ -376,7 +376,7 @@ namespace QSoft.Registry.Linq
                 if(lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
                     Dictionary<Type, Type> changes = new Dictionary<Type, Type>();
-                    changes[typeof(TData)] = typeof(RegistryKey);
+                    //changes[typeof(TData)] = typeof(RegistryKey);
                     foreach(var oo in exprs)
                     {
                         changes[oo.Key.Type] = oo.Value.Type;

@@ -171,7 +171,7 @@ namespace QSoft.Registry.Linq
         
 
 
-        public static int Insert<TFirst, TSecond, TResult>(this IQueryable<TFirst> src, RegQuery<TSecond> dst, Expression<Func<TFirst, TResult>> selector)
+        public static int InsertTo<TFirst, TSecond, TResult>(this IQueryable<TFirst> src, RegQuery<TSecond> dst, Expression<Func<TFirst, TResult>> selector)
         {
             var inserorupdate = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "InsertAnotherReg");
             var reg = dst.ToRegistryKey();

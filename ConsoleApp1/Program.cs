@@ -69,6 +69,10 @@ namespace ConsoleApp1
         [RegPropertyName(Name="ID1")]
         public int ID { set; get; }
         public string Address { set; get; }
+
+        public int OrderBy { set; get; }
+        public int ThenBy { set; get; }
+        public int ThenBy1 { set; get; }
     }
 
     public class InstalledApp
@@ -83,6 +87,7 @@ namespace ConsoleApp1
         public bool? IsOfficial { set; get; }
         public int? ID { set; get; }
 
+        
         public InstalledApp() { }
 
         public InstalledApp(InstalledApp data)
@@ -129,6 +134,26 @@ class Program
         static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
+            //List<string> testa = new List<string>() { "A", "B", "C" };
+            ////testa.Clear();
+            ////var oiou = testa.DefaultIfEmpty();
+            //List<string> testb = new List<string>() { "a", "b","c","d","e" };
+            //testb.Clear();
+            //foreach (var a in testa)
+            //{
+            //    foreach (var b in testb)
+            //    {
+            //        System.Diagnostics.Trace.WriteLine($"{a}{b}");
+            //    }
+            //}
+            //System.Diagnostics.Trace.WriteLine("---");
+            //var testmany = testa.SelectMany(x => testb.DefaultIfEmpty(), (a, b) => new {a,b });
+            //foreach (var oo in testmany)
+            //{
+            //    System.Diagnostics.Trace.WriteLine(oo);
+            //}
+
+
 
             ////List<int> testlist = Enumerable.Range(1, 5).ToList();
             ////var qur = testlist.AsQueryable();
@@ -143,7 +168,7 @@ class Program
 
 
 
-            TestDB();
+            //TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -367,10 +392,10 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
-            regt.Select(x => x.DisplayName.Length).Min();
-            var dst = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize+ 10000 });
-            //var dst11 = regt.ToList();
-            //var join1 = regt.Join(dst, x => x.DisplayName, y => y.DisplayName, (x, y) => new { x, y }).ToList();
+            //regt.Select(x => x.DisplayName.Length).Min();
+            //var dst = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize+ 10000 });
+            var dst11 = regt.Take(2).ToList();
+            var join1 = regt.Join(dst11, x => x.DisplayName, y => y.DisplayName, (x, y) => new { x, y }).ToList();
             //var ioi = regt.Where(x => x.DisplayName != "").ToList();
             //var re = regt.Where(x => x.DisplayName != "").RemoveAll();
             //var r1 = regt.GroupBy(x => x.DisplayName.Contains("A"), x => x, (x, y) =>y).SelectMany(x=>x);
@@ -738,13 +763,14 @@ class Program
             regt_company.RemoveAll();
             regt_company.Insert(new List<Company>()
             {
-                new Company(){Name = "Company_A", ID=1, Key=100},
-                new Company(){Name = "Company_B", ID=2, Key=101},
-                new Company(){Name = "Company_C", ID=3, Key=102},
-                new Company(){Name = "Company_D", ID=4, Key=103},
-                new Company(){Name = "Company_E", ID=5, Key=104},
+                new Company(){Name = "Company_A", ID=1, Key=100, OrderBy=6, ThenBy=100, ThenBy1=205},
+                new Company(){Name = "Company_B", ID=2, Key=101, OrderBy=7, ThenBy=100, ThenBy1=204},
+                new Company(){Name = "Company_C", ID=3, Key=102, OrderBy=8, ThenBy=90, ThenBy1=203},
+                new Company(){Name = "Company_D", ID=4, Key=103, OrderBy=9, ThenBy=90, ThenBy1=202},
+                new Company(){Name = "Company_E", ID=5, Key=104, OrderBy=10, ThenBy=90, ThenBy1=201},
             });
-
+            var oedereby = regt_company.OrderBy(x => x.OrderBy);
+            var thenby = oedereby.ThenBy(x => x.ThenBy);
             //regt_apps.RemoveAll();
             //regt_apps.Insert(new List<InstalledApp>()
             //{
@@ -829,14 +855,16 @@ class Program
             //remove no mapping appmapping
             var appaming = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
                 .SelectMany(e => e.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app })
-                .Where(x => x.app == null).Select(x=>x.mapping).RemoveAll();
+                .Where(x => x.app == null)
+                .Select(x => x.mapping);
+                //.RemoveAll();
 
             var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
             var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });
 
 
             var nulldata_company = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
-            nulldata_company.Insert(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
+            nulldata_company.InsertTo(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
             //removenall.RemoveAll();
             foreach (var oo in groupjoin)
             {
@@ -885,10 +913,6 @@ class Program
         public bool IsOfficial { set; get; }
     }
 
-    public class A2
-    {
-        public string A { set; get; }
-    }
 
     public class BIOS
     {

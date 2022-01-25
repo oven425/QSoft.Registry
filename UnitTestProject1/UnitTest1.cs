@@ -308,11 +308,6 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
-        public void Where_All()
-        {
-        }
-
-        [TestMethod]
         public void Where()
         {
             this.Check(this.m_Tests.Where(x => x.DisplayName.ToString() == "AA".ToString()), regt.Where(x => x.DisplayName.ToString() == "AA".ToString()));
@@ -439,9 +434,23 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void OrderBy_ThenBy()
+        {
+            var orderby = regt.OrderBy(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length);
+            this.Check(this.m_Tests.OrderBy(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length), orderby);
+        }
+
+        [TestMethod]
         public void OrderByDescending()
         {
             this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize), regt.OrderByDescending(x => x.EstimatedSize));
+        }
+
+        [TestMethod]
+        public void OrderByDescending_ThenBy()
+        {
+            this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length)
+                        , regt.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length));
         }
 
         [TestMethod]

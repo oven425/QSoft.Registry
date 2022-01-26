@@ -77,7 +77,7 @@ namespace ConsoleApp1
 
     public class InstalledApp
     {
-        //[RegSubKeyName]
+        [RegSubKeyName]
         public string Key { set; get; }
         public string DisplayName { set; get; }
         [RegPropertyName(Name = "DisplayVersion")]
@@ -168,7 +168,7 @@ class Program
 
 
 
-            //TestDB();
+            TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -329,54 +329,6 @@ class Program
             //direct_reg.Update(a2);
             //direct_reg.Delete();
 
-            var regt_city = new RegQuery<City>()
-                .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.CurrentConfig;
-                    x.SubKey = @"Citys";
-                    x.View = RegistryView.Registry64;
-                });
-            //regt_city.RemoveAll();
-            //regt_city.Insert(new List<City>()
-            //{
-            //    new City(){ID=0, Name="Kaohsiung"},
-            //    new City(){ID=1, Name="New Taipei"},
-            //    new City(){ID=2, Name="Taichung"},
-            //    new City(){ID=3, Name="Tainan"},
-            //});
-
-            var regt_user = new RegQuery<User>()
-                .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.CurrentConfig;
-                    x.SubKey = @"Users";
-                    x.View = RegistryView.Registry64;
-                });
-            //regt_user.RemoveAll();
-            //regt_user.Insert(new List<User>()
-            //{
-            //    new User(){Name="AAA", BirthDay=new DateTime(1980, 1,1), CityID=0},
-            //    new User(){Name="AAA_1", BirthDay=new DateTime(1980, 1,1), CityID=0},
-            //    new User(){Name="BBB", BirthDay=new DateTime(1981, 1,1), CityID=1},
-            //    new User(){Name="CCC", BirthDay=new DateTime(1982, 1,1), CityID=1},
-            //    new User(){Name="DDD", BirthDay=new DateTime(1983, 1,1), CityID=2},
-            //    new User(){Name="EEE", BirthDay=new DateTime(1984, 1,1), CityID=2},
-            //    new User(){Name="FFF", BirthDay=new DateTime(1985, 1,1), CityID=3}
-            //});
-            //var ddd = regt_user.FirstOrDefault().BirthDay;
-            //var oi = regt_user.Where(x => x.BirthDay == regt_user.FirstOrDefault().BirthDay).RemoveAll();
-            //foreach (var oo in oi)
-            //{
-
-            //}
-
-            //var jj = regt_user.Join(regt_city, x => x.CityID, x => x.ID, (x, y) => new { Name = x.Name, City = y.Name }).OrderBy(x => x.Name);
-            //jj.ToList();
-            //var groupby_age = regt_user.GroupBy(x => x).Select(x=>x.Key);
-            //foreach(var oo in groupby_age)
-            //{
-
-            //}
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
@@ -384,6 +336,15 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+            regt.RemoveAll();
+            regt.Insert(new List<InstalledApp>()
+            {
+                new InstalledApp(){DisplayName="AA", Version=new Version(1,1,1,1), EstimatedSize=100, Key="1" },
+                new InstalledApp(){DisplayName="BB", Version=new Version(2,2,2,2),EstimatedSize=101, Key="2" },
+                new InstalledApp(){DisplayName="CC", Version=new Version(3,3,3,3),EstimatedSize=102, Key="3" },
+                new InstalledApp(){DisplayName="DD", Version=new Version(4,4,4,4),EstimatedSize=103, Key="4" },
+                new InstalledApp(){DisplayName="EE", Version=new Version(5,5,5,5),EstimatedSize=104, Key="5" },
+            });
 
             var regt1 = new RegQuery<InstalledApp>()
                 .useSetting(x =>
@@ -852,12 +813,23 @@ class Program
             //var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
             //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
 
-            //remove no mapping appmapping
-            var appaming = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
-                .SelectMany(e => e.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app })
-                .Where(x => x.app == null)
-                .Select(x => x.mapping);
-                //.RemoveAll();
+            ////remove no mapping appmapping
+            //var appaming = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
+            //    .SelectMany(e => e.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app })
+            //    .Where(x => x.app == null)
+            //    .Select(x => x.mapping);
+
+
+            //var app1 = regt_apps.ToList();
+            //var map = regt_appmapping.ToList();
+            //var nu = map.GroupJoin(app1, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
+            //    .Where(x => x.app.Any() == false).Select(x=>x.mapping);
+
+
+            var appaming1 = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
+                .Where(x => x.app.Any() == false).Select(x => x.mapping).RemoveAll();
+
+            //.RemoveAll();
 
             var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
             var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });

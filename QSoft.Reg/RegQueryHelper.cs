@@ -7,12 +7,14 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace QSoft.Registry.Linq
 {
     public static class RegQueryHelper
     {
+        static int m_BuildTypeCount = 0;
         static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber, bool canread, bool canwrite)
         {
             if(canread == false && canwrite==false)
@@ -56,8 +58,8 @@ namespace QSoft.Registry.Linq
 
             ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
 
-            
-            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{types.Count()}_{exists?.Count()}_{DateTime.Now.Ticks}", TypeAttributes.Public);
+            Interlocked.Increment(ref m_BuildTypeCount);
+            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{types.Count()}_{exists?.Count()}_{m_BuildTypeCount}", TypeAttributes.Public);
             
             List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
 

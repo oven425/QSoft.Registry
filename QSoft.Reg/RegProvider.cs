@@ -152,15 +152,12 @@ namespace QSoft.Registry.Linq
                     }
                 }
             }
-            foreach(var expression in exprs)
+            this.m_Exprs.Clear();
+            foreach (var expression in exprs)
             {
                 RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
                 MethodCallExpression method1 = expression as MethodCallExpression;
 
-                if (method1.Arguments[0].NodeType == ExpressionType.Constant)
-                {
-                    this.m_Exprs.Clear();
-                }
 
                 if (this.m_RegMethod == null || method1.Arguments[0].NodeType == ExpressionType.Constant)
                 {

@@ -398,7 +398,7 @@ namespace QSoft.Registry.Linq
 
                         }
                     }
-                    m_Lambda = Expression.Lambda(functype, exprs.First().Value, parameters);
+                    //m_Lambda = Expression.Lambda(functype, exprs.First().Value, parameters);
                 }
 #endif
                 if(m_Lambda == null)
@@ -554,7 +554,6 @@ namespace QSoft.Registry.Linq
                         else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-
                             var attr = node.Member.GetCustomAttributes(true).FirstOrDefault();
                             Expression member = null;
                             Expression left_args_1 = null;
@@ -601,8 +600,19 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    var expr_member = Expression.MakeMemberAccess(exprs.First().Value, expr.Member);
-                    this.m_ExpressionSaves[expr] = expr_member;
+                    if(exprs.First().Value.Type == typeof(RegistryKey))
+                    {
+                        var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                        var left_args_1 = Expression.Constant(node.Member.Name);
+                        var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
+                        this.m_ExpressionSaves[expr] = member;
+                    }
+                    else
+                    {
+                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value, expr.Member);
+                        this.m_ExpressionSaves[expr] = expr_member;
+                    }
+                    
                 }
 
                 this.m_Lastnode = expr;
@@ -741,34 +751,6 @@ namespace QSoft.Registry.Linq
                             }
                         }
                     }
-                    //var sourcetype = this.m_Saves[args[0]].Type.GetGenericArguments()[0];
-                    //var dic1 = sourcetype.GetProperties();
-                    //for (int i = 0; i < dicc.Length; i++)
-                    //{
-                    //    if (i == 0)
-                    //    {
-                    //        this.m_GenericTypes.First()[dicc[i].Name] = sourcetype;
-                    //    }
-                    //    else
-                    //    {
-                    //        if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    //        {
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //        }
-                    //        else
-                    //        {
-                    //            var dui = dic[i].ParameterType.GetGenericTypeDefinition();
-                    //            if (dic[i].ParameterType.IsGenericType == true)
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //            }
-                    //            else
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                    //            }
-                    //        }
-                    //    }
-                    //}
                 }
                 else if (this.m_GenericTypes.Count > 1)
                 {
@@ -796,42 +778,36 @@ namespace QSoft.Registry.Linq
                             this.m_GenericTypes.First()[dicc[i].Name] = types[i];
                         }
                     }
-                    //for (int i = 0; i < dicc.Length; i++)
-                    //{
-
-                    //    if (this.m_ExpressionSaves1.ContainsKey(args[i]) == true)
-                    //    {
-                    //        var aaa = this.m_ExpressionSaves1[args[i]];
-                    //        if (aaa.IsGenericType == true && aaa.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    //        {
-                    //            string ssssss = aaa.GetGenericArguments()[0].Name;
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)[ssssss];
-                    //        }
-                    //        //this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
-                    //    }
-                    //    else if (this.m_GenericTypes.ElementAt(1).ContainsKey("TSource") == true)
-                    //    {
-                    //        this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
-                    //    }
-                    //    else
-                    //    {
-                    //        if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    //        {
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //        }
-                    //        else
-                    //        {
-                    //            if (dic[i].ParameterType.IsGenericType == true)
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //            }
-                    //            else
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                    //            }
-                    //        }
-                    //    }
-                    //}
+                }
+                else if (this.m_Saves.Count > 0)
+                {
+                    var types = args.GetTypes(method);
+                    for (int i = 0; i < types.Length; i++)
+                    {
+                        if (this.m_Saves.ContainsKey(args[i]) == true)
+                        {
+                            this.m_GenericTypes.First()[dicc[i].Name] = this.m_Saves[args[i]].Type.GetGenericArguments()[0];
+                        }
+                        if (lo.Any(x => x.idx == i))
+                        {
+                            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
+                        }
+                        else if (i == 0 && types[i] == typeof(TData))
+                        {
+                            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
+                        }
+                        else
+                        {
+                            if (types[i] == typeof(TData))
+                            {
+                                this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
+                            }
+                            else
+                            {
+                                this.m_GenericTypes.First()[dicc[i].Name] = types[i];
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -852,60 +828,6 @@ namespace QSoft.Registry.Linq
                         }
                     }
                     
-                    //for (int i = 0; i < dicc.Length; i++)
-                    //{
-                    //    if (lo.Any(x => x.idx == i))
-                    //    {
-                    //        this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                    //    }
-                    //    else if (i == 0)
-                    //    {
-                    //        if (dic[i].ParameterType == typeof(IEnumerable<TData>))
-                    //        {
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                    //        }
-                    //        else if (dic[i].ParameterType == typeof(IQueryable<TData>))
-                    //        {
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                    //        }
-                    //        else if (dic[i].ParameterType == typeof(IQueryable<IGrouping<TData, TData>>))
-                    //        {
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                    //            this.m_GenericTypes.First()[dicc[i + 1].Name] = typeof(RegistryKey);
-                    //            i = i + 1;
-                    //        }
-                    //        else
-                    //        {
-                    //            if (dic[i].ParameterType.IsGenericType == true)
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //            }
-                    //            else
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                    //            }
-                    //        }
-
-                    //    }
-                    //    else
-                    //    {
-                    //        if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    //        {
-                    //            this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //        }
-                    //        else
-                    //        {
-                    //            if (dic[i].ParameterType.IsGenericType == true)
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                    //            }
-                    //            else
-                    //            {
-                    //                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                    //            }
-                    //        }
-                    //    }
-                    //}
 
                 }
 
@@ -1189,7 +1111,7 @@ namespace QSoft.Registry.Linq
                 return node;
             }
             LastMethodName = node.Method.Name;
-            if (node.Method.Name == "Insert1")
+            if (node.Method.Name == "Any")
             {
                 //ttypes1[1] = typeof(RegistryKey);
             }

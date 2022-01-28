@@ -111,8 +111,11 @@ namespace QSoft.Registry.Linq
                 }
                 return tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private);
             }).ToList();
-
+            
             Type[] parameterTypes = tts.Select(x => x.Item1).ToArray();
+
+            var typeParameters = tb.DefineGenericParameters(tts.Select(x => $"T{x.Item2}").ToArray());
+
             ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
 
             ILGenerator ctor1IL = ctor1.GetILGenerator();

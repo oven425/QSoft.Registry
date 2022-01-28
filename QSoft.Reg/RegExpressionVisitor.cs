@@ -24,7 +24,7 @@ namespace QSoft.Registry.Linq
         }
 
         Dictionary<Expression, Expression> m_Saves;
-        public Expression VisitA(Expression node, Expression regfunc, Dictionary<Expression, Expression> saves)
+        public Expression VisitA(Expression node, Expression regfunc, Dictionary<Expression, Expression> saves, bool lastquery=false)
         {
             this.m_Saves = saves;
             this.m_ExpressionSaves[node] = null;

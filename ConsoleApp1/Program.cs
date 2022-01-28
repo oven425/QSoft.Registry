@@ -134,6 +134,17 @@ class Program
         static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
+
+            List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
+            typekeys.Add(new KeyValuePair<string, Type>("Age", typeof(int)));
+            typekeys.Add(new KeyValuePair<string, Type>("Name", typeof(string)));
+            var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
+
+            List<Tuple<Type, string>> ttypees = new List<Tuple<Type, string>>();
+            ttypees.Add(Tuple.Create(typeof(int), "Age"));
+            ttypees.Add(Tuple.Create(typeof(string), "Name"));
+            var ppo = ttypees.BuildType(null);
+            oiop = null;
             //List<string> testa = new List<string>() { "A", "B", "C" };
             ////testa.Clear();
             ////var oiou = testa.DefaultIfEmpty();

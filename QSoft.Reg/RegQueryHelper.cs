@@ -87,8 +87,8 @@ namespace QSoft.Registry.Linq
             }
 
 
-            //var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
-            //return oiop;
+            var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
+            return oiop;
 
             //int existindex = types.Count() - exists.Count();
             //foreach(var oo in types)
@@ -419,6 +419,15 @@ namespace QSoft.Registry.Linq
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
             {
+                var typecode = Type.GetTypeCode(pp.PropertyType);
+                bool isnuallable = false;
+                var property = pp.PropertyType;
+                if (pp.PropertyType.IsGenericType==true&&pp.PropertyType.GetGenericTypeDefinition()==typeof(Nullable<>))
+                {
+                    isnuallable = true;
+                    property = pp.PropertyType.GetGenericArguments()[0];
+                    typecode = Type.GetTypeCode(property);
+                }
                 var regattr = pp.GetCustomAttributes(true).FirstOrDefault();
                 Expression name = null;
                 if (regattr != null && regattr is RegSubKeyName)
@@ -431,8 +440,62 @@ namespace QSoft.Registry.Linq
                         var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
                         mm = Expression.Call(method, mm);
                     }
-                    var binding = Expression.Bind(pp, mm);
+                    MemberAssignment binding = null;
+                    switch(typecode)
+                    {
+                        case TypeCode.String:
+                            {
+                                binding = Expression.Bind(pp, mm);
+                            }
+                            break;
+                        case TypeCode.DateTime:
+                        case TypeCode.Int16:
+                        case TypeCode.Int32:
+                        case TypeCode.Int64:
+                        case TypeCode.UInt16:
+                        case TypeCode.UInt32:
+                        case TypeCode.UInt64:
+                        case TypeCode.Double:
+                        case TypeCode.Single:
+                            {
+                                var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
+                                var method = Expression.Call(parseMethod, mm);
+                                if (isnuallable == true)
+                                {
+                                    UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+                                    binding = Expression.Bind(pp, unary1);
+                                }
+                                else
+                                {
+                                    binding = Expression.Bind(pp, method);
+                                }
+                            }
+                            break;
+                    }
                     bindings.Add(binding);
+
+                    //if (typecode == TypeCode.String)
+                    //{
+                    //    bindings.Add(binding);
+                    //}
+                    //else
+                    //{
+                    //    if (pp.PropertyType.IsGenericType == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    //    {
+                    //        var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
+                    //        var method = Expression.Call(parseMethod, mm);
+                    //        UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+                    //        var binding = Expression.Bind(pp, unary1);
+                    //        bindings.Add(binding);
+                    //    }
+                    //    else
+                    //    {
+                    //        var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
+                    //        var method = Expression.Call(parseMethod, mm);
+                    //        var binding = Expression.Bind(pp, method);
+                    //        bindings.Add(binding);
+                    //    }
+                    //}
                 }
                 else if (regattr != null && regattr is RegPropertyName)
                 {

@@ -398,7 +398,7 @@ namespace QSoft.Registry.Linq
 
                         }
                     }
-                    //m_Lambda = Expression.Lambda(functype, exprs.First().Value, parameters);
+                    m_Lambda = Expression.Lambda(functype1, exprs.First().Value, parameters);
                 }
 #endif
                 if(m_Lambda == null)

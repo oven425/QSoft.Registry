@@ -36,19 +36,19 @@ namespace ConsoleApp1
         }
     }
 
-    public class User
-    {
-        public string Key { set; get; }
-        public string Name { set; get; }
-        public DateTime BirthDay { set; get; }
-        public int CityID { set; get; }
-    }
+    //public class User
+    //{
+    //    public string Key { set; get; }
+    //    public string Name { set; get; }
+    //    public DateTime BirthDay { set; get; }
+    //    public int CityID { set; get; }
+    //}
 
-    public class City
-    {
-        public int ID { set; get; }
-        public string Name { set; get; }
-    }
+    //public class City
+    //{
+    //    public int ID { set; get; }
+    //    public string Name { set; get; }
+    //}
 
     public class App
     {
@@ -62,8 +62,12 @@ namespace ConsoleApp1
 
     public class Company
     {
-        //[RegSubKeyName]
-        public int Key { set; get; }
+        public string Func()
+        {
+            return "";
+        }
+        [RegSubKeyName(AutoGenerate =true, IsFullName =true, func =()=> { return "a"; })]
+        public DateTime Key { set; get; }
         [RegPropertyName(Name = "Name1")]
         public string Name { set; get; }
         [RegPropertyName(Name="ID1")]
@@ -106,35 +110,29 @@ namespace ConsoleApp1
         public int AppID { set; get; }
     }
 
-    public class MyDynamicType
-    {
-        private int m_number;
-
-        public MyDynamicType() : this(42) { }
-        public MyDynamicType(int initNumber)
-        {
-            m_number = initNumber;
-        }
-
-        public int Number
-        {
-            get { return m_number; }
-            set { m_number = value; }
-        }
-
-        public int MyMethod(int multiplier)
-        {
-            return m_number * multiplier;
-        }
-    }
-
 class Program
     {
         
         static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
-
+            RegQuery<Company> regt_company = new RegQuery<Company>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\Company";
+                x.View = RegistryView.Registry64;
+            });
+            regt_company.RemoveAll();
+            regt_company.Insert(new List<Company>()
+            {
+                new Company(){ Key=new DateTime(2022,1,1), ID=1, Name = "One" ,Address="Address_one"},
+                new Company(){ Key=new DateTime(2022,1,2), ID=2, Name = "two" ,Address="Address_two"},
+                new Company(){ Key=new DateTime(2022,1,3), ID=3, Name = "three" ,Address="Address_three"},
+                new Company(){ Key=new DateTime(2022,1,4), ID=4, Name = "Four" ,Address="Address_Four"},
+            });
+            
+            var companys = regt_company.ToList();
             List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
             typekeys.Add(new KeyValuePair<string, Type>("Age", typeof(int)));
             typekeys.Add(new KeyValuePair<string, Type>("Name", typeof(string)));
@@ -732,15 +730,15 @@ class Program
                     x.Hive = RegistryHive.CurrentConfig;
                     x.SubKey = @"UnitTest\Apps";
                 });
-            regt_company.RemoveAll();
-            regt_company.Insert(new List<Company>()
-            {
-                new Company(){Name = "Company_A", ID=1, Key=100, OrderBy=6, ThenBy=100, ThenBy1=205},
-                new Company(){Name = "Company_B", ID=2, Key=101, OrderBy=7, ThenBy=100, ThenBy1=204},
-                new Company(){Name = "Company_C", ID=3, Key=102, OrderBy=8, ThenBy=90, ThenBy1=203},
-                new Company(){Name = "Company_D", ID=4, Key=103, OrderBy=9, ThenBy=90, ThenBy1=202},
-                new Company(){Name = "Company_E", ID=5, Key=104, OrderBy=10, ThenBy=90, ThenBy1=201},
-            });
+            //regt_company.RemoveAll();
+            //regt_company.Insert(new List<Company>()
+            //{
+            //    new Company(){Name = "Company_A", ID=1, Key=100, OrderBy=6, ThenBy=100, ThenBy1=205},
+            //    new Company(){Name = "Company_B", ID=2, Key=101, OrderBy=7, ThenBy=100, ThenBy1=204},
+            //    new Company(){Name = "Company_C", ID=3, Key=102, OrderBy=8, ThenBy=90, ThenBy1=203},
+            //    new Company(){Name = "Company_D", ID=4, Key=103, OrderBy=9, ThenBy=90, ThenBy1=202},
+            //    new Company(){Name = "Company_E", ID=5, Key=104, OrderBy=10, ThenBy=90, ThenBy1=201},
+            //});
             var oedereby = regt_company.OrderBy(x => x.OrderBy);
             var thenby = oedereby.ThenBy(x => x.ThenBy);
             //regt_apps.RemoveAll();
@@ -837,25 +835,25 @@ class Program
             //    .Where(x => x.app.Any() == false).Select(x=>x.mapping);
 
 
-            var appaming1 = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
-                .Where(x => x.app.Any() == false).Select(x => x.mapping).RemoveAll();
+            //var appaming1 = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
+            //    .Where(x => x.app.Any() == false).Select(x => x.mapping).RemoveAll();
 
             //.RemoveAll();
 
-            var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
-            var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });
+            //var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
+            //var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });
 
 
-            var nulldata_company = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
-            nulldata_company.InsertTo(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
-            //removenall.RemoveAll();
-            foreach (var oo in groupjoin)
-            {
+            //var nulldata_company = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
+            //nulldata_company.InsertTo(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
+            ////removenall.RemoveAll();
+            //foreach (var oo in groupjoin)
+            //{
 
-            }
+            //}
 
-            //var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
-            //    .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
+            var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
+                .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y }).ToList();
 
             //var left1 = from company in regt_company
             //           join map in regt_appmapping on company.ID equals map.CompanyID into temp

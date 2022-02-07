@@ -24,5 +24,6 @@ namespace QSoft.Registry.Linq
     {
         public bool IsFullName { set; get; } = false;
         public bool AutoGenerate { set; get; } = true;
+        public Func<string> func;
     }
 }

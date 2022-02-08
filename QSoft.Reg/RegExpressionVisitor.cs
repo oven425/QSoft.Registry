@@ -185,9 +185,8 @@ namespace QSoft.Registry.Linq
                         .Select(x => Tuple.Create(x.values.Type, x.pp.Name));
                     var exists = exprs.Where(x => Type.GetTypeCode(x.Value.Type) == TypeCode.Object && x.Value.Type != typeof(RegistryKey)).Select(x => x.Value.Type);
                     var anyt = pps2.BuildType(exists);
-
-                    var po = anyt.GetConstructors()[0];
-
+                    var po = anyt.GetConstructors()[0].GetParameters();
+                    var pps = anyt.GetProperties();
                     expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value), anyt.GetProperties());
                     //expr_new = expr;
                 }
@@ -788,7 +787,7 @@ namespace QSoft.Registry.Linq
                         {
                             this.m_GenericTypes.First()[dicc[i].Name] = this.m_Saves[args[i]].Type.GetGenericArguments()[0];
                         }
-                        if (lo.Any(x => x.idx == i))
+                        else if (lo.Any(x => x.idx == i))
                         {
                             this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
                         }

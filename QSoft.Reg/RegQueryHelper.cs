@@ -15,20 +15,20 @@ namespace QSoft.Registry.Linq
     public static class RegQueryHelper
     {
         static int m_BuildTypeCount = 0;
-        static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber, bool canread, bool canwrite)
+        static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber, GenericTypeParameterBuilder generic, bool canread, bool canwrite)
         {
             if(canread == false && canwrite==false)
             {
                 return;
             }
             string name = fbNumber.Name.Remove(0,2);
-            PropertyBuilder pbNumber = tb.DefineProperty(name, PropertyAttributes.HasDefault, fbNumber.FieldType, null);
+            PropertyBuilder pbNumber = tb.DefineProperty(name, PropertyAttributes.HasDefault, generic, null);
             
             MethodAttributes getSetAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 
             if(canread == true)
             {
-                MethodBuilder mbNumberGetAccessor = tb.DefineMethod($"get_{name}", getSetAttr, fbNumber.FieldType, Type.EmptyTypes);
+                MethodBuilder mbNumberGetAccessor = tb.DefineMethod($"get_{name}", getSetAttr, generic, Type.EmptyTypes);
                 ILGenerator numberGetIL = mbNumberGetAccessor.GetILGenerator();
 
                 numberGetIL.Emit(OpCodes.Ldarg_0);
@@ -39,7 +39,7 @@ namespace QSoft.Registry.Linq
 
             if (canwrite == true)
             {
-                MethodBuilder mbNumberSetAccessor = tb.DefineMethod($"set_{name}", getSetAttr, null, new Type[] { fbNumber.FieldType });
+                MethodBuilder mbNumberSetAccessor = tb.DefineMethod($"set_{name}", getSetAttr, null, new Type[] { generic });
                 ILGenerator numberSetIL = mbNumberSetAccessor.GetILGenerator();
                 numberSetIL.Emit(OpCodes.Ldarg_0);
                 numberSetIL.Emit(OpCodes.Ldarg_1);
@@ -50,18 +50,21 @@ namespace QSoft.Registry.Linq
             }
         }
 
+        static ModuleBuilder mb = null;
         public static Type BuildType(this IEnumerable<Tuple<Type, string>> types, IEnumerable<Type> exists)
         {
-            
             AssemblyName aName = new AssemblyName("RegQuery");
             AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
 
-            ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
-
+            //ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+            if(mb == null)
+            {
+                mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+            }
             Interlocked.Increment(ref m_BuildTypeCount);
-            TypeBuilder tb = mb.DefineType($"q_AnyoumusType_{types.Count()}_{exists?.Count()}_{m_BuildTypeCount}", TypeAttributes.Public);
+            TypeBuilder tb = mb.DefineType($"<>q_AnyoumusType_{m_BuildTypeCount}_{types.Count()}_{exists?.Count()}", TypeAttributes.Public);
             
-            List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
+            //List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
 
             var tts = new List<Tuple<Type, string>>();
             var types1 = types.ToList();
@@ -73,37 +76,37 @@ namespace QSoft.Registry.Linq
             int existindex = types1.Count - exists_count;
             for (int i=0; i<types1.Count; i++)
             {
-                if(i< existindex)
-                {
-                    tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
-                    typekeys.Add(new KeyValuePair<string, Type>(types1[i].Item2, types1[i].Item1));
-                }
-                else
-                {
-                    tts.Add(Tuple.Create(exists.ElementAt(i-existindex), types1[i].Item2));
+                tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
+                //if (i< existindex)
+                //{
+                //    tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
+                //    //typekeys.Add(new KeyValuePair<string, Type>(types1[i].Item2, types1[i].Item1));
+                //}
+                //else
+                //{
+                //    tts.Add(Tuple.Create(exists.ElementAt(i-existindex), types1[i].Item2));
 
-                    typekeys.Add(new KeyValuePair<string, Type>(types1[i].Item2, exists.ElementAt(i - existindex)));
-                }
+                //    //typekeys.Add(new KeyValuePair<string, Type>(types1[i].Item2, exists.ElementAt(i - existindex)));
+                //}
             }
 
 
-            var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
-            return oiop;
+            //var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
+            //return oiop;
 
-            //int existindex = types.Count() - exists.Count();
-            //foreach(var oo in types)
-            //{
-            //    tts.Add(Tuple.Create(oo.Item1, oo.Item2));
-            //    if(--existindex <= 0)
-            //    {
-            //        break;
-            //    }
-            //}
-            //foreach(var oo in exists)
-            //{
-            //    tts.Add(Tuple.Create(oo.Item1, oo.Item2));
-            //}
-            var fileds = tts.Select((x, i) =>
+            var ggpnames = tts.Select(x => $"T_{x.Item2}").ToArray();
+            var ggps = tb.DefineGenericParameters(ggpnames);
+
+            var fileds = tts.Zip(ggps, (x,y)=>new {x, y }).Select(x=>
+            {
+                if (Type.GetTypeCode(x.x.Item1) == TypeCode.Object && x.x.Item1 != typeof(RegistryKey))
+                {
+                    //x.Item1.GetConstructors()[0].GetParameters().BuildType();
+                }
+                return tb.DefineField($"m_{x.x.Item2}", x.y, FieldAttributes.Private);
+            }).ToList();
+
+            var fileds1 = tts.Select((x, i) =>
             {
                 if (Type.GetTypeCode(x.Item1) == TypeCode.Object && x.Item1 != typeof(RegistryKey))
                 {
@@ -111,10 +114,11 @@ namespace QSoft.Registry.Linq
                 }
                 return tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private);
             }).ToList();
+
+
             
             Type[] parameterTypes = tts.Select(x => x.Item1).ToArray();
 
-            var typeParameters = tb.DefineGenericParameters(tts.Select(x => $"T{x.Item2}").ToArray());
 
             ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
 
@@ -131,13 +135,14 @@ namespace QSoft.Registry.Linq
             ctor1IL.Emit(OpCodes.Ret);
 
 
-            foreach (var oo in fileds)
+            foreach (var oo in fileds.Zip(ggps, (x, y)=>new { x,y}))
             {
-                AddProperty(tb, oo, true, false);
+                AddProperty(tb, oo.x, oo.y, true, false);
             }
 
-
-            return tb.CreateType();
+            var type = tb.CreateType();
+            var type1 = type.MakeGenericType(types.Select(x => x.Item1).ToArray());
+            return type1;
         }
 
         public static Type BuildType(this IEnumerable<ParameterInfo> types)

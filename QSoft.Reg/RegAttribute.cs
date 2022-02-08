@@ -23,7 +23,5 @@ namespace QSoft.Registry.Linq
     public class RegSubKeyName:Attribute
     {
         public bool IsFullName { set; get; } = false;
-        public bool AutoGenerate { set; get; } = true;
-        public Func<string> func;
     }
 }

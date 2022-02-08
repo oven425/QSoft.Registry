@@ -36,37 +36,20 @@ namespace ConsoleApp1
         }
     }
 
-    //public class User
-    //{
-    //    public string Key { set; get; }
-    //    public string Name { set; get; }
-    //    public DateTime BirthDay { set; get; }
-    //    public int CityID { set; get; }
-    //}
-
-    //public class City
-    //{
-    //    public int ID { set; get; }
-    //    public string Name { set; get; }
-    //}
-
     public class App
     {
+        public int ID { set; get; }
         [RegPropertyName(Name = "DisplayName")]
         public string Name { set; get; }
         [RegPropertyName(Name = "DisplayVersion")]
-        public string Version { set; get; }
+        public Version Version { set; get; }
         [RegIgnore]
         public int Size { set; get; }
     }
 
     public class Company
     {
-        public string Func()
-        {
-            return "";
-        }
-        [RegSubKeyName(AutoGenerate =true, IsFullName =true, func =()=> { return "a"; })]
+        [RegSubKeyName]
         public DateTime Key { set; get; }
         [RegPropertyName(Name = "Name1")]
         public string Name { set; get; }
@@ -116,33 +99,16 @@ class Program
         static object dyy = new { A = 1 };
         static void Main(string[] args)
         {
-            RegQuery<Company> regt_company = new RegQuery<Company>()
-            .useSetting(x =>
-            {
-                x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\Company";
-                x.View = RegistryView.Registry64;
-            });
-            regt_company.RemoveAll();
-            regt_company.Insert(new List<Company>()
-            {
-                new Company(){ Key=new DateTime(2022,1,1), ID=1, Name = "One" ,Address="Address_one"},
-                new Company(){ Key=new DateTime(2022,1,2), ID=2, Name = "two" ,Address="Address_two"},
-                new Company(){ Key=new DateTime(2022,1,3), ID=3, Name = "three" ,Address="Address_three"},
-                new Company(){ Key=new DateTime(2022,1,4), ID=4, Name = "Four" ,Address="Address_Four"},
-            });
-            
-            var companys = regt_company.ToList();
-            List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
-            typekeys.Add(new KeyValuePair<string, Type>("Age", typeof(int)));
-            typekeys.Add(new KeyValuePair<string, Type>("Name", typeof(string)));
-            var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
+            //List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
+            //typekeys.Add(new KeyValuePair<string, Type>("Age", typeof(int)));
+            //typekeys.Add(new KeyValuePair<string, Type>("Name", typeof(string)));
+            //var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
 
-            List<Tuple<Type, string>> ttypees = new List<Tuple<Type, string>>();
-            ttypees.Add(Tuple.Create(typeof(int), "Age"));
-            ttypees.Add(Tuple.Create(typeof(string), "Name"));
-            var ppo = ttypees.BuildType(null);
-            oiop = null;
+            //List<Tuple<Type, string>> ttypees = new List<Tuple<Type, string>>();
+            //ttypees.Add(Tuple.Create(typeof(int), "Age"));
+            //ttypees.Add(Tuple.Create(typeof(string), "Name"));
+            //var ppo = ttypees.BuildType(null);
+            //oiop = null;
             //List<string> testa = new List<string>() { "A", "B", "C" };
             ////testa.Clear();
             ////var oiou = testa.DefaultIfEmpty();
@@ -724,12 +690,12 @@ class Program
                 });
 
 
-            RegQuery<InstalledApp> regt_apps = new RegQuery<InstalledApp>()
-                .useSetting(x =>
-                {
-                    x.Hive = RegistryHive.CurrentConfig;
-                    x.SubKey = @"UnitTest\Apps";
-                });
+            RegQuery<App> regt_apps = new RegQuery<App>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\Apps";
+            });
             //regt_company.RemoveAll();
             //regt_company.Insert(new List<Company>()
             //{
@@ -739,8 +705,8 @@ class Program
             //    new Company(){Name = "Company_D", ID=4, Key=103, OrderBy=9, ThenBy=90, ThenBy1=202},
             //    new Company(){Name = "Company_E", ID=5, Key=104, OrderBy=10, ThenBy=90, ThenBy1=201},
             //});
-            var oedereby = regt_company.OrderBy(x => x.OrderBy);
-            var thenby = oedereby.ThenBy(x => x.ThenBy);
+            //var oedereby = regt_company.OrderBy(x => x.OrderBy);
+            //var thenby = oedereby.ThenBy(x => x.ThenBy);
             //regt_apps.RemoveAll();
             //regt_apps.Insert(new List<InstalledApp>()
             //{
@@ -754,27 +720,27 @@ class Program
             //    new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 }
             //});
 
-            regt_appmapping.RemoveAll();
-            regt_appmapping.Insert(new List<AppMapping>()
-            {
-                new AppMapping(){AppID = 0, CompanyID = 1},
-                new AppMapping(){AppID = 1, CompanyID = 1},
-                new AppMapping(){AppID = 2, CompanyID = 1},
-                new AppMapping(){AppID = 3, CompanyID = 1},
-                new AppMapping(){AppID = 4, CompanyID = 2},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-                new AppMapping(){AppID = 33, CompanyID = 1},
-            });
+            //regt_appmapping.RemoveAll();
+            //regt_appmapping.Insert(new List<AppMapping>()
+            //{
+            //    new AppMapping(){AppID = 0, CompanyID = 1},
+            //    new AppMapping(){AppID = 1, CompanyID = 1},
+            //    new AppMapping(){AppID = 2, CompanyID = 1},
+            //    new AppMapping(){AppID = 3, CompanyID = 1},
+            //    new AppMapping(){AppID = 4, CompanyID = 2},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //    new AppMapping(){AppID = 33, CompanyID = 1},
+            //});
 
 
             //var applist = from company in regt_company where company.ID==1 select new { company };
@@ -818,6 +784,24 @@ class Program
             var binary = ifelse.Test as BinaryExpression;
             var yu = ifelse.Test.GetType();
             var oioi  = Expression.Condition(ifelse.Test, ifelse.IfTrue, ifelse.IfFalse);
+
+
+            var left1 = from company in regt_company
+                        join mapping in regt_appmapping on company.ID equals mapping.CompanyID into gj_company_mapping
+                        from company_mapping in gj_company_mapping.DefaultIfEmpty()
+                        where company_mapping != null
+                        join app in regt_apps on company_mapping.AppID equals app.ID into gj_app_mapping
+                        from app_mapping in gj_app_mapping.DefaultIfEmpty()
+                        select new
+                        {
+                            company = company.ID,
+                            app = app_mapping.ID
+                        };
+            foreach (var oo in left1)
+            {
+
+            }
+
 
             //var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
             //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });

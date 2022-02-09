@@ -168,9 +168,6 @@ namespace QSoft.Registry.Linq
             return source.Count();
         }
 
-        
-
-
         public static int InsertTo<TFirst, TSecond, TResult>(this IQueryable<TFirst> src, RegQuery<TSecond> dst, Expression<Func<TFirst, TResult>> selector)
         {
             var inserorupdate = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "InsertAnotherReg");

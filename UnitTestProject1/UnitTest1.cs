@@ -6,7 +6,7 @@ using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
 
-namespace UnitTestProject1
+namespace General
 {
     public class InstallAppCompare : IEqualityComparer<InstalledApp>
     {

@@ -510,11 +510,15 @@ namespace QSoft.Registry.Linq
             m_ExpressionSaves[node] = node.Expression == null?node:null;
 
             var ttyp = node.Type;
-
+            
             System.Diagnostics.Debug.WriteLine($"VisitMember {node.Member.Name}");
 
             var expr = base.VisitMember(node) as MemberExpression;
-            if(this.m_Lastnode != null && expr.Expression != null)
+            if (this.LastMethodName == "DefaultIfEmpty")
+            {
+
+            }
+            if (this.m_Lastnode != null && expr.Expression != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
 #if RegToEnd
@@ -531,12 +535,12 @@ namespace QSoft.Registry.Linq
                             var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mes1.ElementAt(0));
                             this.m_ExpressionSaves[expr] = expr_member;
                         }
-                        else if(node.Type.IsGenericType == true && node.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                        else if(expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                         {
                             var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
                             if(mem.Length == 0)
                             {
-                                this.m_ExpressionSaves[expr] = node;
+                                this.m_ExpressionSaves[expr] = expr;
                             }
                             else
                             {
@@ -544,7 +548,7 @@ namespace QSoft.Registry.Linq
                                 this.m_ExpressionSaves[expr] = expr_member;
                             }
                         }
-                        else if(Type.GetTypeCode(node.Type) == TypeCode.Object && node.Type.IsGenericType==true&&node.Type.GetGenericTypeDefinition()!=typeof(Nullable<>))
+                        else if(Type.GetTypeCode(expr.Type) == TypeCode.Object && expr.Type.IsGenericType==true&& expr.Type.GetGenericTypeDefinition()!=typeof(Nullable<>))
                         {
                             var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
                             var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
@@ -553,17 +557,17 @@ namespace QSoft.Registry.Linq
                         else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                            var attr = node.Member.GetCustomAttributes(true).FirstOrDefault();
+                            var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
                             Expression member = null;
                             Expression left_args_1 = null;
                             if (attr is RegIgnore)
                             {
-                                this.Fail = $"{node.Member.Name} is ignored, please do not use";
+                                this.Fail = $"{expr.Member.Name} is ignored, please do not use";
                             }
                             else if (attr is RegPropertyName)
                             {
                                 left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
+                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
                             else if (attr is RegSubKeyName)
                             {
@@ -574,11 +578,40 @@ namespace QSoft.Registry.Linq
                                     var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
                                     member = Expression.Call(method, member);
                                 }
+                                var property = expr.Type;
+                                bool isnuallable = false;
+                                if(expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition()==typeof(Nullable<>))
+                                {
+                                    isnuallable = true;
+                                    property = expr.Type.GetGenericArguments()[0];
+                                }
+                                var typecode = Type.GetTypeCode(property);
+                                switch (typecode)
+                                {
+                                    case TypeCode.DateTime:
+                                    case TypeCode.Int16:
+                                    case TypeCode.Int32:
+                                    case TypeCode.Int64:
+                                    case TypeCode.UInt16:
+                                    case TypeCode.UInt32:
+                                    case TypeCode.UInt64:
+                                    case TypeCode.Double:
+                                    case TypeCode.Single:
+                                        {
+                                            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
+                                            member = Expression.Call(parseMethod, member);
+                                            if (isnuallable == true)
+                                            {
+                                                member = Expression.Convert(member, property);
+                                            }
+                                        }
+                                        break;
+                                }
                             }
                             if(member ==null&&left_args_1 == null)
                             {
-                                left_args_1 = Expression.Constant(node.Member.Name);
-                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
+                                left_args_1 = Expression.Constant(expr.Member.Name);
+                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
                             this.m_ExpressionSaves[expr] = member;
                         }
@@ -602,9 +635,15 @@ namespace QSoft.Registry.Linq
                     if(exprs.First().Value.Type == typeof(RegistryKey))
                     {
                         var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                        var left_args_1 = Expression.Constant(node.Member.Name);
-                        var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
+                        var left_args_1 = Expression.Constant(expr.Member.Name);
+                        var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
                         this.m_ExpressionSaves[expr] = member;
+                    }
+                    else if(exprs.First().Value.Type.HaseRegistryKey() == true)
+                    {
+                        var mes1 = exprs.Last().Value.Type.GetMember(expr.Member.Name);
+                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mes1.ElementAt(0));
+                        this.m_ExpressionSaves[expr] = expr_member;
                     }
                     else
                     {

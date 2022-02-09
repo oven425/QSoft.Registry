@@ -50,15 +50,18 @@ namespace ConsoleApp1
     public class Company
     {
         [RegSubKeyName]
-        public DateTime Key { set; get; }
+        public int Key { set; get; }
         [RegPropertyName(Name = "Name1")]
         public string Name { set; get; }
-        [RegPropertyName(Name="ID1")]
+        [RegPropertyName(Name="ID")]
         public int ID { set; get; }
         public string Address { set; get; }
 
+        [RegIgnore]
         public int OrderBy { set; get; }
+        [RegIgnore]
         public int ThenBy { set; get; }
+        [RegIgnore]
         public int ThenBy1 { set; get; }
     }
 
@@ -785,7 +788,6 @@ class Program
             var yu = ifelse.Test.GetType();
             var oioi  = Expression.Condition(ifelse.Test, ifelse.IfTrue, ifelse.IfFalse);
 
-
             var left1 = from company in regt_company
                         join mapping in regt_appmapping on company.ID equals mapping.CompanyID into gj_company_mapping
                         from company_mapping in gj_company_mapping.DefaultIfEmpty()
@@ -802,6 +804,24 @@ class Program
 
             }
 
+            var apps = regt_apps.ToList();
+            var mappings = regt_appmapping.ToList();
+            var companys = regt_company.ToList();
+            var left22 = from company in companys
+                        join mapping in mappings on company.ID equals mapping.CompanyID into gj_company_mapping
+                        from company_mapping in gj_company_mapping.DefaultIfEmpty()
+                        where company_mapping != null
+                        join app in apps on company_mapping.AppID equals app.ID into gj_app_mapping
+                        from app_mapping in gj_app_mapping.DefaultIfEmpty()
+                        select new
+                        {
+                            company = company.ID,
+                            app = app_mapping.ID
+                        };
+            foreach (var oo in left22)
+            {
+
+            }
 
             //var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
             //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });

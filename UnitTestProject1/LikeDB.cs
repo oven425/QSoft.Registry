@@ -38,7 +38,7 @@ namespace LikeDB
         public void CreateDB()
         {
             regt_apps.RemoveAll();
-            regt_apps.Insert(Enumerable.Range(1, 100).Select(x => new App() { ID = x, Name = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
+            //regt_apps.Insert(Enumerable.Range(1, 10).Select(x => new App() { ID = x, Name = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
             regt_apps.Insert(new List<App>()
             {
                 new App(){ID=1, Name="Camera", Version=new Version(1,1,1,1), Size=123 },
@@ -48,7 +48,7 @@ namespace LikeDB
                 new App(){ID=5, Name="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
             });
             regt_company.RemoveAll();
-            var companydatas = Enumerable.Range(1, 100).Select(x => new Company() { Key=x,ID=x,Name=$"Name_{x}", Address=$"Address_{x}" });
+            var companydatas = Enumerable.Range(1, 10).Select(x => new Company() { Key=x,ID=x,Name=$"Name_{x}", Address=$"Address_{x}" });
             regt_company.Insert(companydatas);
             //regt_company.Insert(new List<Company>()
             //{
@@ -154,7 +154,7 @@ namespace LikeDB
         }
 
         [TestMethod]
-        public void LeftJoin()
+        public void LeftJoin_2Table()
         {
             var gj1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new {app, mapping });
             var left1 = gj1.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
@@ -166,25 +166,51 @@ namespace LikeDB
         }
 
         [TestMethod]
-        public void LeftJoin_Syntax()
+        public void LeftJoin_2Table_Syntax()
         {
             var left1 = from app in regt_apps
                         join mapping in regt_appmapping on app.ID equals mapping.AppID into gj
                         from mapping in gj.DefaultIfEmpty()
                         select new { app, mapping };
-            //var apps = regt_apps.ToList();
-            //var mappings = regt_appmapping.ToList();
-            //var left2 = from app in apps
-            //            join mapping in mappings on app.ID equals mapping.AppID into gj
-            //            from mapping in gj.DefaultIfEmpty()
-            //            select new { app, mapping };
+            var apps = regt_apps.ToList();
+            var mappings = regt_appmapping.ToList();
+            var left2 = from app in apps
+                        join mapping in mappings on app.ID equals mapping.AppID into gj
+                        from mapping in gj.DefaultIfEmpty()
+                        select new { app, mapping };
 
 
-            //Check(left1, left2);
+            Check(left1, left2);
         }
 
         [TestMethod]
-        public void LeftJoin_Syntax1()
+        public void LeftJoin_3Table()
+        {
+            var left1 = regt_company.GroupJoin(regt_appmapping, company => company.Key, mapping => mapping.CompanyID, (company, mapping) => new { company, mapping })
+                .SelectMany(x => x.mapping.DefaultIfEmpty(), (company, mapping) => new { company.company, mapping })
+                .Where(x => x.mapping != null)
+                .GroupJoin(regt_apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
+                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { x.company, y})
+                .Select(x=>new { company = x.company.ID, app=x.y.ID});
+            //foreach(var oo in left1)
+            //{
+
+            //}
+            var apps = regt_apps.ToList();
+            var mappings = regt_appmapping.ToList();
+            var companys = regt_company.ToList();
+            var left2 = companys.GroupJoin(mappings, company => company.Key, mapping => mapping.CompanyID, (company, mapping) => new { company, mapping })
+                .SelectMany(x => x.mapping.DefaultIfEmpty(), (company, mapping) => new { company.company, mapping })
+                .Where(x => x.mapping != null)
+                .GroupJoin(apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
+                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { x.company, app=y })
+                .Select(x => new { company = x.company.ID, app = x.app.ID });
+
+            Check(left1, left2);
+        }
+
+        [TestMethod]
+        public void LeftJoin_3Table_Syntax()
         {
             var left1 = from company in regt_company
                         join mapping in regt_appmapping on company.ID equals mapping.CompanyID into gj_company_mapping
@@ -194,32 +220,45 @@ namespace LikeDB
                         from app_mapping in gj_app_mapping.DefaultIfEmpty()
                         select new
                         {
-                            company = company.ID,
-                            app = app_mapping.ID
+                            company = company,
+                            app = app_mapping
                         };
-            foreach (var oo in left1)
-            {
+            //foreach (var oo in left1)
+            //{
 
-            }
-            //var apps = regt_apps.ToList();
-            //var mappings = regt_appmapping.ToList();
-            //var companys = regt_company.ToList();
-            //var left2 = from company in companys
-            //            join mapping in mappings on company.ID equals mapping.CompanyID into gj_company_mapping
-            //            from company_mapping in gj_company_mapping.DefaultIfEmpty()
-            //            where company_mapping != null
-            //            join app in apps on company_mapping.AppID equals app.ID into gj_app_mapping
-            //            from app_mapping in gj_app_mapping.DefaultIfEmpty()
-            //            select new
-            //            {
-            //                company = company.ID,
-            //                app = app_mapping.ID
-            //            };
+            //}
+            var apps = regt_apps.ToList();
+            var mappings = regt_appmapping.ToList();
+            var companys = regt_company.ToList();
+            var left2 = from company in companys
+                        join mapping in mappings on company.ID equals mapping.CompanyID into gj_company_mapping
+                        from company_mapping in gj_company_mapping.DefaultIfEmpty()
+                        where company_mapping != null
+                        join app in apps on company_mapping.AppID equals app.ID into gj_app_mapping
+                        from app_mapping in gj_app_mapping.DefaultIfEmpty()
+                        select new
+                        {
+                            company = company,
+                            app = app_mapping
+                        };
 
 
 
-            //Check(left1, left2);
+            Check(left1, left2);
         }
+
+        [TestMethod]
+        public void Delete()
+        {
+            var allcount = regt_company.Count();
+            int count = regt_company.Where(x => x.Key > 1).RemoveAll();
+            var where = regt_company.Where(x => x.Key <= 1);
+            if(allcount - count != where.Count())
+            {
+                Assert.Fail("remove fail");
+            }
+        }
+
 
         [TestMethod]
         public void RightJoin()

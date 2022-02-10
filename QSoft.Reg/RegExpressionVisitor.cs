@@ -548,12 +548,7 @@ namespace QSoft.Registry.Linq
                                 this.m_ExpressionSaves[expr] = expr_member;
                             }
                         }
-                        else if(Type.GetTypeCode(expr.Type) == TypeCode.Object && expr.Type.IsGenericType==true&& expr.Type.GetGenericTypeDefinition()!=typeof(Nullable<>))
-                        {
-                            var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
-                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
-                            this.m_ExpressionSaves[expr] = expr_member;
-                        }
+                        
                         else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
@@ -572,41 +567,42 @@ namespace QSoft.Registry.Linq
                             else if (attr is RegSubKeyName)
                             {
                                 var subkeyname = attr as RegSubKeyName;
-                                member = Expression.Property(exprs.First().Value, "Name");
-                                if(subkeyname.IsFullName == false)
-                                {
-                                    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
-                                    member = Expression.Call(method, member);
-                                }
-                                var property = expr.Type;
-                                bool isnuallable = false;
-                                if(expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition()==typeof(Nullable<>))
-                                {
-                                    isnuallable = true;
-                                    property = expr.Type.GetGenericArguments()[0];
-                                }
-                                var typecode = Type.GetTypeCode(property);
-                                switch (typecode)
-                                {
-                                    case TypeCode.DateTime:
-                                    case TypeCode.Int16:
-                                    case TypeCode.Int32:
-                                    case TypeCode.Int64:
-                                    case TypeCode.UInt16:
-                                    case TypeCode.UInt32:
-                                    case TypeCode.UInt64:
-                                    case TypeCode.Double:
-                                    case TypeCode.Single:
-                                        {
-                                            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
-                                            member = Expression.Call(parseMethod, member);
-                                            if (isnuallable == true)
-                                            {
-                                                member = Expression.Convert(member, property);
-                                            }
-                                        }
-                                        break;
-                                }
+                                member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
+                                //member = Expression.Property(exprs.First().Value, "Name");
+                                //if (subkeyname.IsFullName == false)
+                                //{
+                                //    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
+                                //    member = Expression.Call(method, member);
+                                //}
+                                //var property = expr.Type;
+                                //bool isnuallable = false;
+                                //if (expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                                //{
+                                //    isnuallable = true;
+                                //    property = expr.Type.GetGenericArguments()[0];
+                                //}
+                                //var typecode = Type.GetTypeCode(property);
+                                //switch (typecode)
+                                //{
+                                //    case TypeCode.DateTime:
+                                //    case TypeCode.Int16:
+                                //    case TypeCode.Int32:
+                                //    case TypeCode.Int64:
+                                //    case TypeCode.UInt16:
+                                //    case TypeCode.UInt32:
+                                //    case TypeCode.UInt64:
+                                //    case TypeCode.Double:
+                                //    case TypeCode.Single:
+                                //        {
+                                //            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
+                                //            member = Expression.Call(parseMethod, member);
+                                //            if (isnuallable == true)
+                                //            {
+                                //                member = Expression.Convert(member, property);
+                                //            }
+                                //        }
+                                //        break;
+                                //}
                             }
                             if(member ==null&&left_args_1 == null)
                             {
@@ -614,6 +610,12 @@ namespace QSoft.Registry.Linq
                                 member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
                             }
                             this.m_ExpressionSaves[expr] = member;
+                        }
+                        else if (Type.GetTypeCode(expr.Type) == TypeCode.Object && expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() != typeof(Nullable<>))
+                        {
+                            var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
+                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
+                            this.m_ExpressionSaves[expr] = expr_member;
                         }
                         else
                         {
@@ -634,9 +636,69 @@ namespace QSoft.Registry.Linq
                 {
                     if(exprs.First().Value.Type == typeof(RegistryKey))
                     {
+                        //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                        //var left_args_1 = Expression.Constant(expr.Member.Name);
+                        //var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                        //this.m_ExpressionSaves[expr] = member;
+
                         var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                        var left_args_1 = Expression.Constant(expr.Member.Name);
-                        var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                        var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
+                        Expression member = null;
+                        Expression left_args_1 = null;
+                        if (attr is RegIgnore)
+                        {
+                            this.Fail = $"{expr.Member.Name} is ignored, please do not use";
+                        }
+                        else if (attr is RegPropertyName)
+                        {
+                            left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                        }
+                        else if (attr is RegSubKeyName)
+                        {
+                            var subkeyname = attr as RegSubKeyName;
+                            member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
+                            //member = Expression.Property(exprs.First().Value, "Name");
+                            //if (subkeyname.IsFullName == false)
+                            //{
+                            //    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
+                            //    member = Expression.Call(method, member);
+                            //}
+                            //var property = expr.Type;
+                            //bool isnuallable = false;
+                            //if (expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                            //{
+                            //    isnuallable = true;
+                            //    property = expr.Type.GetGenericArguments()[0];
+                            //}
+                            //var typecode = Type.GetTypeCode(property);
+                            //switch (typecode)
+                            //{
+                            //    case TypeCode.DateTime:
+                            //    case TypeCode.Int16:
+                            //    case TypeCode.Int32:
+                            //    case TypeCode.Int64:
+                            //    case TypeCode.UInt16:
+                            //    case TypeCode.UInt32:
+                            //    case TypeCode.UInt64:
+                            //    case TypeCode.Double:
+                            //    case TypeCode.Single:
+                            //        {
+                            //            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
+                            //            member = Expression.Call(parseMethod, member);
+                            //            if (isnuallable == true)
+                            //            {
+                            //                member = Expression.Convert(member, property);
+                            //            }
+                            //        }
+                            //        break;
+                            //}
+                        }
+                        if (member == null && left_args_1 == null)
+                        {
+                            left_args_1 = Expression.Constant(expr.Member.Name);
+                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                        }
                         this.m_ExpressionSaves[expr] = member;
                     }
                     else if(exprs.First().Value.Type.HaseRegistryKey() == true)
@@ -1137,7 +1199,6 @@ namespace QSoft.Registry.Linq
         DictionaryList<Expression, Expression> m_ExpressionSaves = new DictionaryList<Expression, Expression>();
         Dictionary<Expression, Type> m_ExpressionSaves1 = new Dictionary<Expression, Type>();
         Expression m_Lastnode = null;
-        //Dictionary<Expression, string> GenericTypes = new Dictionary<Expression, string>();
         string LastMethodName = "";
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
@@ -1151,7 +1212,6 @@ namespace QSoft.Registry.Linq
             LastMethodName = node.Method.Name;
             if (node.Method.Name == "Any")
             {
-                //ttypes1[1] = typeof(RegistryKey);
             }
 #if RegToEnd
             this.PreparMethod1(node, node.Arguments.ToArray(), node.Method);

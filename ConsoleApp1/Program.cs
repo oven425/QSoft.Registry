@@ -787,16 +787,16 @@ class Program
             var binary = ifelse.Test as BinaryExpression;
             var yu = ifelse.Test.GetType();
             var oioi  = Expression.Condition(ifelse.Test, ifelse.IfTrue, ifelse.IfFalse);
-
+            var sel = regt_company.ToList();
             var left1 = from company in regt_company
-                        join mapping in regt_appmapping on company.ID equals mapping.CompanyID into gj_company_mapping
+                        join mapping in regt_appmapping on company.Key equals mapping.CompanyID into gj_company_mapping
                         from company_mapping in gj_company_mapping.DefaultIfEmpty()
                         where company_mapping != null
                         join app in regt_apps on company_mapping.AppID equals app.ID into gj_app_mapping
                         from app_mapping in gj_app_mapping.DefaultIfEmpty()
                         select new
                         {
-                            company = company.ID,
+                            company = company.Key,
                             app = app_mapping.ID
                         };
             foreach (var oo in left1)

@@ -146,7 +146,7 @@ class Program
 
 
 
-            TestDB();
+            //TestDB();
 
             //return;
             //var g1 = zip_method.GetType().GetGenericArguments();
@@ -314,6 +314,9 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+            //var tolist1 = regt.Where(x => x.DisplayName.Contains("A")).Count();
+            //var tolist11 = regt.Where(x => x.DisplayName!="").ToList();
+            var tolist2 = regt.ToDictionary(x => x.DisplayName);
             regt.RemoveAll();
             regt.Insert(new List<InstalledApp>()
             {
@@ -495,7 +498,7 @@ class Program
             var max = regt.Max(x => x.EstimatedSize);
 
             var loopup = regt.ToLookup(x => x.DisplayName);
-            var tolist = regt.ToList();
+            //var tolist = regt.ToList();
             var toarray = regt.ToArray();
             var dictonary = regt.ToDictionary(x => x.EstimatedSize);
             //var max = regt.Max(x => x.DisplayVersion.ToString().Length);

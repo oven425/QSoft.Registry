@@ -425,11 +425,9 @@ namespace QSoft.Registry.Linq
             foreach (var pp in pps)
             {
                 var typecode = Type.GetTypeCode(pp.PropertyType);
-                bool isnuallable = false;
                 var property = pp.PropertyType;
                 if (pp.PropertyType.IsGenericType==true&&pp.PropertyType.GetGenericTypeDefinition()==typeof(Nullable<>))
                 {
-                    isnuallable = true;
                     property = pp.PropertyType.GetGenericArguments()[0];
                     typecode = Type.GetTypeCode(property);
                 }
@@ -440,45 +438,6 @@ namespace QSoft.Registry.Linq
                     RegSubKeyName subkeyname = regattr as RegSubKeyName;
                     var expr = subkeyname.ToExpression(pp.PropertyType, param);
                     var  binding = Expression.Bind(pp, expr);
-                    //Expression mm = null;
-                    //mm = Expression.Property(param, "Name");
-                    //if (subkeyname.IsFullName == false)
-                    //{
-                    //    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
-                    //    mm = Expression.Call(method, mm);
-                    //}
-                    //MemberAssignment binding = null;
-                    //switch(typecode)
-                    //{
-                    //    case TypeCode.String:
-                    //        {
-                    //            binding = Expression.Bind(pp, mm);
-                    //        }
-                    //        break;
-                    //    case TypeCode.DateTime:
-                    //    case TypeCode.Int16:
-                    //    case TypeCode.Int32:
-                    //    case TypeCode.Int64:
-                    //    case TypeCode.UInt16:
-                    //    case TypeCode.UInt32:
-                    //    case TypeCode.UInt64:
-                    //    case TypeCode.Double:
-                    //    case TypeCode.Single:
-                    //        {
-                    //            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
-                    //            var method = Expression.Call(parseMethod, mm);
-                    //            if (isnuallable == true)
-                    //            {
-                    //                UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-                    //                binding = Expression.Bind(pp, unary1);
-                    //            }
-                    //            else
-                    //            {
-                    //                binding = Expression.Bind(pp, method);
-                    //            }
-                    //        }
-                    //        break;
-                    //}
                     bindings.Add(binding);
                 }
                 else if (regattr != null && regattr is RegPropertyName)

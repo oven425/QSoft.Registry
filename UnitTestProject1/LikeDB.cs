@@ -91,7 +91,7 @@ namespace LikeDB
             var join1 = regt_company.Join(regt_appmapping, company => company.Key, mapping => mapping.CompanyID, (x, y) => x);
             var companys = regt_company.ToList();
             var mappings = regt_appmapping.ToList();
-            var join2 = companys.Join(mappings, company => company.Key, mapping => mapping.AppID, (x, y) => x);
+            var join2 = companys.Join(mappings, company => company.Key, mapping => mapping.CompanyID, (x, y) => x);
             Check(join1, join2);
         }
 
@@ -250,13 +250,13 @@ namespace LikeDB
         [TestMethod]
         public void Delete()
         {
-            var allcount = regt_company.Count();
-            int count = regt_company.Where(x => x.Key > 1).RemoveAll();
-            var where = regt_company.Where(x => x.Key <= 1);
-            if(allcount - count != where.Count())
-            {
-                Assert.Fail("remove fail");
-            }
+            //var allcount = regt_company.Count();
+            //int count = regt_company.Where(x => x.Key > 1).RemoveAll();
+            //var where = regt_company.Where(x => x.Key <= 1);
+            //if(allcount - count != where.Count())
+            //{
+            //    Assert.Fail("remove fail");
+            //}
         }
 
 

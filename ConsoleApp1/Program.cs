@@ -314,6 +314,13 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
                         x.View = RegistryView.Registry64;
                     });
+
+
+            var sel = regt.GroupBy(x => x).Select(x => x.Key);
+            foreach (var oo in sel)
+            {
+
+            }
             //var tolist1 = regt.Where(x => x.DisplayName.Contains("A")).Count();
             //var tolist11 = regt.Where(x => x.DisplayName!="").ToList();
             var tolist2 = regt.ToDictionary(x => x.DisplayName);

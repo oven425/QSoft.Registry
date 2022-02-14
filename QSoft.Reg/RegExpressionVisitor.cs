@@ -568,41 +568,6 @@ namespace QSoft.Registry.Linq
                             {
                                 var subkeyname = attr as RegSubKeyName;
                                 member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
-                                //member = Expression.Property(exprs.First().Value, "Name");
-                                //if (subkeyname.IsFullName == false)
-                                //{
-                                //    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
-                                //    member = Expression.Call(method, member);
-                                //}
-                                //var property = expr.Type;
-                                //bool isnuallable = false;
-                                //if (expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                                //{
-                                //    isnuallable = true;
-                                //    property = expr.Type.GetGenericArguments()[0];
-                                //}
-                                //var typecode = Type.GetTypeCode(property);
-                                //switch (typecode)
-                                //{
-                                //    case TypeCode.DateTime:
-                                //    case TypeCode.Int16:
-                                //    case TypeCode.Int32:
-                                //    case TypeCode.Int64:
-                                //    case TypeCode.UInt16:
-                                //    case TypeCode.UInt32:
-                                //    case TypeCode.UInt64:
-                                //    case TypeCode.Double:
-                                //    case TypeCode.Single:
-                                //        {
-                                //            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
-                                //            member = Expression.Call(parseMethod, member);
-                                //            if (isnuallable == true)
-                                //            {
-                                //                member = Expression.Convert(member, property);
-                                //            }
-                                //        }
-                                //        break;
-                                //}
                             }
                             if(member ==null&&left_args_1 == null)
                             {
@@ -658,41 +623,6 @@ namespace QSoft.Registry.Linq
                         {
                             var subkeyname = attr as RegSubKeyName;
                             member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
-                            //member = Expression.Property(exprs.First().Value, "Name");
-                            //if (subkeyname.IsFullName == false)
-                            //{
-                            //    var method = typeof(RegQueryHelper).GetMethod("GetLastSegement");
-                            //    member = Expression.Call(method, member);
-                            //}
-                            //var property = expr.Type;
-                            //bool isnuallable = false;
-                            //if (expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                            //{
-                            //    isnuallable = true;
-                            //    property = expr.Type.GetGenericArguments()[0];
-                            //}
-                            //var typecode = Type.GetTypeCode(property);
-                            //switch (typecode)
-                            //{
-                            //    case TypeCode.DateTime:
-                            //    case TypeCode.Int16:
-                            //    case TypeCode.Int32:
-                            //    case TypeCode.Int64:
-                            //    case TypeCode.UInt16:
-                            //    case TypeCode.UInt32:
-                            //    case TypeCode.UInt64:
-                            //    case TypeCode.Double:
-                            //    case TypeCode.Single:
-                            //        {
-                            //            var parseMethod = property.GetMethod("Parse", new[] { typeof(string) });
-                            //            member = Expression.Call(parseMethod, member);
-                            //            if (isnuallable == true)
-                            //            {
-                            //                member = Expression.Convert(member, property);
-                            //            }
-                            //        }
-                            //        break;
-                            //}
                         }
                         if (member == null && left_args_1 == null)
                         {
@@ -1267,8 +1197,6 @@ namespace QSoft.Registry.Linq
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
                                 }
-                                var iuy = expr.Method.GetGenericArguments();
-                                var expert = iuy.Except(ttypes1);
                                 methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
                             }
                             else

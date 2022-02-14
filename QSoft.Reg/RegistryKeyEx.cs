@@ -248,52 +248,12 @@ namespace QSoft.Registry
             }
             return reg_base;
         }
-
-        //public static T GetValueSafe<T>(this RegistryKey src, string name)
-        //{
-        //    T t = default(T);
-        //    TypeCode typecode = Type.GetTypeCode(typeof(T));
-        //    string[] sss = src.GetValueNames();
-
-        //    //bool vv = false;
-        //    //for(int i=0; i<sss.Length; i++)
-        //    //{
-        //    //    if(sss[i] == name)
-        //    //    {
-        //    //        vv = true;
-        //    //        break;
-        //    //    }
-        //    //}
-        //    ////if (src.GetValueNames().Count(x => x == name) >0)
-        //    ////if (src.GetValueNames().FirstOrDefault(x => x == name) != null)
-        //    //if(vv == true)
-        //    //{
-        //    //    if (typecode == TypeCode.String)
-        //    //    {
-        //    //        object obj = src.GetValue(name);
-        //    //        t = (T)Convert.ChangeType(obj, typeof(T));
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        object obj = src.GetValue(name);
-        //    //        t = (T)obj;
-        //    //    }
-        //    //}
-        //    //else
-        //    //{
-        //    //    //if (Type.GetTypeCode(typeof(T)) == TypeCode.String)
-        //    //    //{
-        //    //    //    object obj = string.Empty;
-        //    //    //    t = (T)obj;
-        //    //    //}
-        //    //}
-        //    return t;
-        //}
     }
 }
 
 namespace QSoft.Registry.Linq
 {
+    [Obsolete("No supoort, please use RegQuery<T>")]
     public static class RegistryKeyLinq
     {
         public static IEnumerable<TResult> Join<TInner, TResult>(this RegistryKey src, IEnumerable<TInner> inner, Func<RegistryKey, TInner, bool> check, Func<RegistryKey, TInner, TResult> resultSelector)
@@ -361,7 +321,7 @@ namespace QSoft.Registry.Linq
                 }
             }
         }
-        [Obsolete("No support, please use RegQuery<T>")]
+
         public static bool Any(this RegistryKey src, Func<RegistryKey, bool> func)
         {
             bool bb = false;
@@ -562,7 +522,7 @@ namespace QSoft.Registry.Linq
         }
     }
 
-
+    [Obsolete("No supoort, please use RegQuery<T>")]
     internal class Lookup<TKey, TElement> : ILookup<TKey, TElement>
     {
         Dictionary<TKey, Grouping<TKey, TElement>> dic = new Dictionary<TKey, Grouping<TKey, TElement>>();
@@ -596,6 +556,7 @@ namespace QSoft.Registry.Linq
         }
     }
 
+    [Obsolete("No supoort, please use RegQuery<T>")]
     internal class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
     {
         readonly List<TElement> elements = new List<TElement>();

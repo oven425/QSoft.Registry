@@ -40,11 +40,17 @@ namespace QSoft.Registry.Linq
         public IQueryProvider Provider { private set; get; }
         public IEnumerator<T> GetEnumerator()
         {
-            var fail = (this.Provider as RegProvider<T>)?.CheckFail();
-            if(fail != null)
+            var provider = this.Provider as RegProvider<T>;
+            if(provider != null)
             {
-                throw fail;
+                var fail = provider.CheckFail();
+                if (fail != null)
+                {
+                    throw fail;
+                }
+                //return provider.Execute<IEnumerable<T>>(provider.Expr_Dst).GetEnumerator();
             }
+            
             return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
         }
 
@@ -53,6 +59,9 @@ namespace QSoft.Registry.Linq
             throw new NotImplementedException();
         }
 
+
+
+        [Obsolete("Testing", true)]
         public void Create(T data, bool isoverwrite=false)
         {
             var setting = (this.Provider as RegProvider<T>)?.Setting;
@@ -119,7 +128,7 @@ namespace QSoft.Registry.Linq
             }
             return dicpps;
         }
-
+        [Obsolete("Testing", true)]
         public void Update(T data)
         {
             var setting = (this.Provider as RegProvider<T>)?.Setting;
@@ -131,13 +140,13 @@ namespace QSoft.Registry.Linq
                 reg.SetValue(pp.Value, oo);
             }
         }
-
+        [Obsolete("Testing", true)]
         public T Get()
         {
             RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
             return reg.ToDataFunc<T>()(reg);
         }
-
+        [Obsolete("Testing", true)]
         public void Delete()
         {
             RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();

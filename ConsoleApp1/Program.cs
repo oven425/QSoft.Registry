@@ -306,7 +306,9 @@ class Program
             //a2.A = "098876";
             //direct_reg.Update(a2);
             //direct_reg.Delete();
-
+            var qi = Enumerable.Range(1, 10).AsQueryable();
+            var qi_where = qi.Where(x => x > 10).Select(x => x);
+            var qi_groupby = qi.GroupBy(x => x > 5);
             var regt = new RegQuery<InstalledApp>()
                 .useSetting(x =>
                     {
@@ -315,9 +317,13 @@ class Program
                         x.View = RegistryView.Registry64;
                     });
 
-
-            var sel = regt.GroupBy(x => x).Select(x => x.Key);
-            foreach (var oo in sel)
+            List<InstalledApp> m_Tests = new List<InstalledApp>();
+            //m_Tests.Add(new InstalledApp());
+            m_Tests.AddRange(regt.Take(2).ToList());
+            var zip1 = regt.Zip(m_Tests, (reg, app) => app);
+            var groupby1 = regt.GroupBy(x => x).Select(x => x.Key);
+            var where1 = regt.Where(x => x.DisplayName != "").Select(x=>x.DisplayName);
+            foreach(var oo in groupby1)
             {
 
             }

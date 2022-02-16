@@ -62,35 +62,6 @@ namespace QSoft.Registry.Linq
             Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
             PropertyInfo subkey = null;
 
-            //var group = typeof(TData).GetProperties().Where(x => x.CanRead == true)
-            //    .Select(x => new { x, attr = x.GetCustomAttributes(true).Where(y => y is RegIgnore || y is RegSubKeyName || y is RegPropertyName).FirstOrDefault() })
-            //    .GroupBy(x => x.attr);
-
-
-            //foreach (var items in group)
-            //{
-            //    if (items.Key is RegPropertyName)
-            //    {
-            //        foreach (var oo in items)
-            //        {
-            //            dicpps[oo.x] = (oo.attr as RegPropertyName)?.Name ?? oo.x.Name;
-            //        }
-            //    }
-            //    else if (items.Key == null)
-            //    {
-            //        foreach (var oo in items)
-            //        {
-            //            dicpps[oo.x] = oo.x.Name;
-            //        }
-            //    }
-            //    else if (items.Key is RegSubKeyName)
-            //    {
-            //        foreach (var oo in items)
-            //        {
-            //            subkey = oo.x;
-            //        }
-            //    }
-            //}
             var p = typeof(TData).PropertyName();
             dicpps = p.Item2;
             subkey = p.Item1;
@@ -168,50 +139,50 @@ namespace QSoft.Registry.Linq
             return source.Count();
         }
 
-        public static int InsertTo<TFirst, TSecond, TResult>(this IQueryable<TFirst> src, RegQuery<TSecond> dst, Expression<Func<TFirst, TResult>> selector)
-        {
-            var inserorupdate = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "InsertAnotherReg");
-            var reg = dst.ToRegistryKey();
-            var methdodcall = Expression.Call(inserorupdate.First().MakeGenericMethod(typeof(TFirst), typeof(TResult)), src.Expression, Expression.Constant(reg, typeof(RegistryKey)), selector);
-            int hr = src.Provider.Execute<int>(methdodcall);
-            reg.Close();
-            return hr;
-        }
+        //public static int InsertTo<TFirst, TSecond, TResult>(this IQueryable<TFirst> src, RegQuery<TSecond> dst, Expression<Func<TFirst, TResult>> selector)
+        //{
+        //    var inserorupdate = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "InsertAnotherReg");
+        //    var reg = dst.ToRegistryKey();
+        //    var methdodcall = Expression.Call(inserorupdate.First().MakeGenericMethod(typeof(TFirst), typeof(TResult)), src.Expression, Expression.Constant(reg, typeof(RegistryKey)), selector);
+        //    int hr = src.Provider.Execute<int>(methdodcall);
+        //    reg.Close();
+        //    return hr;
+        //}
 
-        static int InsertAnotherReg<TFirst, TResult>(this IEnumerable<TFirst> source, RegistryKey dst, Func<TFirst, TResult> func)
-        {
-            int count = 0;
-            var p = typeof(TResult).PropertyName();
-            var subkey = p.Item1;
-            var dicpps = p.Item2;
+        //static int InsertAnotherReg<TFirst, TResult>(this IEnumerable<TFirst> source, RegistryKey dst, Func<TFirst, TResult> func)
+        //{
+        //    int count = 0;
+        //    var p = typeof(TResult).PropertyName();
+        //    var subkey = p.Item1;
+        //    var dicpps = p.Item2;
 
-            foreach (var oo in source)
-            {
-                var obj = func(oo);
-                RegistryKey child = null;
-                if (subkey == null)
-                {
-                    child = dst.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                else
-                {
-                    var vv = subkey.GetValue(obj, null);
-                    child = dst.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                foreach (var pp in dicpps.Select(x => x.Key))
-                {
-                    var vv = pp.GetValue(obj, null);
-                    if (vv != null)
-                    {
-                        child.SetValue(dicpps[pp], vv);
-                    }
-                }
-                child.Close();
-                count = count + 1;
+        //    foreach (var oo in source)
+        //    {
+        //        var obj = func(oo);
+        //        RegistryKey child = null;
+        //        if (subkey == null)
+        //        {
+        //            child = dst.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
+        //        }
+        //        else
+        //        {
+        //            var vv = subkey.GetValue(obj, null);
+        //            child = dst.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+        //        }
+        //        foreach (var pp in dicpps.Select(x => x.Key))
+        //        {
+        //            var vv = pp.GetValue(obj, null);
+        //            if (vv != null)
+        //            {
+        //                child.SetValue(dicpps[pp], vv);
+        //            }
+        //        }
+        //        child.Close();
+        //        count = count + 1;
 
-            }
-            return count;
-        }
+        //    }
+        //    return count;
+        //}
 
         public static int RemoveAll<TSource>(this IQueryable<TSource> source)
         {

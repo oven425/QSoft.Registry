@@ -41,29 +41,23 @@ namespace LikeDB
             //regt_apps.Insert(Enumerable.Range(1, 10).Select(x => new App() { ID = x, Name = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
             regt_apps.Insert(new List<App>()
             {
-                new App(){ID=1, Name="Camera", Version=new Version(1,1,1,1), Size=123 },
-                new App(){ID=2, Name="Motion", Version=new Version(2,2,2,2), Size=123 },
-                new App(){ID=3, Name="VLC.exe", Version=new Version(3,3,3,3), Size=123 },
-                new App(){ID=4, Name="Joystick.cpl", Version=new Version(4,4,4,4), Size=123 },
-                new App(){ID=5, Name="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
+                new App(){ID=1, DisplayName="Camera", Version=new Version(1,1,1,1), Size=123 },
+                new App(){ID=2, DisplayName="Motion", Version=new Version(2,2,2,2), Size=123 },
+                new App(){ID=3, DisplayName="VLC.exe", Version=new Version(3,3,3,3), Size=123 },
+                new App(){ID=4, DisplayName="Joystick.cpl", Version=new Version(4,4,4,4), Size=123 },
+                new App(){ID=5, DisplayName="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
+                new App(){ID=6, DisplayName="PLC.exe", Version=new Version(6,6,6,6), Size=123 },
             });
             regt_company.RemoveAll();
-            var companydatas = Enumerable.Range(1, 10).Select(x => new Company() { Key=x,ID=x,Name=$"Name_{x}", Address=$"Address_{x}" });
-            regt_company.Insert(companydatas);
-            //regt_company.Insert(new List<Company>()
-            //{
-            //    new Company(){ Key=1, ID=1, Name = "One" ,Address="Address_one"},
-            //    new Company(){ Key=2, ID=2, Name = "two" ,Address="Address_two"},
-            //    new Company(){ Key=3, ID=3, Name = "three" ,Address="Address_three"},
-            //    new Company(){ Key=4, ID=4, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=5, ID=5, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=6, ID=6, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=7, ID=7, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=8, ID=8, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=9, ID=9, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=10, ID=10, Name = "Four" ,Address="Address_Four"},
-            //    new Company(){ Key=11, ID=11, Name = "Four" ,Address="Address_Four"},
-            //});
+            //var companydatas = Enumerable.Range(1, 10).Select(x => new Company() { Key=x,Name=$"Name_{x}", Address=$"Address_{x}" });
+            //regt_company.Insert(companydatas);
+            regt_company.Insert(new List<Company>()
+            {
+                new Company(){ Key=1, Name = "One" ,Address="Address_one"},
+                new Company(){ Key=2, Name = "Two" ,Address="Address_two"},
+                new Company(){ Key=3, Name = "Three" ,Address="Address_three"},
+                new Company(){ Key=4, Name = "Four" ,Address="Address_four"},
+            });
 
             regt_appmapping.RemoveAll();
             regt_appmapping.Insert(new List<AppMapping>()
@@ -156,13 +150,15 @@ namespace LikeDB
         [TestMethod]
         public void LeftJoin_2Table()
         {
-            var gj1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new {app, mapping });
-            var left1 = gj1.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
+            //var gj1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new {app, mapping });
+            var left1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping })
+                .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping});
+            var nomapping = left1.Where(x => x.mapping == null).Select(x => x.app);
             var apps = regt_apps.ToList();
             var mappings = regt_appmapping.ToList();
             var gj2 = apps.GroupJoin(mappings, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping });
-            var left2 = gj2.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping});
-            Check(left1, left2);
+            var left2 = gj2.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app.DisplayName, mapping});
+            //Check(left1, left2);
         }
 
         [TestMethod]
@@ -190,8 +186,7 @@ namespace LikeDB
                 .SelectMany(x => x.mapping.DefaultIfEmpty(), (company, mapping) => new { company.company, mapping })
                 .Where(x => x.mapping != null)
                 .GroupJoin(regt_apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
-                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { x.company, y})
-                .Select(x=>new { company = x.company.ID, app=x.y.ID});
+                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { Company = x.company.Name, App = y.DisplayName });
             //foreach(var oo in left1)
             //{
 
@@ -204,16 +199,16 @@ namespace LikeDB
                 .Where(x => x.mapping != null)
                 .GroupJoin(apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
                 .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { x.company, app=y })
-                .Select(x => new { company = x.company.ID, app = x.app.ID });
+                .Select(x => new { company = x.company.Key, app = x.app.ID });
 
-            Check(left1, left2);
+            //Check(left1, left2);
         }
 
         [TestMethod]
         public void LeftJoin_3Table_Syntax()
         {
             var left1 = from company in regt_company
-                        join mapping in regt_appmapping on company.ID equals mapping.CompanyID into gj_company_mapping
+                        join mapping in regt_appmapping on company.Key equals mapping.CompanyID into gj_company_mapping
                         from company_mapping in gj_company_mapping.DefaultIfEmpty()
                         where company_mapping != null
                         join app in regt_apps on company_mapping.AppID equals app.ID into gj_app_mapping
@@ -231,7 +226,7 @@ namespace LikeDB
             var mappings = regt_appmapping.ToList();
             var companys = regt_company.ToList();
             var left2 = from company in companys
-                        join mapping in mappings on company.ID equals mapping.CompanyID into gj_company_mapping
+                        join mapping in mappings on company.Key equals mapping.CompanyID into gj_company_mapping
                         from company_mapping in gj_company_mapping.DefaultIfEmpty()
                         where company_mapping != null
                         join app in apps on company_mapping.AppID equals app.ID into gj_app_mapping
@@ -257,6 +252,15 @@ namespace LikeDB
             //{
             //    Assert.Fail("remove fail");
             //}
+            regt_apps.Where(x => x.Version != new Version(1, 1, 1, 1)).RemoveAll();
+            var apps = regt_apps.ToList();
+        }
+
+        [TestMethod]
+        public void Update()
+        {
+            regt_company.Update(x => new Company() { Address = $"{x.Name}_{x.Name}" });
+            regt_company.Where(x => x.Name == "One").Update(x => new { Address = "Test" });
         }
 
 
@@ -277,9 +281,8 @@ namespace LikeDB
     public class App
     {
         public int ID { set; get; }
-        [RegPropertyName(Name = "DisplayName")]
-        public string Name { set; get; }
-        [RegPropertyName(Name = "DisplayVersion")]
+        [RegPropertyName(Name ="Name")]
+        public string DisplayName { set; get; }
         public Version Version { set; get; }
         [RegIgnore]
         public int Size { set; get; }
@@ -291,10 +294,7 @@ namespace LikeDB
         public int Key { set; get; }
         [RegPropertyName(Name = "Name1")]
         public string Name { set; get; }
-        [RegPropertyName(Name = "ID")]
-        public int ID { set; get; }
         public string Address { set; get; }
-
     }
 
     public class AppMapping

@@ -50,7 +50,7 @@ namespace QSoft.Registry.Linq
             var type1 = typeof(TElement);
             var type2 = typeof(TData);
 #if TestProvider
-            System.Diagnostics.Trace.WriteLine($"Name:{this.CountName} Count:{Count}");
+            System.Diagnostics.Debug.WriteLine($"Name:{this.CountName} Count:{Count}");
             RegProvider<TElement> provid = null;
             RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
             MethodCallExpression method1 = expression as MethodCallExpression;
@@ -58,6 +58,7 @@ namespace QSoft.Registry.Linq
             //this.m_RegMethod = expression;
             if (method1.Arguments[0].NodeType == ExpressionType.Constant)
             {
+                this.m_Exprs.Clear();
                 this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
                 provid = new RegProvider<TElement>(expression, this.m_RegMethod);
                 this.m_Exprs[expression] = this.m_RegMethod;
@@ -139,7 +140,7 @@ namespace QSoft.Registry.Linq
                     int findcount = ll.Count();
                     if(findcount > 1)
                     {
-                        System.Diagnostics.Trace.WriteLine("");
+                        System.Diagnostics.Debug.WriteLine("");
                     }
                     else if(findcount == 1)
                     {
@@ -299,6 +300,7 @@ namespace QSoft.Registry.Linq
 
                 var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
                 var creatquery = creatquerys.First().MakeGenericMethod(tts);
+                this.m_RegMethod = updatemethod;
                 var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { updatemethod });
                 return_hr = (TResult)excute;
             }
@@ -423,6 +425,7 @@ namespace QSoft.Registry.Linq
                     throw fail;
                 }
                 object excute = null;
+                this.m_RegMethod = expr;
                 excute = this.m_RegsQuery.Provider.Execute(expr);
 
                 var excute_reg = excute as RegistryKey;

@@ -67,16 +67,9 @@ namespace ConsoleApp1
 
     public class InstalledApp
     {
-        [RegSubKeyName]
-        public string Key { set; get; }
         public string DisplayName { set; get; }
-        [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
-        [RegIgnore]
-        public bool? IsOfficial { set; get; }
-        public int? ID { set; get; }
-
         
         public InstalledApp() { }
 
@@ -162,150 +155,12 @@ class Program
             //apps.Add(new App() { Name = "D", Offical = true });
             //apps.Add(new App() { Name = "DD", Offical = false });
 
-            List<InstalledApp> installs = new List<InstalledApp>();
-            installs.Add(new InstalledApp() { DisplayName = "A", IsOfficial = true });
-            installs.Add(new InstalledApp() { DisplayName = "AA", IsOfficial = false });
 #if Queryable
-            var uy = typeof(InstalledApp).GetProperties();
-            List<int> l1 = new List<int>() { 1, 2, 3, 4, 5 };
-            List<string> l2 = new List<string>() { "1", "2", "3" };
-
-
-            List<int> lll = new List<int>();
-            lll.Add(1);
-            var aaa = lll.AsQueryable();
-            lll.Add(2);
-
-            string full = @"HKEY_LOCAL_MACHINE\";
-            //Regex regex1 = new Regex(@"^(?<base>\w+)[\\](\.+)[\\]$(?<path>.+)", RegexOptions.Compiled);
-            //Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
-            //var match = regex1.Match(full);
-            //if(match.Success)
-            //{
-
-            //}
-            //var sss = full.Split(new string[] { "\\" }, StringSplitOptions.RemoveEmptyEntries);
-            //var ss1 = sss.Skip(1).Take(sss.Length - 2);
-
-            //var ssssss = ss1.Aggregate((x, y) => $"{x}\\{y}");
-
-
-            //RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            //var reg1 = regbase.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
-            //var parent = regbase.GetParent();
-            //Regex regex = new Regex(@"[\\]([A-Za-z0-9]+)$");
-            //Regex regex = new Regex(@"^(?<base>\w+)[\\]");
-
-            var queryreg = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A", false);
-
-
-            List<RegistryKey> ll = new List<RegistryKey>();
-            foreach (var subkeyname in queryreg.GetSubKeyNames())
-            {
-                RegistryKey reg = queryreg.OpenSubKey(subkeyname, false);
-                ll.Add(reg);
-            }
-            var queryable = ll.AsQueryable();
-            //var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
-            //var o1 = typeof(InstalledApp).ToData(o_pp);
-            //var o_func = Expression.Lambda<Func<RegistryKey, InstalledApp>>(o1, o_pp).Compile();
-            //var o2 = o_func(queryable.First());
 
 
 
-            //var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"), (x, y) => new { x, y = y.Select(xuu => new InstalledApp() { }) });
-            //var rr = queryable.Select((x,idx) => new { reg = x,index=idx, a=new { x, idx} }).Select(x => new
-            //{
-            //    reg = new InstalledApp()
-            //    {
-            //        DisplayName = x.reg.GetValue<string>("DisplayName")
-            //    },
-            //    index= x.index,
-            //    a=new {
-            //        x = new InstalledApp()
-            //        {
-            //            DisplayName = x.a.x.GetValue<string>("DisplayName")
-            //        }
-            //    }
-            //});
-            //var rr = queryable.Join(queryable, x => x.GetValue<string>("DisplayName"), y => y.GetValue<string>("DisplayName"), (x, y) => new { x, y })
-            //    .Select(x => new
-            //    {
-            //        key = new InstalledApp()
-            //        {
-            //            DisplayName = x.x.GetValue<string>("DisplayName")
-            //        },
-            //        values = x.y.Select(z => new InstalledApp()
-            //        {
-            //            DisplayName = z.GetValue<string>("DisplayName")
-            //        })
-
-            //    });
-
-            var rr = queryable.GroupBy(x => x.GetValue<string>("DisplayName"))
-                //.SelectMany(x => x, (x, y) => new { x.Key, y});
-                .SelectMany(x => x);
-            foreach (var oo in rr)
-            {
-
-            }
 
 
-            //var rr = queryable.GroupJoin(queryable, a => a.GetValue<string>("DisplayName"), b => b.GetValue<string>("DisplayName"), (c, d) => new { c, d })
-            //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g })
-            //    .Select(h => new
-            //    {
-            //        f= new InstalledApp()
-            //        {
-            //            DisplayName = h.c.GetValue<string>("DisplayName")
-            //        },
-            //        g = new InstalledApp()
-            //        {
-            //            DisplayName = h.g.GetValue<string>("DisplayName")
-            //        }
-            //    });
-
-
-            //var r1 = queryable.Where(x => x.GetValue<string>("DisplayName")!="");
-
-
-            //.SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y });
-
-            //var rr = queryable.Select(x => new
-            //{
-            //    reg = new InstalledApp()
-            //    {
-            //        DisplayName = x.GetValue<string>("DisplayName")
-            //    }
-            //}).Select((x,i)=> new { app = x, index=i});
-            //var ttype = rr.GetType();
-            //MethodCallExpression methodcall = rr.Expression as MethodCallExpression;
-            //var unary = methodcall.Arguments[1] as UnaryExpression;
-            //var lambda = unary.Operand as LambdaExpression;
-            //var new1 = lambda.Body as NewExpression;
-            //var memberinit = new1.Arguments[0] as MemberInitExpression;
-            //ttype = new1.Arguments[0].GetType();
-
-            //var binary = lambda.Body as BinaryExpression;
-            //var property = binary.Right as MemberExpression;
-            //ttype = binary.Right.GetType();
-
-
-
-            //Microsoft.Win32.Registry.CurrentConfig.CreateSubKey("TT", true);
-            //RegistryKey.OpenBaseKey(RegistryHive.CurrentConfig, RegistryView.Registry64).CreateSubKey("TT", true);
-            //var direct_reg = new RegQuery<A2>()
-            //   .useSetting(x =>
-            //   {
-            //       x.Hive = RegistryHive.CurrentConfig;
-            //       x.SubKey = @"Test";
-            //       x.View = RegistryView.Registry64;
-            //   });
-            //direct_reg.Create(new A2() { A = "12345" }, true);
-            //var a2 = direct_reg.Get();
-            //a2.A = "098876";
-            //direct_reg.Update(a2);
-            //direct_reg.Delete();
             var qi = Enumerable.Range(1, 10).AsQueryable();
             var qi_where = qi.Where(x => x > 10).Select(x => x);
             var qi_groupby = qi.GroupBy(x => x > 5);
@@ -313,17 +168,17 @@ class Program
                 .useSetting(x =>
                     {
                         x.Hive = RegistryHive.LocalMachine;
-                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                         x.View = RegistryView.Registry64;
                     });
-
+            var where_version = regt.Where(x => x.Version > new Version(1, 1, 1, 1));
             List<InstalledApp> m_Tests = new List<InstalledApp>();
             //m_Tests.Add(new InstalledApp());
             m_Tests.AddRange(regt.Take(2).ToList());
-            var zip1 = regt.Zip(m_Tests, (reg, app) => app);
+            var zip1 = regt.Zip(m_Tests, (reg, app) => new {reg, app });
             var groupby1 = regt.GroupBy(x => x).Select(x => x.Key);
             var where1 = regt.Where(x => x.DisplayName != "").Select(x=>x.DisplayName);
-            foreach(var oo in groupby1)
+            foreach(var oo in zip1)
             {
 
             }
@@ -331,196 +186,23 @@ class Program
             //var tolist11 = regt.Where(x => x.DisplayName!="").ToList();
             var tolist2 = regt.ToDictionary(x => x.DisplayName);
             regt.RemoveAll();
-            regt.Insert(new List<InstalledApp>()
-            {
-                new InstalledApp(){DisplayName="AA", Version=new Version(1,1,1,1), EstimatedSize=100, Key="1" },
-                new InstalledApp(){DisplayName="BB", Version=new Version(2,2,2,2),EstimatedSize=101, Key="2" },
-                new InstalledApp(){DisplayName="CC", Version=new Version(3,3,3,3),EstimatedSize=102, Key="3" },
-                new InstalledApp(){DisplayName="DD", Version=new Version(4,4,4,4),EstimatedSize=103, Key="4" },
-                new InstalledApp(){DisplayName="EE", Version=new Version(5,5,5,5),EstimatedSize=104, Key="5" },
-            });
-
-            var regt1 = new RegQuery<InstalledApp>()
-                .useSetting(x =>
-                    {
-                        x.Hive = RegistryHive.LocalMachine;
-                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
-                        x.View = RegistryView.Registry64;
-                    });
-            //regt.Select(x => x.DisplayName.Length).Min();
-            //var dst = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize+ 10000 });
-            var dst11 = regt.Take(2).ToList();
-            var join1 = regt.Join(dst11, x => x.DisplayName, y => y.DisplayName, (x, y) => new { x, y }).ToList();
-            //var ioi = regt.Where(x => x.DisplayName != "").ToList();
-            //var re = regt.Where(x => x.DisplayName != "").RemoveAll();
-            //var r1 = regt.GroupBy(x => x.DisplayName.Contains("A"), x => x, (x, y) =>y).SelectMany(x=>x);
-
-            //var r11 = regt.Select(x => x.DisplayName).Where(x =>x!= "");
-            var ggt = regt.GroupBy(x => x.DisplayName, (key, reg) => key);
-            //.SelectMany(x => x);
-            //.SelectMany(x=>x, (x,y)=>new { x.Key, y});
-            foreach (var oo in ggt)
-            {
-                //oo.y.
-            }
-
-            var selectr_tuple = regt.Where(x=>x.DisplayName != "").ToList();
-            //int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
-            //var j1 = regt1.Take(2).ToList();
-            var join = regt1.Join(regt, x => x.DisplayName, y => y.DisplayName, (x, y) => new {one=x,tow=y });
-            foreach(var oo in join)
-            {
-
-            }
-            //regt1.Update(x => new { DisplayName = x.DisplayName, EstimatedSize = x.EstimatedSize });
-            //regt1.Update(x => new InstalledApp() {DisplayName=x.DisplayName, EstimatedSize=x.EstimatedSize });
-            //regt.Insert(Enumerable.Repeat(new InstalledApp(), 3));
-
-            //var yj = regt1.Take(2);
-            //var aaaa = regt.Except(regt1.Take(2));
-            //var aaaa = regt.Where(x=>x.DisplayName!="").Except(regt1.Take(2));
-            //var aaaa = regt.Except(installs, new InstallAppCompare());
-            //var aaaa = regt.Union(regt.ToList().Take(2));
-            //var aaaa = regt.Select(x => x).Where(x => x.DisplayName != "");
-            //var aaaa = regt.Where(x => x.Key == $"{x.Key}");
-            //foreach (var oo in aaaa)
+            //regt.Insert(new List<InstalledApp>()
             //{
-
-            //}
-            //int update_count = regt.Update(x => new InstalledApp()
-            //{
-            //    EstimatedSize = x.EstimatedSize + 100,
-            //    ModifyTime = new DateTime(2222, 2, 2)
+            //    new InstalledApp(){DisplayName="AA", Version=new Version(1,1,1,1), EstimatedSize=100, Key="1" },
+            //    new InstalledApp(){DisplayName="BB", Version=new Version(2,2,2,2),EstimatedSize=101, Key="2" },
+            //    new InstalledApp(){DisplayName="CC", Version=new Version(3,3,3,3),EstimatedSize=102, Key="3" },
+            //    new InstalledApp(){DisplayName="DD", Version=new Version(4,4,4,4),EstimatedSize=103, Key="4" },
+            //    new InstalledApp(){DisplayName="EE", Version=new Version(5,5,5,5),EstimatedSize=104, Key="5" },
             //});
-            //var tt = regt.First().CreateTime;
 
-
-            //var fir = regt.First();
-            ////var ttk = regt.TakeWhile((x, index) => index == 0);
-            ////int revv = regt.RemoveAll();
-            //var tuple = regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize));
-            //var tuple1 = regt.Select((x,idx) => Tuple.Create(x.DisplayName, idx));
-            //var ssssz = regt.Where(x=>x.DisplayName=="AA").RemoveAll();
-            //var group1 = regt.Where(x=>x.DisplayName=="").GroupBy(x => x.DisplayName, (key, reg) => reg);
-            var avg = regt.Where(x => int.Parse(x.EstimatedSize.ToString()).ToString("X2") == "0A").Select(x=>x.DisplayName);
-            foreach(var oo in avg)
-            {
-
-            }
-            //var group4 = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count());
-            List<int> src1 = new List<int> { 1, 2, 3, 7, 7 };
-            List<int> src2 = new List<int>() { 3, 4, 5 };
-            //var dst1 = src1.Except(src2);
-            //var dst2 = src1.Intersect(src2);
-            //var dst3 = src1.Union(src2);
-            //var dst4 = src1.Distinct();
-
-            var dst1 = src1.Except(src1);
-            var dst2 = src1.Intersect(src1);
-            var dst3 = src1.Union(src1);
-
-
-            //List<InstalledApp> src1 = new List<InstalledApp>
-            //{
-            //    new InstalledApp() { DisplayName = "1" },
-            //    new InstalledApp() { DisplayName = "2" },
-            //    new InstalledApp() { DisplayName = "3" },
-            //    new InstalledApp() { DisplayName = "7" },
-            //    new InstalledApp() { DisplayName = "7" },
-            //};
-            //List<InstalledApp> src2 = new List<InstalledApp>
-            //{
-            //    new InstalledApp() { DisplayName = "3" },
-            //    new InstalledApp() { DisplayName = "4" },
-            //    new InstalledApp() { DisplayName = "5" },
-            //};
-            //var dst1 = src1.Except(src2, new InstallAppCompare());
-            //var dst2 = src1.Intersect(src2, new InstallAppCompare());
-            //var dst3 = src1.Union(src2, new InstallAppCompare());
-            //var dst4 = src1.Distinct(new InstallAppCompare());
-
-
-            //var group1 = regt.GroupBy(x => x.DisplayName); //1146
-            //var group2 = regt.GroupBy(x => x.DisplayName, y => y.DisplayName);//1074
-            //var group3 = regt.GroupBy(x => x.DisplayName, (key, reg) => key);//1043
-            //var group4 = regt.GroupBy(x => x.DisplayName, (key, reg) => reg);//1043
-            //var group5 = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg });//1043
-            //foreach(var item in group5)
-            //{
-            //    foreach(var oo in item.reg)
-            //    {
-
-            //    }
-            //}
-
-
-
-            var group7 = regt.GroupBy(x => x.DisplayName, y=>y.EstimatedSize, (x,e)=>new { x,e});//1006
-
-            //var fi = regt.FirstOrDefault();
-            //try
-            //{
-            //    int update_count2 = regt.Where(x=>x.IsOfficial==true).Update(x => new { EstimatedSize = x.EstimatedSize + 100 });
-            //}
-            //catch(Exception ee)
-            //{
-
-            //}
-            var og = regt.First();
-            //int update_count12 = regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            //var group2 = regt.GroupBy(x => x.DisplayName, (key, app) => new { key, app });
-            var takewhile1 = regt.AsEnumerable();
-            //var a = (a:123, b:"123");
-            //int.TryParse("100", out var bbbb);
-            //foreach (var oo in takewhile1)
-            //{
-
-            //}
-            var aa = regt.GroupBy(x => x.Version, (ver, app)=>new { ver, app});
-            regt.GroupBy(x=>x, (x,y)=>x).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            //regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            //var where_select = regt.Where(x => x.EstimatedSize > 130).Select((x, index) => x);
-            //var group1 = regt.GroupBy(x => x.DisplayName);
-            //var group2 = regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize);
-            //var group3 = regt.GroupBy(x => x.DisplayName, (y, z) => z);
-            //foreach (var oo in group3)
-            //{
-
-            //}
-            //var where = regt.Where(x => x.DisplayName != ""&& x.EstimatedSize>0);
-            var zip = regt.Zip(installs, (reg, app) => reg);
-            var select = regt.Select((x, index) => index+1);
-            var any = regt.Any(x => x.EstimatedSize > 0);
-            var first1 = regt.First();
-            var first2 = regt.First(x => x.DisplayName != "");
-            var last1 = regt.Last();
-            var last2 = regt.Last(x => x.DisplayName != "");
-            var take = regt.Take(10);
-            var takewhile = regt.TakeWhile(x => x.DisplayName == "AA");
-
-            var count1 = regt.Count();
-            var count2 = regt.Count(x => x.DisplayName == "AA");
-            var all = regt.All(x => x.DisplayName != "");
+            //var regt1 = new RegQuery<InstalledApp>()
+            //    .useSetting(x =>
+            //        {
+            //            x.Hive = RegistryHive.LocalMachine;
+            //            x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\1A";
+            //            x.View = RegistryView.Registry64;
+            //        });
             
-            var reverse = regt.Reverse();
-            var average = regt.Average(x => x.EstimatedSize);
-            var sum = regt.Sum(x => x.EstimatedSize);
-            var skip1 = regt.Skip(1);
-            var skipwhile = regt.SkipWhile(x => x.DisplayName == "B");
-            var min = regt.Min(x => x.EstimatedSize);
-            var max = regt.Max(x => x.EstimatedSize);
-
-            var loopup = regt.ToLookup(x => x.DisplayName);
-            //var tolist = regt.ToList();
-            var toarray = regt.ToArray();
-            var dictonary = regt.ToDictionary(x => x.EstimatedSize);
-            //var max = regt.Max(x => x.DisplayVersion.ToString().Length);
-            //var loopup = regt.ToLookup(x => x.DisplayName);
-            //var tolist = regt.ToList();
-            //var toarray = regt.ToArray();
-            //var dictonary = regt.ToDictionary(x => x.EstimatedSize);
-            //var single = regt.Single(x => x.DisplayName == "A");
-            //var singledefault = regt.SingleOrDefault(x => x.DisplayName == "A");
 
 #else
 

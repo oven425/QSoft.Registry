@@ -206,7 +206,7 @@ namespace General
         public void GroupBy1_Select()
         {
             this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x.Key), regt.GroupBy(x => x).Select(x => x.Key));
-            //this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
+            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }
 
         [TestMethod]
@@ -431,6 +431,7 @@ namespace General
         {
             var orderby = regt.OrderBy(x => x.EstimatedSize);
             this.Check(this.m_Tests.OrderBy(x=>x.EstimatedSize), orderby);
+            this.Check(this.m_Tests.OrderBy(x => x.DisplayName.Length), regt.OrderBy(x => x.DisplayName.Length));
         }
 
         [TestMethod]

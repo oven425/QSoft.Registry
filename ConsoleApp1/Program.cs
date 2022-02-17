@@ -68,6 +68,7 @@ namespace ConsoleApp1
     public class InstalledApp
     {
         public string DisplayName { set; get; }
+        [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
         
@@ -171,6 +172,7 @@ class Program
                         x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                         x.View = RegistryView.Registry64;
                     });
+            var sel = regt.Select(x => new { x.DisplayName, x.Version });
             var where_version = regt.Where(x => x.Version > new Version(1, 1, 1, 1));
             List<InstalledApp> m_Tests = new List<InstalledApp>();
             //m_Tests.Add(new InstalledApp());

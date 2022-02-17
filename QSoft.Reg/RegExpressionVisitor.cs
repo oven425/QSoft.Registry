@@ -40,14 +40,8 @@ namespace QSoft.Registry.Linq
         {
             this.LastMethodName = method?.Name;
             System.Diagnostics.Debug.WriteLine($"Visit {method?.Name}");
-#if RegToEnd
+
             this.PreparMethod1(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
-#else
-            this.PreparMethod(nodes[1], new Expression[] { nodes[0], nodes[1] }, method);
-#endif
-
-
-
             Expression expr = this.Visit(nodes[1]);
 
             var exprs = this.m_ExpressionSaves.Clone(expr);
@@ -83,38 +77,20 @@ namespace QSoft.Registry.Linq
                 ParameterExpression parameter = exprs.ElementAt(i).Value as ParameterExpression;
                 if (parameter != null)
                 {
-#if RegToEnd
                     if(this.m_DataTypeNames.Any(x=>x==parameter.Name))
-#else
-                    if (parameter.Name == this.m_DataTypeName)
-#endif
                     {
                         if (parameter.Type.IsGenericType == true)
                         {
-#if RegToEnd
                             exprs[exprs.ElementAt(i).Key] = this.m_Parameters[parameter.Name];
-#else
-                            var param = this.m_Parameters[parameter.Name];
-                            var select_method = typeof(TData).SelectMethod_Enumerable();
-                            var sd = typeof(TData).ToLambdaData();
-                            var aaaaa = Expression.Call(select_method, param, sd);
-                            exprs[exprs.ElementAt(i).Key] = aaaaa;
-#endif
                         }
                         else
                         {
-#if RegToEnd
                             exprs[exprs.ElementAt(i).Key] = this.m_Parameters[parameter.Name];
-#else
-                            var param = this.m_Parameters[parameter.Name];
-                            var todata = typeof(TData).ToData(param);
-                            exprs[exprs.ElementAt(i).Key] = todata;
-#endif
+
                         }
                     }
                     else
                     {
-#if RegToEnd
                         if (parameter.Type.IsGenericType == true)
                         {
 
@@ -134,28 +110,6 @@ namespace QSoft.Registry.Linq
                                 exprs[exprs.ElementAt(i).Key] = todata;
                             }
                         }
-#else
-                        if (parameter.Type.IsGenericType == true)
-                        {
-
-                            var temptype = exprs.ElementAt(i).Key.Type.GetGenericArguments()[0];
-                            var param = this.m_Parameters[parameter.Name];
-                            var select_method = temptype.SelectMethod_Enumerable();
-                            var sd = temptype.ToLambdaData();
-                            var aaaaa = Expression.Call(select_method, param, sd);
-                            exprs[exprs.ElementAt(i).Key] = aaaaa;
-                        }
-                        else
-                        {
-                            var param = this.m_Parameters[parameter.Name];
-                            if (param.Type == typeof(TData))
-                            {
-                                var todata = typeof(TData).ToData(param);
-                                exprs[exprs.ElementAt(i).Key] = todata;
-                            }
-                        }
-                            
-#endif
                     }
                 }
             }
@@ -175,7 +129,6 @@ namespace QSoft.Registry.Linq
             }
             else
             {
-#if RegToEnd
                 var con_pps = expr.Constructor.GetParameters();
                 Expression expr_new = null;
                 if (exprs.Select(x => x.Value.Type).Any(x => x.HaseRegistryKey()))
@@ -194,9 +147,7 @@ namespace QSoft.Registry.Linq
                 {
                     expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
                 }
-#else
-                var expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
-#endif
+
                 this.m_ExpressionSaves[expr] = expr_new;
             }
 
@@ -260,7 +211,6 @@ namespace QSoft.Registry.Linq
         }
 
         LambdaExpression m_Lambda = null;
-        string m_DataTypeName = "";
         List<string> m_DataTypeNames = new List<string>();
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
@@ -285,7 +235,6 @@ namespace QSoft.Registry.Linq
 
             System.Diagnostics.Debug.WriteLine($"VisitLambda T:{typeof(T)}");
 
-#if RegToEnd
             if(this.m_PP == null)
             {
                 if (m_PPs.ContainsKey(node) == true)
@@ -325,39 +274,6 @@ namespace QSoft.Registry.Linq
                     }
                 }
             }
-#else
-            if(m_PP != null)
-            {
-                var pps = m_PP.Item2.GetParameters();
-                foreach(var oo in pps)
-                {
-                    ParameterInfo pp = null;
-                    if(oo.ParameterType.IsGenericType == true)
-                    {
-                        if(oo.ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                        {
-                            if(oo.ParameterType.GetGenericArguments()[0].Name == m_PP.Item3)
-                            {
-                                pp = oo;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        pp = pps.FirstOrDefault(x => x.ParameterType.Name == m_PP.Item3);
-                    }
-                    if (pp == null)
-                    {
-                        this.m_DataTypeName = node.Parameters[0].Name + "KK";
-                    }
-                    else
-                    {
-                        this.m_DataTypeName = node.Parameters[pp.Position].Name;
-                        break;
-                    }
-                }
-            }
-#endif
             
             var expr = base.VisitLambda(node);
 
@@ -371,7 +287,7 @@ namespace QSoft.Registry.Linq
             if (this.m_Lastnode != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-#if RegToEnd
+
                 if(lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
                     Dictionary<Type, Type> changes = new Dictionary<Type, Type>();
@@ -399,7 +315,7 @@ namespace QSoft.Registry.Linq
                     }
                     m_Lambda = Expression.Lambda(functype1, exprs.First().Value, parameters);
                 }
-#endif
+
                 if(m_Lambda == null)
                 {
                     m_Lambda = Expression.Lambda(exprs.First().Value, parameters);
@@ -521,11 +437,7 @@ namespace QSoft.Registry.Linq
             if (this.m_Lastnode != null && expr.Expression != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-#if RegToEnd
                 if (this.m_DataTypeNames.Any(x => x == (expr.Expression as ParameterExpression)?.Name)  || this.m_DataTypeNames.Count == 0)
-#else
-                if((expr.Expression as ParameterExpression)?.Name == this.m_DataTypeName || this.m_DataTypeName == "")
-#endif
                 {
                     if (exprs.Last().Value is ParameterExpression)
                     {
@@ -651,11 +563,8 @@ namespace QSoft.Registry.Linq
             }
             return expr;
         }
-#if RegToEnd
         Tuple<ParameterInfo, MethodInfo, List<string>> m_PP = null;
-#else
-        Tuple<ParameterInfo, MethodInfo, string> m_PP = null;
-#endif
+
         Stack<Dictionary<string, Type>> m_GenericTypes = new Stack<Dictionary<string, Type>>();
         protected override Expression VisitUnary(UnaryExpression node)
         {
@@ -684,7 +593,6 @@ namespace QSoft.Registry.Linq
                 var pp = this.m_ExpressionSaves1[expr];
                 if (pp != null)
                 {
-#if RegToEnd
                     var kkey = pp.GetGenericArguments()[0].GetGenericArguments().Select(x =>
                     {
                         string name = x.Name;
@@ -701,24 +609,7 @@ namespace QSoft.Registry.Linq
                         this.m_GenericTypes.First()[kkey] = lambda.ReturnType;
 
                     }
-#else
-                    var kkey = pp.GetGenericArguments()[0].GetGenericArguments().Select(x =>
-                    {
-                        string name = x.Name;
-                        if (x.IsGenericType == true && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                        {
-                            name = x.GetGenericArguments()[0].Name;
-                        }
 
-                        return name;
-                    }).Last();
-                    var lambda = exprs.First().Value as LambdaExpression;
-                    if (lambda != null)
-                    {
-                        this.m_GenericTypes.First()[kkey] = lambda.ReturnType;
-                        
-                    }
-#endif
                     this.m_Parameters.Clear();
                 }
             }
@@ -926,205 +817,8 @@ namespace QSoft.Registry.Linq
             }
         }
 
-#if RegToEnd
-#else
-        void PreparMethod(Expression node, Expression[] args, MethodInfo method)
-        {
-            var lo = args.Select((x,idx) =>
-            {
-                bool bb = x.Type.IsGenericType==true&&x.Type.GetGenericTypeDefinition() == typeof(RegQuery<>);
-                return new { bb, idx };
-            }).Where(x=>x.bb==true);
-            
-            m_ExpressionSaves[node] = null;
-            System.Diagnostics.Debug.WriteLine($"PreparMethod {method?.Name}");
-            
-            if (method.IsGenericMethod == true)
-            {
-                this.m_GenericTypes.Push(new Dictionary<string, Type>());
-                var dic = method.GetParameters();
-                var dicc1 = method.GetGenericMethodDefinition();
-                var dicc = method.GetGenericMethodDefinition().GetGenericArguments();
-                if (lo.Any(x => x.bb == true) == false && this.m_Saves!=null&& this.m_Saves.ContainsKey(args[0])==true)
-                {
-                    //var dsttype = method.GetParameters().Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType(null);
-                    var sourcetype = this.m_Saves[args[0]].Type.GetGenericArguments()[0];
-                    var dic1 = sourcetype.GetProperties();
-                    for (int i = 0; i < dicc.Length; i++)
-                    {
-                        if(i==0)
-                        {
-                            this.m_GenericTypes.First()[dicc[i].Name] = sourcetype;
-                        }
-                        else
-                        {
-                            if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                            }
-                            else
-                            {
-                                var dui = dic[i].ParameterType.GetGenericTypeDefinition();
-                                if (dic[i].ParameterType.IsGenericType == true)
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                                }
-                                else
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                                }
-                            }
-                        }
-                    }
-                }
-                else if(this.m_GenericTypes.Count>1)
-                {
-                    var bt = this.m_ExpressionSaves1.ContainsKey(args[0]);
-                    for (int i = 0; i < dicc.Length; i++)
-                    {
 
-                        if(this.m_ExpressionSaves1.ContainsKey(args[i]) == true)
-                        {
-                            var aaa = this.m_ExpressionSaves1[args[i]];
-                            if(aaa.IsGenericType==true&&aaa.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                            {
-                                string ssssss = aaa.GetGenericArguments()[0].Name;
-                                this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)[ssssss];
-                            }
-                            //this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
-                        }
-                        else if(this.m_GenericTypes.ElementAt(1).ContainsKey("TSource") ==true)
-                        {
-                            this.m_GenericTypes.First()[dicc[i].Name] = this.m_GenericTypes.ElementAt(1)["TSource"];
-                        }
-                        else
-                        {
-                            if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                            }
-                            else
-                            {
-                                if (dic[i].ParameterType.IsGenericType == true)
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                                }
-                                else
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                                }
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < dicc.Length; i++)
-                    {
-                        if (lo.Any(x => x.idx == i))
-                        {
-                            this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                        }
-                        else if (i == 0)
-                        {
-                            if (dic[i].ParameterType == typeof(IEnumerable<TData>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                            }
-                            else if (dic[i].ParameterType == typeof(IQueryable<TData>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                            }
-                            else if (dic[i].ParameterType == typeof(IQueryable<IGrouping<TData, TData>>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = typeof(RegistryKey);
-                                this.m_GenericTypes.First()[dicc[i + 1].Name] = typeof(RegistryKey);
-                                i = i + 1;
-                            }
-                            else
-                            {
-                                if (dic[i].ParameterType.IsGenericType == true)
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                                }
-                                else
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                                }
-                            }
-
-                        }
-                        else
-                        {
-                            if (dic[i].ParameterType.IsGenericType == true && dic[i].ParameterType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                            {
-                                this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                            }
-                            else
-                            {
-                                if (dic[i].ParameterType.IsGenericType == true)
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType.GetGenericArguments()[0];
-                                }
-                                else
-                                {
-                                    this.m_GenericTypes.First()[dicc[i].Name] = dic[i].ParameterType;
-                                }
-                            }
-                        }
-                    }
-
-                }
-
-
-                var dic2 = method.GetGenericMethodDefinition().GetParameters();
-                for (int i = 0; i < args.Length; i++)
-                {
-                    m_ExpressionSaves1[args[i]] = dic2[i].ParameterType;
-                }
-            }
-
-
-            if (method.ReturnType.IsGenericType == true)
-            {
-                var return1 = method.ReturnType.GetGenericTypeDefinition();
-
-                if (return1 == typeof(IQueryable<>)&& method.IsGenericMethod==true)
-                {
-                    var t4 = method.GetGenericMethodDefinition().GetParameters();
-                    string datatypename = t4.First().ParameterType.GetGenericArguments()[0].Name;
-                    for (int i = 0; i < t4.Length; i++)
-                    {
-                        var gss = t4[i].ParameterType.GetGenericArguments();
-                        MethodInfo invoke = null;
-                        if (gss.Length > 0)
-                        {
-                            invoke = gss[0].GetMethod("Invoke");
-                        }
-                        if (invoke != null)
-                        {
-                            var invokepps = invoke.GetParameters().Select(x=>x.ParameterType.Name).First();
-                            if(this.m_GenericTypes.First().ContainsKey(invokepps) && this.m_GenericTypes.First()[invokepps] == typeof(RegistryKey))
-                            {
-                                m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, invokepps);
-                            }
-                            else
-                            {
-                                m_PPs[args[i]] = Tuple.Create<ParameterInfo, MethodInfo, string>(t4[i], invoke, datatypename);
-                            }
-                            
-                        }
-                    }
-                }
-            }
-        }
-#endif
-
-#if RegToEnd
         Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, List<string>>> m_PPs = new Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, List<string>>>();
-#else
-        Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>> m_PPs = new Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, string>>();
-#endif
 
         DictionaryList<Expression, Expression> m_ExpressionSaves = new DictionaryList<Expression, Expression>();
         Dictionary<Expression, Type> m_ExpressionSaves1 = new Dictionary<Expression, Type>();
@@ -1143,11 +837,9 @@ namespace QSoft.Registry.Linq
             if (node.Method.Name == "Any")
             {
             }
-#if RegToEnd
+
             this.PreparMethod1(node, node.Arguments.ToArray(), node.Method);
-#else
-            this.PreparMethod(node, node.Arguments.ToArray(), node.Method);
-#endif
+
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
@@ -1192,7 +884,6 @@ namespace QSoft.Registry.Linq
                         {
                             if(expr.Method.IsGenericMethod == true)
                             {
-                                var ggs = expr.Method.GetGenericArguments();
                                 if (expr.Method.Name == "SelectMany")
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
@@ -1248,7 +939,6 @@ namespace QSoft.Registry.Linq
                 {
                     var reguqery = op as RegQuery<TData>;
                     var regprovider = reguqery?.Provider as RegProvider<TData>;
-                    //expr1 = regprovider.m_RegSource;
                 }
             }
             
@@ -1256,7 +946,6 @@ namespace QSoft.Registry.Linq
             {
                 var reguqery = node.Value as RegQuery<TData>;
                 var regprovider = reguqery?.Provider as RegProvider<TData>;
-                //this.m_ExpressionSaves[expr] = regprovider.m_RegSource;
                 expr1 = regprovider.m_RegSource;
             }
             else if(node.Type.IsGenericType==true&&node.Type.GetGenericTypeDefinition() == typeof(RegQuery<>))

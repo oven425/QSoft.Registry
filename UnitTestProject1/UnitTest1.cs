@@ -323,8 +323,6 @@ namespace General
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == "10"), regt.Where(x => x.EstimatedSize.ToString() == "10"));
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
             this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
-
-            //this.Check(this.m_Tests.Where(x => x.FC() == 100), regt.Where(x => x.FC() == 100));
         }
 
         [TestMethod]
@@ -466,9 +464,9 @@ namespace General
             //var dd2 = this.m_Tests.Zip(regt, (app, reg) => reg);
             this.Check(regt.Zip(this.m_Tests, (reg, app) => reg), this.m_Tests.Zip(regt, (app, reg) => reg));
             this.Check(regt.Zip(this.m_Tests, (reg, app) => app), this.m_Tests.Zip(regt, (app, reg) => app));
-            //this.Check(regt.Zip(this.m_Tests, (reg, app) => app.DisplayName), this.m_Tests.Zip(regt, (app, reg) => app.DisplayName));
-            //this.Check(regt.Zip(this.m_Tests, (reg, app) => new { reg, app }), this.m_Tests.Zip(regt, (app, reg) => new { reg, app }));
-            //this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
+            this.Check(regt.Zip(this.m_Tests, (reg, app) => app.DisplayName), this.m_Tests.Zip(regt, (app, reg) => app.DisplayName));
+            this.Check(regt.Zip(this.m_Tests, (reg, app) => new { reg, app }), this.m_Tests.Zip(regt, (app, reg) => new { reg, app }));
+            this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
         }
 
         [TestMethod]
@@ -530,7 +528,7 @@ namespace General
         {
 
             Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "") == regt.All(x => x.DisplayName == ""), "All(x => x.DisplayName == ) fail");
-            //Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "" && x.EstimatedSize > 10) == regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10), "All fail");
+            Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "" && x.EstimatedSize > 10) == regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10), "All fail");
         }
 
         [TestMethod]

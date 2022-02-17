@@ -34,6 +34,7 @@ namespace LikeDB
                 x.SubKey = @"UnitTest\Apps";
             });
 
+
         [TestMethod]
         public void CreateDB()
         {

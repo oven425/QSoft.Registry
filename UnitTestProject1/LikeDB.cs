@@ -199,10 +199,8 @@ namespace LikeDB
                 .SelectMany(x => x.mapping.DefaultIfEmpty(), (company, mapping) => new { company.company, mapping })
                 .Where(x => x.mapping != null)
                 .GroupJoin(apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
-                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { x.company, app=y })
-                .Select(x => new { company = x.company.Key, app = x.app.ID });
-
-            //Check(left1, left2);
+                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { Company = x.company.Name, App = y.DisplayName });
+            Check(left1, left2);
         }
 
         [TestMethod]
@@ -253,8 +251,8 @@ namespace LikeDB
             //{
             //    Assert.Fail("remove fail");
             //}
-            regt_apps.Where(x => x.Version != new Version(1, 1, 1, 1)).RemoveAll();
-            var apps = regt_apps.ToList();
+            //regt_apps.Where(x => x.Version != new Version(1, 1, 1, 1)).RemoveAll();
+            //var apps = regt_apps.ToList();
         }
 
         [TestMethod]
@@ -263,20 +261,6 @@ namespace LikeDB
             regt_company.Update(x => new Company() { Address = $"{x.Name}_{x.Name}" });
             regt_company.Where(x => x.Name == "One").Update(x => new { Address = "Test" });
         }
-
-
-        [TestMethod]
-        public void RightJoin()
-        {
-            var gj1 = regt_appmapping.GroupJoin(regt_apps, mapping => mapping.AppID, app => app.ID, (mapping, app) => new { mapping, app });
-            var left1 = gj1.SelectMany(x => x.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app });
-            var apps = regt_apps.ToList();
-            var mappings = regt_appmapping.ToList();
-            var gj2 = mappings.GroupJoin(apps, mapping => mapping.AppID, app => app.ID, (mapping, app) => new { mapping, app });
-            var left2 = gj2.SelectMany(x => x.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app });
-            Check(left1, left2);
-        }
-
     }
 
     public class App

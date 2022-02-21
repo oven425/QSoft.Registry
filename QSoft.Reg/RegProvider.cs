@@ -1,4 +1,4 @@
-﻿#define TestProvider
+﻿//#define TestProvider
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
@@ -17,24 +17,21 @@ namespace QSoft.Registry.Linq
     public class RegProvider<TData> : IQueryProvider
     {
         public RegSetting Setting { set; get; } = new RegSetting();
-        static int Count = 0;
-        int CountName;
+        //int CountName;
         public MethodCallExpression m_RegSource;
         public RegProvider()
         {
-            CountName = Count++;
 
             var method = typeof(RegProvider<TData>).GetMethod("CreateRegs");
             this.m_RegSource = Expression.Call(Expression.Constant(this), method);
         }
 #if TestProvider
-        public Expression Expression_Src { private set; get; }
-        public Expression Expression_Dst { private set; get; }
+        //public Expression Expression_Src { private set; get; }
+        //public Expression Expression_Dst { private set; get; }
         public RegProvider(Expression src, Expression dst)
         {
-            CountName = Count++;
-            this.Expression_Src = src;
-            this.Expression_Dst = dst;
+            //this.Expression_Src = src;
+            //this.Expression_Dst = dst;
             this.m_Exprs[src] = dst;
             this.m_RegMethod = dst;
         }
@@ -50,7 +47,6 @@ namespace QSoft.Registry.Linq
             var type1 = typeof(TElement);
             var type2 = typeof(TData);
 #if TestProvider
-            System.Diagnostics.Debug.WriteLine($"Name:{this.CountName} Count:{Count}");
             RegProvider<TElement> provid = null;
             RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
             MethodCallExpression method1 = expression as MethodCallExpression;
@@ -236,11 +232,11 @@ namespace QSoft.Registry.Linq
                 var expr = expression;
                 var sd = typeof(TData).ToSelectData();
                 var select = typeof(TData).SelectMethod();
-                updatemethod = Expression.Call(select, this.m_RegSource, sd);
-                this.m_ProcessExprs[expression] = updatemethod;
+                this.m_RegMethod = Expression.Call(select, this.m_RegSource, sd);
+                this.m_ProcessExprs[expression] = this.m_RegMethod;
                 //var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
                 var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
-                var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { updatemethod });
+                var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { this.m_RegMethod });
                 return (TResult)excute;
             }
 
@@ -502,8 +498,9 @@ namespace QSoft.Registry.Linq
                                 arg2 = typeof(TData).ToSelectData();
                             }
                             updatemethod1 = Expression.Call(oo, updatemethod1.Arguments[0], arg2, typeof(TData).ToSelectData());
-                            this.m_ProcessExprs[expression] = updatemethod1;
+                            
                         }
+                        this.m_ProcessExprs[expression] = updatemethod1;
                     }
                     else
                     {

@@ -78,6 +78,7 @@ namespace LikeDB
             var mappings = regt_appmapping.ToList();
             var join2 = apps.Join(mappings, app => app.ID, mapping => mapping.AppID, (x, y) => x);
             Check(join1, join2);
+            
         }
 
         [TestMethod]

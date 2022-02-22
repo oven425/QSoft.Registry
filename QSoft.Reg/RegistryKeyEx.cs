@@ -141,6 +141,11 @@ namespace QSoft.Registry
                                 return (T)Convert.ChangeType(obj, typeof(T));
                             }
                             break;
+                        case TypeCode.DateTime:
+                            {
+
+                            }
+                            break;
                         default:
                             {
                                 t = (T)obj;

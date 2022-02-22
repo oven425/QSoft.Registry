@@ -29,6 +29,29 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
+        public void H(Expression<Func<T>> data)
+        {
+            //Expression.Lambda<T>()
+        }
+
+
+        
+        public RegQuery<T> HasDefault(Action<T> data)
+        {
+            T m_Default = Activator.CreateInstance<T>();
+            data(m_Default);
+            Dictionary<string, object> setdefault = new Dictionary<string, object>();
+            foreach(var pp in typeof(T).GetProperties().Where(x=>x.CanRead==true&& x.CanWrite==true))
+            {
+                var pv = pp.GetValue(m_Default, null);
+                if(pv != null)
+                {
+                    setdefault[pp.Name] = pv;
+                }
+            }
+            return this;
+        }
+
         public RegQuery(IQueryProvider provider, Expression expression)
         {
             this.Provider = provider;
@@ -58,6 +81,8 @@ namespace QSoft.Registry.Linq
         {
             throw new NotImplementedException();
         }
+
+
 
 
 

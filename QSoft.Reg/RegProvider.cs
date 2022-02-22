@@ -451,11 +451,13 @@ namespace QSoft.Registry.Linq
 #else
             if (expression is ConstantExpression && tts[0] == typeof(TData) && this.m_ProcessExprs.ContainsKey(expression) == false)
             {
-                var expr = expression;
-                var sd = typeof(TData).ToSelectData();
-                var select = typeof(TData).SelectMethod();
-                var updatemethod1 = Expression.Call(select, this.m_RegSource, sd);
-                this.m_ProcessExprs[expression] = updatemethod1;
+                //var sd = typeof(TData).ToSelectData();
+                //var select = typeof(TData).SelectMethod();
+                //var updatemethod1 = Expression.Call(select, this.m_RegSource, sd);
+                //this.m_ProcessExprs[expression] = updatemethod1;
+
+                this.m_ProcessExprs[expression] = this.BuildSelect(this.m_RegSource);
+
                 ////var creatquerys = typeof(IQueryProvider).GetMethods().Where(x => x.Name == "CreateQuery" && x.IsGenericMethod == true);
                 //var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
                 //var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { updatemethod1 });
@@ -469,10 +471,10 @@ namespace QSoft.Registry.Linq
                 {
                     if (updatemethod1.Type == typeof(IQueryable<RegistryKey>) || updatemethod1.Type == typeof(IOrderedQueryable<RegistryKey>))
                     {
-                        var sd = typeof(TData).ToSelectData();
-                        var select = typeof(TData).SelectMethod();
-                        updatemethod1 = Expression.Call(select, updatemethod1, sd);
-                        this.m_ProcessExprs[expression] = updatemethod1;
+                        //var sd = typeof(TData).ToSelectData();
+                        //var select = typeof(TData).SelectMethod();
+                        //updatemethod1 = Expression.Call(select, updatemethod1, sd);
+                        this.m_ProcessExprs[expression] = this.BuildSelect(updatemethod1);
                     }
                     else if (updatemethod1.Type.GetGenericTypeDefinition() == typeof(IQueryable<>) && updatemethod1.Type.GetGenericArguments()[0].IsGenericType == true && updatemethod1.Type.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(IGrouping<,>))
                     {
@@ -657,6 +659,22 @@ namespace QSoft.Registry.Linq
                 excpt = new Exception(first.Item3);
             }
             return excpt;
+        }
+
+        Expression m_SelectData;
+        MethodInfo m_SelectMethod; 
+        Expression BuildSelect(Expression src)
+        {
+            if(this.m_SelectData == null)
+            {
+                this.m_SelectData = typeof(TData).ToSelectData();
+            }
+            if(this.m_SelectMethod == null)
+            {
+                this.m_SelectMethod = typeof(TData).SelectMethod();
+            }
+            var dst = Expression.Call(this.m_SelectMethod, src, this.m_SelectData);
+            return dst;
         }
 
         public IQueryable CreateQuery(Expression expression)

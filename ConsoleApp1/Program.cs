@@ -71,7 +71,8 @@ namespace ConsoleApp1
         [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
-        
+        public DateTime? Now { set; get; }
+
         public InstalledApp() { }
 
         public InstalledApp(InstalledApp data)
@@ -158,18 +159,33 @@ class Program
 
 #if Queryable
 
+            InstalledApp installedapp = new InstalledApp();
+            var pps = typeof(InstalledApp).GetProperties().Where(x=>x.CanRead==true&&x.CanWrite == true);
+            foreach(var pp in pps)
+            {
+                var pv = pp.GetValue(installedapp);
+            }
 
 
             var qi = Enumerable.Range(1, 10).AsQueryable();
             var qi_where = qi.Where(x => x > 10).Select(x => x);
             var qi_groupby = qi.GroupBy(x => x > 5);
             var regt = new RegQuery<InstalledApp>()
+                .HasDefault(x =>
+                {
+                    x.DisplayName = "";
+                    x.EstimatedSize = null;
+                })
                 .useSetting(x =>
-                    {
-                        x.Hive = RegistryHive.LocalMachine;
-                        x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                        x.View = RegistryView.Registry64;
-                    });
+                { 
+                    x.Hive = RegistryHive.LocalMachine;
+                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+                    x.View = RegistryView.Registry64;
+                });
+            regt.H(() => new InstalledApp() { Now = DateTime.Now, DisplayName="A" });
+            var testq = regt.Where(x => x.DisplayName.Contains("A"));
+            var tolist = testq.ToList();
+            var dictionary = testq.ToLookup(x => x.DisplayName);
             regt.GroupBy(x => x.DisplayName, x => x.DisplayName).ToList();
             var sel = regt.Select(x => new { x.DisplayName, x.Version });
             var where_version = regt.Where(x => x.Version > new Version(1, 1, 1, 1));

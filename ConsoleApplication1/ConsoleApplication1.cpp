@@ -7,34 +7,21 @@
 
 void main(int argc, TCHAR *argv[])
 {
+	//DWORD  dwFilter = REG_NOTIFY_CHANGE_NAME |
+	//	REG_NOTIFY_CHANGE_ATTRIBUTES |
+	//	REG_NOTIFY_CHANGE_LAST_SET |
+	//	REG_NOTIFY_CHANGE_SECURITY;
+
 	DWORD  dwFilter = REG_NOTIFY_CHANGE_NAME |
 		REG_NOTIFY_CHANGE_ATTRIBUTES |
-		REG_NOTIFY_CHANGE_LAST_SET |
-		REG_NOTIFY_CHANGE_SECURITY;
+		REG_NOTIFY_CHANGE_LAST_SET;
 
 	HANDLE hEvent;
 	HKEY   hMainKey;
 	HKEY   hKey;
 	LONG   lErrorCode;
 
-	// Display the usage error message.
-	//if (argc != 3)
-	//{
-	//	_tprintf(TEXT("Usage: notify [HKLM|HKU|HKCU|HKCR|HCC] [<subkey>]\n"));
-	//	return;
-	//}
 
-	// Convert parameters to appropriate handles.
-	//if (_tcscmp(TEXT("HKLM"), argv[1]) == 0) hMainKey = HKEY_LOCAL_MACHINE;
-	//else if (_tcscmp(TEXT("HKU"), argv[1]) == 0) hMainKey = HKEY_USERS;
-	//else if (_tcscmp(TEXT("HKCU"), argv[1]) == 0) hMainKey = HKEY_CURRENT_USER;
-	//else if (_tcscmp(TEXT("HKCR"), argv[1]) == 0) hMainKey = HKEY_CLASSES_ROOT;
-	//else if (_tcscmp(TEXT("HCC"), argv[1]) == 0) hMainKey = HKEY_CURRENT_CONFIG;
-	//else
-	//{
-	//	_tprintf(TEXT("Usage: notify [HKLM|HKU|HKCU|HKCR|HCC] [<subkey>]\n"));
-	//	return;
-	//}
 	hMainKey = HKEY_CURRENT_CONFIG;
 	const wchar_t* str = _T("UnitTest\\Company\\");
 	// Open a key.

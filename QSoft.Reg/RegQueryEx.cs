@@ -61,7 +61,7 @@ namespace QSoft.Registry.Linq
             int count = 0;
             Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
             PropertyInfo subkey = null;
-
+            
             var p = typeof(TData).PropertyName();
             dicpps = p.Item2;
             subkey = p.Item1;

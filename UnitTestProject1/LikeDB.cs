@@ -39,16 +39,16 @@ namespace LikeDB
         public void CreateDB()
         {
             regt_apps.RemoveAll();
-            //regt_apps.Insert(Enumerable.Range(1, 10).Select(x => new App() { ID = x, Name = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
-            regt_apps.Insert(new List<App>()
-            {
-                new App(){ID=1, DisplayName="Camera", Version=new Version(1,1,1,1), Size=123 },
-                new App(){ID=2, DisplayName="Motion", Version=new Version(2,2,2,2), Size=123 },
-                new App(){ID=3, DisplayName="VLC.exe", Version=new Version(3,3,3,3), Size=123 },
-                new App(){ID=4, DisplayName="Joystick.cpl", Version=new Version(4,4,4,4), Size=123 },
-                new App(){ID=5, DisplayName="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
-                new App(){ID=6, DisplayName="PLC.exe", Version=new Version(6,6,6,6), Size=123 },
-            });
+            regt_apps.Insert(Enumerable.Range(1, 99999).Select(x => new App() { ID = x, DisplayName = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
+            //regt_apps.Insert(new List<App>()
+            //{
+            //    new App(){ID=1, DisplayName="Camera", Version=new Version(1,1,1,1), Size=123 },
+            //    new App(){ID=2, DisplayName="Motion", Version=new Version(2,2,2,2), Size=123 },
+            //    new App(){ID=3, DisplayName="VLC.exe", Version=new Version(3,3,3,3), Size=123 },
+            //    new App(){ID=4, DisplayName="Joystick.cpl", Version=new Version(4,4,4,4), Size=123 },
+            //    new App(){ID=5, DisplayName="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
+            //    new App(){ID=6, DisplayName="PLC.exe", Version=new Version(6,6,6,6), Size=123 },
+            //});
             regt_company.RemoveAll();
             //var companydatas = Enumerable.Range(1, 10).Select(x => new Company() { Key=x,Name=$"Name_{x}", Address=$"Address_{x}" });
             //regt_company.Insert(companydatas);

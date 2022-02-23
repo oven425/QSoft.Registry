@@ -4,8 +4,7 @@
 #include <tchar.h>
 #include <iostream>
 
-
-void main(int argc, TCHAR *argv[])
+void DetectChanged()
 {
 	//DWORD  dwFilter = REG_NOTIFY_CHANGE_NAME |
 	//	REG_NOTIFY_CHANGE_ATTRIBUTES |
@@ -75,6 +74,142 @@ void main(int argc, TCHAR *argv[])
 		_tprintf(TEXT("Error in CloseHandle.\n"));
 		return;
 	}
+}
+
+void Transacted()
+{
+	//RegCreateKeyTransacted
+}
+
+LPTSTR ErrMsg(LSTATUS data)
+{
+	LPTSTR errorText = NULL;
+
+	FormatMessage(
+		// use system message tables to retrieve error text
+		FORMAT_MESSAGE_FROM_SYSTEM
+		// allocate buffer on local heap for error text
+		| FORMAT_MESSAGE_ALLOCATE_BUFFER
+		// Important! will fail otherwise, since we're not 
+		// (and CANNOT) pass insertion parameters
+		| FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,    // unused with FORMAT_MESSAGE_FROM_SYSTEM
+		data,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)&errorText,  // output 
+		0, // minimum size for output buffer
+		NULL);   // arguments - see note 
+	return errorText;
+}
+
+void Admin(const wchar_t* se)
+{
+	HANDLE token;
+	::OpenProcessToken(::GetCurrentProcess(), TOKEN_ALL_ACCESS, &token);
+
+	LUID PrivilegeRequired;
+	BOOL bRes = FALSE;
+	bRes = LookupPrivilegeValue(NULL, se, &PrivilegeRequired);
+
+	TOKEN_PRIVILEGES tp;
+	tp.PrivilegeCount = 1;
+	tp.Privileges[0].Luid = PrivilegeRequired;
+	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	bRes = AdjustTokenPrivileges(token, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL);
+
+	::CloseHandle(token);
+}
+
+void Backup()
+{
+	Admin(SE_BACKUP_NAME);
+	BOOL is_success = FALSE;
+	DWORD dwDisposition = 0;
+	HKEY hKey;
+	LONG ret;
+	const wchar_t* hiveName = L"UnitTest\\Apps";
+	const wchar_t* filename = L"test";
+	ret = RegCreateKeyEx(HKEY_CURRENT_CONFIG, hiveName, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
+	
+	if (ret != ERROR_SUCCESS)
+	{
+		LPTSTR errorText = NULL;
+
+		FormatMessage(
+			// use system message tables to retrieve error text
+			FORMAT_MESSAGE_FROM_SYSTEM
+			// allocate buffer on local heap for error text
+			| FORMAT_MESSAGE_ALLOCATE_BUFFER
+			// Important! will fail otherwise, since we're not 
+			// (and CANNOT) pass insertion parameters
+			| FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,    // unused with FORMAT_MESSAGE_FROM_SYSTEM
+			ret,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&errorText,  // output 
+			0, // minimum size for output buffer
+			NULL);   // arguments - see note 
+		errorText = NULL;
+	}
+	else if (dwDisposition != REG_OPENED_EXISTING_KEY) 
+	{
+		RegCloseKey(hKey);
+	}
+	else 
+	{
+		is_success = (RegSaveKeyEx(hKey, filename, NULL, REG_STANDARD_FORMAT) == ERROR_SUCCESS);
+		RegCloseKey(hKey);
+	}
+
+}
+
+void Restore()
+{
+	Admin(SE_RESTORE_NAME);
+	BOOL is_success = FALSE;
+	DWORD dwDisposition = 0;
+	HKEY hKey;
+	LONG ret;
+	const wchar_t* hiveName = L"Citys1";
+	const wchar_t* filename = L"test";
+	ret = RegCreateKeyEx(HKEY_CURRENT_CONFIG, hiveName, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
+
+	if (ret != ERROR_SUCCESS)
+	{
+		LPTSTR errorText = NULL;
+
+		FormatMessage(
+			// use system message tables to retrieve error text
+			FORMAT_MESSAGE_FROM_SYSTEM
+			// allocate buffer on local heap for error text
+			| FORMAT_MESSAGE_ALLOCATE_BUFFER
+			// Important! will fail otherwise, since we're not 
+			// (and CANNOT) pass insertion parameters
+			| FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,    // unused with FORMAT_MESSAGE_FROM_SYSTEM
+			ret,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&errorText,  // output 
+			0, // minimum size for output buffer
+			NULL);   // arguments - see note 
+		errorText = NULL;
+	}
+	//else if (dwDisposition != REG_OPENED_EXISTING_KEY)
+	//{
+	//	RegCloseKey(hKey);
+	//}
+	else
+	{
+		auto err = RegRestoreKey(hKey, filename, REG_FORCE_RESTORE);
+		auto msg = ErrMsg(err);
+		RegCloseKey(hKey);
+	}
+}
+
+void main(int argc, TCHAR *argv[])
+{
+	//Backup();
+	Restore();
     std::cout << "Hello World!\n";
 }
 

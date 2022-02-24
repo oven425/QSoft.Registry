@@ -3,6 +3,9 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <iostream>
+#include <ktmw32.h>
+
+//CLS 
 
 void DetectChanged()
 {
@@ -76,10 +79,7 @@ void DetectChanged()
 	}
 }
 
-void Transacted()
-{
-	//RegCreateKeyTransacted
-}
+
 
 LPTSTR ErrMsg(LSTATUS data)
 {
@@ -100,6 +100,34 @@ LPTSTR ErrMsg(LSTATUS data)
 		0, // minimum size for output buffer
 		NULL);   // arguments - see note 
 	return errorText;
+}
+
+void Transacted()
+{
+	HANDLE hTransaction = ::CreateTransaction(nullptr, nullptr, TRANSACTION_DO_NOT_PROMOTE, 0, 0, INFINITE, nullptr);
+	HKEY hKey;
+	auto error = ::RegCreateKeyTransacted(HKEY_CURRENT_CONFIG, L"UnitTest\\Company\\1",
+		0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE,
+		nullptr, &hKey, nullptr, hTransaction, nullptr);
+	if (error != ERROR_SUCCESS)
+	{
+		auto msg = ErrMsg(error);
+	}
+
+	::RegDeleteKeyTransacted(HKEY_CURRENT_CONFIG, L"UnitTest\\Company\\dd", 0, 0, hTransaction, nullptr);
+
+	WCHAR value[] = L"Name1";
+	error = ::RegSetValueEx(hKey, L"Name1", 0, REG_SZ, (const BYTE*)value, sizeof(value));
+	if (error != ERROR_SUCCESS)
+	{
+		auto msg = ErrMsg(error);
+	}
+	RegCloseKey(hKey);
+
+	//::RollbackTransaction(hTransaction);
+	::CommitTransaction(hTransaction);
+	
+	::CloseHandle(hTransaction);
 }
 
 void Admin(const wchar_t* se)
@@ -127,28 +155,13 @@ void Backup()
 	DWORD dwDisposition = 0;
 	HKEY hKey;
 	LONG ret;
-	const wchar_t* hiveName = L"UnitTest\\Apps";
-	const wchar_t* filename = L"test";
+	const wchar_t* hiveName = L"UnitTest\\Company";
+	const wchar_t* filename = L"test1";
 	ret = RegCreateKeyEx(HKEY_CURRENT_CONFIG, hiveName, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
 	
 	if (ret != ERROR_SUCCESS)
 	{
-		LPTSTR errorText = NULL;
-
-		FormatMessage(
-			// use system message tables to retrieve error text
-			FORMAT_MESSAGE_FROM_SYSTEM
-			// allocate buffer on local heap for error text
-			| FORMAT_MESSAGE_ALLOCATE_BUFFER
-			// Important! will fail otherwise, since we're not 
-			// (and CANNOT) pass insertion parameters
-			| FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,    // unused with FORMAT_MESSAGE_FROM_SYSTEM
-			ret,
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(LPTSTR)&errorText,  // output 
-			0, // minimum size for output buffer
-			NULL);   // arguments - see note 
+		LPTSTR errorText = ErrMsg(ret);
 		errorText = NULL;
 	}
 	else if (dwDisposition != REG_OPENED_EXISTING_KEY) 
@@ -208,8 +221,9 @@ void Restore()
 
 void main(int argc, TCHAR *argv[])
 {
-	//Backup();
-	Restore();
+	//Transacted();
+	Backup();
+	//Restore();
     std::cout << "Hello World!\n";
 }
 

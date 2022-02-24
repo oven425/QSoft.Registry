@@ -2,40 +2,111 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ConsoleApp2
 {
     class Program
     {
-        static void Main(string[] args)
+        async static Task Main(string[] args)
         {
             var ll = Enumerable.Range(1, 10).Select(x => new Data() { Size = x }).ToList();
 
+            List<Task> tasks = new List<Task>();
 
-            var t1 = Task.Run(async() =>
+            //tasks.Add(A(1));
+            //tasks.Add(A(2));
+            //tasks.Add(A(3));
+            CancellationTokenSource cts = new CancellationTokenSource();
+            CancellationToken cancelToken;
+            var taskA = Task<string>.Run(() =>
             {
-                await Task.Delay(3000);
-                return 1;
-            });
-            var t2 = Task.Run(async () =>
-            {
-                await Task.Delay(300);
-                throw new Exception("AA");
+                throw new Exception("DoWork failed.");
+                cts.Cancel();
+                return "Run";
             })
-            .ContinueWith((x) => 
+            .ContinueWith(x =>
             {
-                Console.WriteLine(x.Exception);
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                System.Diagnostics.Trace.WriteLine(x.Exception);
+                cts.Cancel();
+                return "OnlyOnFaulted";
+            }, TaskContinuationOptions.OnlyOnFaulted)
+            .ContinueWith((x) =>
+            {
+                return "A";
+            });
 
-            Task.WhenAll(t1, t2).ContinueWith((x) =>
+
+            
+            
+
+            try
+            {
+                //var aa = await taskA;
+                System.Diagnostics.Trace.WriteLine(await taskA);
+            }
+            catch(Exception ee)
             {
 
-            }).Wait();
+            }
+            
+            
+            //tasks.Add(new Task(A(1));
+            //tasks.Add(new Task(async () => await A(2)));
+            //tasks.Add(new Task(async () => await A(3)));
+            //tasks.ForEach(x => x.Start());
+            //foreach (var oo in tasks)
+            //{
+            //    await oo;
+            //    Task.WaitAll(oo);
+            //}
+            //Task.WaitAll(tasks.ToArray());
+            //await Task.WhenAll(tasks);
+            System.Diagnostics.Trace.WriteLine("end");
+            Console.ReadLine();
         }
 
 
-        
+        async static Task<int> A(int data)
+        {
+            System.Diagnostics.Trace.WriteLine($"begin {data}");
+            await Task.Delay(1000);
+            //System.Threading.Thread.Sleep(1000);
+            System.Diagnostics.Trace.WriteLine($"end {data}");
+            return data * data;
+        }
+
+    }
+
+    public static class TaskExtensions
+    {
+        public static Task<T> FailFastOnException<T>(this Task<T> task)
+        {
+            task.ContinueWith(c => 
+            {
+                Environment.FailFast("Task faulted", c.Exception);
+
+            },
+                TaskContinuationOptions.OnlyOnFaulted); // 例外發生時才執行。
+            return task;
+        }
+        public static Task FailFastOnException(this Task task)
+        {
+            task.ContinueWith(c =>
+            {
+                Environment.FailFast("Task faulted", c.Exception);
+            },
+                TaskContinuationOptions.OnlyOnFaulted); // 例外發生時才執行。
+            return task;
+        }
+
+        public static Task IgnoreExceptions(this Task task)
+        {
+            task.ContinueWith(c => Console.WriteLine(c.Exception),
+                TaskContinuationOptions.OnlyOnFaulted); // 例外發生時才執行。
+            return task;
+        }
     }
 
     public class Data

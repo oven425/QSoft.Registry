@@ -39,7 +39,7 @@ namespace LikeDB
         public void CreateDB()
         {
             regt_apps.RemoveAll();
-            regt_apps.Insert(Enumerable.Range(1, 99999).Select(x => new App() { ID = x, DisplayName = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
+            regt_apps.Insert(Enumerable.Range(1, 50000).Select(x => new App() { ID = x, DisplayName = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
             //regt_apps.Insert(new List<App>()
             //{
             //    new App(){ID=1, DisplayName="Camera", Version=new Version(1,1,1,1), Size=123 },

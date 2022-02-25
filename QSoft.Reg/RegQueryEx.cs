@@ -14,7 +14,9 @@ namespace QSoft.Registry.Linq
         {
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");
             var reg = source.ToRegistryKey();
-            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)));
+            var provide = source.Provider as RegProvider<TSource>;
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)));
+            
             int hr = source.Provider.Execute<int>(methdodcall);
             reg.Close();
             return hr;
@@ -56,8 +58,15 @@ namespace QSoft.Registry.Linq
             return Tuple.Create(subkey, dicpps);
         }
 
-        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas)
+        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction)
         {
+            TData hasdefault = default(TData);
+            if(defaultaction != null)
+            {
+                hasdefault = Activator.CreateInstance<TData>();
+                defaultaction(hasdefault);
+            }
+            
             int count = 0;
             Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
             PropertyInfo subkey = null;

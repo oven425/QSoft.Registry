@@ -16,7 +16,8 @@ namespace QSoft.Registry.Linq
 {
     public class RegProvider<TData> : IQueryProvider
     {
-        public RegSetting Setting { set; get; } = new RegSetting();
+        public Action<TData> DefaultValue {internal set; get; }
+        public RegSetting Setting { internal set; get; } = new RegSetting();
         //int CountName;
         public MethodCallExpression m_RegSource;
         public RegProvider()

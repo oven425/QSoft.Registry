@@ -171,10 +171,15 @@ class Program
             var qi_where = qi.Where(x => x > 10).Select(x => x);
             var qi_groupby = qi.GroupBy(x => x > 5);
             var regt = new RegQuery<InstalledApp>()
-                .HasDefault(x =>
+                .HasDefault1(x=>
                 {
-                    x.DisplayName = "";
-                    x.EstimatedSize = null;
+                    x.Now = DateTime.Now;
+                    x.DisplayName = "AA";
+                })
+                .HasDefault(() => new InstalledApp()
+                {
+                    Now = DateTime.Now,
+                    DisplayName = "A"
                 })
                 .useSetting(x =>
                 { 
@@ -182,7 +187,10 @@ class Program
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                     x.View = RegistryView.Registry64;
                 });
-            regt.H(() => new InstalledApp() { Now = DateTime.Now, DisplayName="A" });
+            regt.Insert(new List<InstalledApp>()
+            {
+                new InstalledApp()
+            });
             var testq = regt.Where(x => x.DisplayName.Contains("A"));
             var tolist = testq.ToList();
             var dictionary = testq.ToLookup(x => x.DisplayName);

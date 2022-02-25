@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -18,37 +19,37 @@ namespace QSoft.Registry.Linq
         }
 
         //RegSetting m_Setting;
-        
+        RegProvider<T> m_Provider = new RegProvider<T>();
         public RegQuery<T> useSetting(Action<RegSetting> data)
         {
-            var provider = new RegProvider<T>();
             
-            data(provider.Setting);
+            data(this.m_Provider.Setting);
             //m_Setting = provider.Setting;
-            this.Provider = provider;
+            this.Provider = this.m_Provider;
             return this;
         }
 
-        public void H(Expression<Func<T>> data)
+
+        public RegQuery<T> HasDefault1(Action<T> data)
         {
-            //Expression.Lambda<T>()
+            //var obj = Activator.CreateInstance<T>();
+            //data(obj);
+            //System.Threading.Thread.Sleep(2000);
+            //data(obj);
+            this.m_Provider.DefaultValue = data;
+
+            return this;
         }
 
-
-        
-        public RegQuery<T> HasDefault(Action<T> data)
+        private Expression<Action<T>> FuncToExpression(Action<T> f)
         {
-            T m_Default = Activator.CreateInstance<T>();
-            data(m_Default);
-            Dictionary<string, object> setdefault = new Dictionary<string, object>();
-            foreach(var pp in typeof(T).GetProperties().Where(x=>x.CanRead==true&& x.CanWrite==true))
-            {
-                var pv = pp.GetValue(m_Default, null);
-                if(pv != null)
-                {
-                    setdefault[pp.Name] = pv;
-                }
-            }
+            return x => f(x);
+        }
+
+        public RegQuery<T> HasDefault(Expression<Func<T>> data)
+        {
+            //Expression.Lambda<T>()
+
             return this;
         }
 
@@ -181,6 +182,24 @@ namespace QSoft.Registry.Linq
             if (match.Success)
             {
                 parent.DeleteSubKeyTree(match.Groups["path"].Value);
+            }
+        }
+
+        [Obsolete("Testing", true)]
+        public void Backup(string filename)
+        {
+            if(File.Exists(filename) == false)
+            {
+
+            }
+        }
+
+        [Obsolete("Testing", true)]
+        public void Restore(string filename)
+        {
+            if (File.Exists(filename) == true)
+            {
+
             }
         }
 

@@ -93,41 +93,70 @@ namespace ConsoleApp1
         public int AppID { set; get; }
     }
 
+    public class AAAA
+    {
+        //[RegSubKeyName]
+        //public string Key { set; get; }
+        //public string port { set; get; }
+    }
+
+    public class AAA
+    {
+        //[RegSubKeyName]
+        //public string Key { set; get; }
+        public AAAA AAAA { set; get; }
+    }
+
+    public class AA
+    {
+        //[RegSubKeyName]
+        //public string Key { set; get; }
+        public AAA AAA { set; get; }
+    }
+
+    public class A
+    {
+        //[RegSubKeyName]
+        //public string Key { set; get; }
+        public AA AA { set; get; }
+    }
+
 class Program
     {
         
         static object dyy = new { A = 1 };
+
+
+        public static T Build<T>(RegistryKey reg)
+        {
+            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true)
+                .Select(x => new
+                {
+                    x,
+                    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                }).Where(x => !(x.attr is RegIgnore));
+            T obj = Activator.CreateInstance<T>();
+            foreach (var pp in pps)
+            {
+
+                var typecode = Type.GetTypeCode(pp.x.PropertyType);
+                if(typecode == TypeCode.Object)
+                {
+                    if(reg.GetSubKeyNames().Any(x=>x==pp.x.Name) == true)
+                    {
+                        var methd= typeof(Program).GetMethods().Where(x=>x.Name == "Build");
+                        var subobj = methd.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg.OpenSubKey(pp.x.Name) });
+
+                        pp.x.SetValue(obj, subobj);
+                    }
+                }
+            }
+
+            return obj;
+        }
+
         static void Main(string[] args)
         {
-            //List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
-            //typekeys.Add(new KeyValuePair<string, Type>("Age", typeof(int)));
-            //typekeys.Add(new KeyValuePair<string, Type>("Name", typeof(string)));
-            //var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
-
-            //List<Tuple<Type, string>> ttypees = new List<Tuple<Type, string>>();
-            //ttypees.Add(Tuple.Create(typeof(int), "Age"));
-            //ttypees.Add(Tuple.Create(typeof(string), "Name"));
-            //var ppo = ttypees.BuildType(null);
-            //oiop = null;
-            //List<string> testa = new List<string>() { "A", "B", "C" };
-            ////testa.Clear();
-            ////var oiou = testa.DefaultIfEmpty();
-            //List<string> testb = new List<string>() { "a", "b","c","d","e" };
-            //testb.Clear();
-            //foreach (var a in testa)
-            //{
-            //    foreach (var b in testb)
-            //    {
-            //        System.Diagnostics.Trace.WriteLine($"{a}{b}");
-            //    }
-            //}
-            //System.Diagnostics.Trace.WriteLine("---");
-            //var testmany = testa.SelectMany(x => testb.DefaultIfEmpty(), (a, b) => new {a,b });
-            //foreach (var oo in testmany)
-            //{
-            //    System.Diagnostics.Trace.WriteLine(oo);
-            //}
-
 
 
             ////List<int> testlist = Enumerable.Range(1, 5).ToList();
@@ -159,95 +188,126 @@ class Program
             //apps.Add(new App() { Name = "D", Offical = true });
             //apps.Add(new App() { Name = "DD", Offical = false });
 
-#if Queryable
-            string user = Environment.UserDomainName + "\\" + Environment.UserName;
-            RegistrySecurity rs = new RegistrySecurity();
-
-            // Allow the current user to read and delete the key.
-            //
-            rs.AddAccessRule(new RegistryAccessRule(user,
-                RegistryRights.ReadKey | RegistryRights.Delete,
-                InheritanceFlags.None,
-                PropagationFlags.None,
-                AccessControlType.Allow));
-
-            rs.AddAccessRule(new RegistryAccessRule(user,
-            RegistryRights.WriteKey | RegistryRights.ReadKey | RegistryRights.Delete | RegistryRights.ChangePermissions,
-            InheritanceFlags.None,
-            PropagationFlags.None,
-            AccessControlType.Deny));
-
-            // Create the example key with registry security.
-            RegistryKey rk = null;
             try
             {
-                rk = Registry.CurrentUser.CreateSubKey("RegistryRightsExample",
-                    RegistryKeyPermissionCheck.Default, rs);
-                Console.WriteLine("\r\nExample key created.");
-                rk.SetValue("ValueName", "StringValue");
+                var regt_h = new RegQuery<A>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.View = RegistryView.Registry64;
+                        x.SubKey = @"hierarchy";
+                    });
+                var aa = regt_h.Hierarchy(x => x.AA != null);
+
+
+                RegistryKey temp;
+                var testkey = Registry.CurrentConfig.OpenSubKey(@"hierarchy", true);
+                var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
+                var bb = query.Select(x => Build<A>(x)).ToArray();
+                var valuenames = testkey.GetValueNames();
+                foreach(var oo in valuenames)
+                {
+                    var kind = testkey.GetValueKind(oo);
+                    var vlu = testkey.GetValue(oo);
+                }
+                var regs = testkey.FindAll(x=> x.GetValue<string>("port")!="").ToList();
+                var names = testkey.GetSubKeyNames();
+                
+                
             }
-            catch (Exception ex)
+            catch(Exception ee)
             {
-                Console.WriteLine("\r\nUnable to create the example key: {0}", ex);
+                System.Diagnostics.Trace.WriteLine(ee.Message);
             }
-            if (rk != null) rk.Close();
+            
+            //string user = Environment.UserDomainName + "\\" + Environment.UserName;
+            //RegistrySecurity rs = new RegistrySecurity();
+
+            //// Allow the current user to read and delete the key.
+            ////
+            //rs.AddAccessRule(new RegistryAccessRule(user,
+            //    RegistryRights.ReadKey | RegistryRights.Delete,
+            //    InheritanceFlags.None,
+            //    PropagationFlags.None,
+            //    AccessControlType.Allow));
+
+            //rs.AddAccessRule(new RegistryAccessRule(user,
+            //RegistryRights.WriteKey | RegistryRights.ReadKey | RegistryRights.Delete | RegistryRights.ChangePermissions,
+            //InheritanceFlags.None,
+            //PropagationFlags.None,
+            //AccessControlType.Deny));
+
+            //// Create the example key with registry security.
+            //RegistryKey rk = null;
+            //try
+            //{
+            //    rk = Registry.CurrentUser.CreateSubKey("RegistryRightsExample",
+            //        RegistryKeyPermissionCheck.Default, rs);
+            //    Console.WriteLine("\r\nExample key created.");
+            //    rk.SetValue("ValueName", "StringValue");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine("\r\nUnable to create the example key: {0}", ex);
+            //}
+            //if (rk != null) rk.Close();
 
 
-            rk = Registry.CurrentUser;
+            //rk = Registry.CurrentUser;
 
-            RegistryKey rk2;
+            //RegistryKey rk2;
 
-            // Open the key with read access.
-            rk2 = rk.OpenSubKey("RegistryRightsExample", false);
-            Console.WriteLine("\r\nRetrieved value: {0}", rk2.GetValue("ValueName"));
-            rk2.Close();
+            //// Open the key with read access.
+            //rk2 = rk.OpenSubKey("RegistryRightsExample", false);
+            //Console.WriteLine("\r\nRetrieved value: {0}", rk2.GetValue("ValueName"));
+            //rk2.Close();
 
-            // Attempt to open the key with write access.
-            try
-            {
-                rk2 = rk.OpenSubKey("RegistryRightsExample", true);
-            }
-            catch (SecurityException ex)
-            {
-                Console.WriteLine("\nUnable to write to the example key." +
-                    " Caught SecurityException: {0}", ex.Message);
-            }
-            if (rk2 != null) rk2.Close();
+            //// Attempt to open the key with write access.
+            //try
+            //{
+            //    rk2 = rk.OpenSubKey("RegistryRightsExample", true);
+            //}
+            //catch (SecurityException ex)
+            //{
+            //    Console.WriteLine("\nUnable to write to the example key." +
+            //        " Caught SecurityException: {0}", ex.Message);
+            //}
+            //if (rk2 != null) rk2.Close();
 
-            // Attempt to change permissions for the key.
-            try
-            {
-                rs = new RegistrySecurity();
-                rs.AddAccessRule(new RegistryAccessRule(user,
-                    RegistryRights.WriteKey,
-                    InheritanceFlags.None,
-                    PropagationFlags.None,
-                    AccessControlType.Allow));
-                rk2 = rk.OpenSubKey("RegistryRightsExample", false);
-                rk2.SetAccessControl(rs);
-                Console.WriteLine("\r\nExample key permissions were changed.");
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                Console.WriteLine("\nUnable to change permissions for the example key." +
-                    " Caught UnauthorizedAccessException: {0}", ex.Message);
-            }
-            if (rk2 != null) rk2.Close();
+            //// Attempt to change permissions for the key.
+            //try
+            //{
+            //    rs = new RegistrySecurity();
+            //    rs.AddAccessRule(new RegistryAccessRule(user,
+            //        RegistryRights.WriteKey,
+            //        InheritanceFlags.None,
+            //        PropagationFlags.None,
+            //        AccessControlType.Allow));
+            //    rk2 = rk.OpenSubKey("RegistryRightsExample", false);
+            //    rk2.SetAccessControl(rs);
+            //    Console.WriteLine("\r\nExample key permissions were changed.");
+            //}
+            //catch (UnauthorizedAccessException ex)
+            //{
+            //    Console.WriteLine("\nUnable to change permissions for the example key." +
+            //        " Caught UnauthorizedAccessException: {0}", ex.Message);
+            //}
+            //if (rk2 != null) rk2.Close();
 
-            Console.WriteLine("\r\nPress Enter to delete the example key.");
-            Console.ReadLine();
+            //Console.WriteLine("\r\nPress Enter to delete the example key.");
+            //Console.ReadLine();
 
-            try
-            {
-                rk.DeleteSubKey("RegistryRightsExample");
-                Console.WriteLine("Example key was deleted.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Unable to delete the example key: {0}", ex);
-            }
+            //try
+            //{
+            //    rk.DeleteSubKey("RegistryRightsExample");
+            //    Console.WriteLine("Example key was deleted.");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine("Unable to delete the example key: {0}", ex);
+            //}
 
-            rk.Close();
+            //rk.Close();
 
 
 
@@ -259,9 +319,6 @@ class Program
             }
 
 
-            var qi = Enumerable.Range(1, 10).AsQueryable();
-            var qi_where = qi.Where(x => x > 10).Select(x => x);
-            var qi_groupby = qi.GroupBy(x => x > 5);
             var regt = new RegQuery<InstalledApp>()
                 .HasDefault1(x=>
                 {
@@ -321,171 +378,6 @@ class Program
             //        });
             
 
-#else
-
-            //電腦\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}
-            var ll = RegistryHive.LocalMachine.OpenView64(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}", true);
-            var uus = ll.Take(x=>x!= "Properties", writable: true).Where(y=>y.GetValue<string>("AdapterModel") == "Intel(R) Dual Band Wireless-AC 7265");
-            foreach(var uu in uus)
-            {
-                uu.SetValue("Is6GhzBandSupported", 1);
-            }
-            System.Diagnostics.Trace.WriteLine(ll.GetValue<string>("AdapterModel"));
-            List<CTabble1> table1s = new List<CTabble1>();
-            table1s.Add(new CTabble1() { Key1 = "1", Name1 = "table1_1" });
-            table1s.Add(new CTabble1() { Key1 = "2", Name1 = "table1_2" });
-            table1s.Add(new CTabble1() { Key1 = "3", Name1 = "table1_3" });
-
-            List<CTable2> table2s = new List<CTable2>();
-            table2s.Add(new CTable2() { Key2 = "1", Name2 = "table2_1" });
-            table2s.Add(new CTable2() { Key2 = "1", Name2 = "table2_1" });
-            table2s.Add(new CTable2() { Key2 = "2", Name2 = "table2_2" });
-            table2s.Add(new CTable2() { Key2 = "3", Name2 = "table2_3" });
-
-            var table = table1s.Join(table2s, x => x.Key1, y => y.Key2, (x, y) => new { x, y });
-            var regs = RegistryHive.LocalMachine.OpenView(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            foreach(var reg in regs)
-            {
-
-            }
-            //RegistryKey reg_32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32);
-            //RegistryKey reg_64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            RegistryKey reg_32 = RegistryHive.LocalMachine.OpenView32(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            RegistryKey reg_64 = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-
-            //RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-            //string ReleaseId =  win_info.GetValue<string>("ReleaseId");
-            RegistryKey win_info = RegistryHive.LocalMachine.OpenView64(@"SOFTWARE\Microsoft\");
-            string ReleaseId = win_info.GetValue<string>(@"Windows NT\CurrentVersion","ReleaseId");
-            //SOFTWARE\Microsoft\Windows NT\CurrentVersion
-            RegistryKey uninstall = reg_64.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-            //foreach (var oo in uninstall.GetSubKeyNames())
-            //{
-            //    RegistryKey subkey = uninstall.OpenSubKey(oo);
-            //    object obj = subkey.GetValue("DisplayName");
-            //    string displayname = subkey.GetValue("DisplayName") as string;
-            //    System.Diagnostics.Trace.WriteLine(displayname);
-            //    subkey.Dispose();
-            //}
-
-            List<AppData> apps = new List<AppData>();
-            apps.Join(apps, x => x.Name, y => y.Name, (x,y)=> new {x, y }, StringComparer.OrdinalIgnoreCase);
-            apps.Add(new AppData() { Name = "WinFlash" });
-            apps.Add(new AppData() { Name = "WinFlash" });
-            apps.Add(new AppData() { Name = "Dropbox 25 GB" });
-            apps.Add(new AppData() { Name = "AnyDes", IsOfficial = true });
-            //var apptest = apps.Join(apps, func=> { return true; }, (x, y) => new { x, y });
-            //apptest.ToList();
-            foreach (var app in apps)
-            {
-                var reg1 = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == app.Name);
-                if (reg1 != null)
-                {
-                    //app.Ver = reg1.GetValue<string>("DisplayVersion");
-                    //app.Uninstallstring = reg1.GetValue<string>("UninstallString");
-                }
-            }
-            Func<AppData, RegistryKey, AppData> f = ((a, b) =>
-            {
-                a.Name = b.GetValue<string>("DisplayName");
-                a.Uninstallstring = b.GetValue<string>("UninstallString");
-                a.Ver = b.GetValue<string>("DisplayVersion");
-                return a;
-            });
-            //var jj = uninstall.Where(x => x.GetValue<string>("DisplayName") != "").Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => new { x, y }).Select(x => f(x.y, x.x));
-            //var jj = uninstall.Join(apps, x => x.GetValue<string>("DisplayName"), y => y.Name, (x, y) => new { x, y });
-            var jj = uninstall.Join(apps, reg => reg.GetValue<string>("DisplayName"), app => app.Name, (reg, app) => new { reg, app })
-                .Select(so =>
-                {
-                    so.app.Uninstallstring = so.reg.GetValue<string>("UninstallString");
-                    so.app.Ver = so.reg.GetValue<string>("DisplayVersion");
-                    return so.app;
-                });
-            var existapps = uninstall.Join(apps, (reg, app) =>
-            {
-                bool hr = false;
-                string dispay = reg.GetValue<string>("DisplayName");
-                string uninstall_ = reg.GetValue<string>("Uninstall");
-                string version = reg.GetValue<string>("Version");
-                if (app.IsOfficial == true)
-                {
-                    hr = string.IsNullOrEmpty(dispay) == false && app.Name.Contains(dispay);
-                }
-                else
-                {
-                    hr = app.Name == dispay;
-                }
-
-                return hr;
-            }, (reg, app) => new { reg, app })
-                .Select(so =>
-                {
-                    so.app.Uninstallstring = so.reg.GetValue<string>("UninstallString");
-                    so.app.Ver = so.reg.GetValue<string>("DisplayVersion");
-                    return so.app;
-                });
-            int runcount = 50;
-            System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-            for(int i=0; i< runcount; i++)
-            {
-                //foreach (var oo in uninstall.GetSubKeyNames())
-                //{
-                //    RegistryKey subkey = uninstall.OpenSubKey(oo);
-                //    object obj = subkey.GetValue("DisplayName");
-                //    //object obj1 = subkey.GetValue("UninstallString");
-                //    //object obj2 = subkey.GetValue("DisplayVersion");
-                //    //string displayname = subkey.GetValue("DisplayName") as string;
-                //    //System.Diagnostics.Trace.WriteLine(displayname);
-                //    subkey.Dispose();
-                //}
-
-
-                existapps.ToList();
-            }
-            sw.Stop();
-            System.Diagnostics.Trace.WriteLine($"{sw.ElapsedMilliseconds/ runcount}");
-            //foreach (var oo in existapps)
-            //{
-
-            //}
-
-            //var nonexist = apps.Except(existapps);
-            var jjj = uninstall.Select(x => new { DisplayName = x.GetValue<string>("DisplayName"), DisplayVersion = x.GetValue<string>("DisplayVersion") });
-            foreach (var oo in jjj)
-            {
-                //oo.DisplayName;
-            }
-
-
-            var first = uninstall.FirstOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics" || x.GetValue<string>("DisplayName") == "");
-            var last = uninstall.LastOrDefault(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
-            var count = uninstall.Count();
-            var count_1 = uninstall.Count(x => string.IsNullOrEmpty(x.GetValue<string>("DisplayName")) == false);
-            var select = uninstall.Select(x => x.GetValue<string>("DisplayName"));
-            var where = uninstall.Where(x => x.GetValue<string>("DisplayName") == "Intel(R) Processor Graphics");
-            var list = uninstall.ToList();
-            var dic = uninstall.ToDictionary(x => x.Name);
-            var groups = uninstall.GroupBy(x => x.GetValue<string>("DisplayName"));
-            foreach (var item in groups)
-            {
-                System.Diagnostics.Trace.WriteLine($"DisplayName:{item.Key} count:{item.Count()}");
-                foreach (var oo in item)
-                {
-                    //System.Diagnostics.Trace.WriteLine($"DisplayName:{oo.GetValue<string>("DisplayName")}");
-                }
-            }
-            var lookups = uninstall.ToLookup(x => x.GetValue<string>("DisplayName"));
-            foreach (var item in lookups)
-            {
-                System.Diagnostics.Trace.WriteLine($"DisplayName:{item.Key} count:{item.Count()}");
-                foreach (var oo in item)
-                {
-                    //System.Diagnostics.Trace.WriteLine($"DisplayName:{oo.GetValue<string>("DisplayName")}");
-                }
-            }
-            var takes = uninstall.Take(3);
-
-#endif
 
         }
 

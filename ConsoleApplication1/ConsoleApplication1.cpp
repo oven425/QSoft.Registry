@@ -148,16 +148,16 @@ void Admin(const wchar_t* se)
 	::CloseHandle(token);
 }
 
-void Backup()
+void Backup(HKEY root, const wchar_t* subkey, const wchar_t* filename)
 {
 	Admin(SE_BACKUP_NAME);
 	BOOL is_success = FALSE;
 	DWORD dwDisposition = 0;
 	HKEY hKey;
 	LONG ret;
-	const wchar_t* hiveName = L"UnitTest\\Company";
-	const wchar_t* filename = L"test1";
-	ret = RegCreateKeyEx(HKEY_CURRENT_CONFIG, hiveName, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
+	//const wchar_t* hiveName = L"UnitTest\\Company";
+	//const wchar_t* filename = L"test1";
+	ret = RegCreateKeyEx(root, subkey, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
 	
 	if (ret != ERROR_SUCCESS)
 	{
@@ -176,16 +176,16 @@ void Backup()
 
 }
 
-void Restore()
+void Restore(HKEY root, const wchar_t* subkey, const wchar_t* filename)
 {
 	Admin(SE_RESTORE_NAME);
 	BOOL is_success = FALSE;
 	DWORD dwDisposition = 0;
 	HKEY hKey;
 	LONG ret;
-	const wchar_t* hiveName = L"Citys1";
-	const wchar_t* filename = L"test";
-	ret = RegCreateKeyEx(HKEY_CURRENT_CONFIG, hiveName, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
+	//const wchar_t* hiveName = L"Citys1";
+	//const wchar_t* filename = L"test";
+	ret = RegCreateKeyEx(root, subkey, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
 
 	if (ret != ERROR_SUCCESS)
 	{
@@ -222,8 +222,8 @@ void Restore()
 void main(int argc, TCHAR *argv[])
 {
 	//Transacted();
-	Backup();
-	//Restore();
+	Backup(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet", L"Controlset");
+	//Restore(HKEY_CURRENT_CONFIG, L"Test", L"Controlset");
     std::cout << "Hello World!\n";
 }
 

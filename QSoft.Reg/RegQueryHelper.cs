@@ -413,65 +413,120 @@ namespace QSoft.Registry.Linq
                 }
                 return memberinit;
             }
-            
         }
 
         static public Expression ToData(this Type dst, Expression param)
         {
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-            var pps = dst.GetProperties().Where(x => x.CanWrite == true && x.GetCustomAttributes(typeof(RegIgnore), true).Length == 0);
+            var getvaluenames = typeof(RegistryKey).GetMethod("GetValueNames");
+
+            //var pps = dst.GetProperties().Where(x => x.CanWrite == true && x.GetCustomAttributes(typeof(RegIgnore), true).Length == 0);
+            var pps = dst.GetProperties().Where(x => x.CanWrite == true)
+                .Select(x => new
+                {
+                    x,
+                    attr = x.GetCustomAttributes(true).FirstOrDefault(y=>y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                }).Where(x=>!(x.attr is RegIgnore));
             var ccs = dst.GetConstructors();
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
             {
-                var typecode = Type.GetTypeCode(pp.PropertyType);
-                var property = pp.PropertyType;
-                if (pp.PropertyType.IsGenericType==true&&pp.PropertyType.GetGenericTypeDefinition()==typeof(Nullable<>))
+                var typecode = Type.GetTypeCode(pp.x.PropertyType);
+                var property = pp.x.PropertyType;
+                if (pp.x.PropertyType.IsGenericType == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
-                    property = pp.PropertyType.GetGenericArguments()[0];
+                    property = pp.x.PropertyType.GetGenericArguments()[0];
                     typecode = Type.GetTypeCode(property);
                 }
-                var regattr = pp.GetCustomAttributes(true).FirstOrDefault();
                 Expression name = null;
-                if (regattr != null && regattr is RegSubKeyName)
+                if (pp.attr != null && pp.attr is RegSubKeyName)
                 {
-                    RegSubKeyName subkeyname = regattr as RegSubKeyName;
-                    var expr = subkeyname.ToExpression(pp.PropertyType, param);
-                    var  binding = Expression.Bind(pp, expr);
+                    RegSubKeyName subkeyname = pp.attr as RegSubKeyName;
+                    var expr = subkeyname.ToExpression(pp.x.PropertyType, param);
+                    var binding = Expression.Bind(pp.x, expr);
                     bindings.Add(binding);
                 }
-                else if (regattr != null && regattr is RegPropertyName)
+                else if (pp.attr != null && pp.attr is RegPropertyName)
                 {
-                    var reganme = regattr as RegPropertyName;
+                    var reganme = pp.attr as RegPropertyName;
                     name = Expression.Constant(reganme.Name, typeof(string));
                 }
                 else
                 {
-                    name = Expression.Constant(pp.Name, typeof(string));
+                    name = Expression.Constant(pp.x.Name, typeof(string));
                 }
                 if (name != null)
                 {
-                    if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    if (pp.x.PropertyType.IsGenericTypeDefinition == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
-                        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                        UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-                        var binding = Expression.Bind(pp, unary1);
+                        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.x.PropertyType), param, name);
+                        UnaryExpression unary1 = Expression.Convert(method, pp.x.PropertyType);
+                        var binding = Expression.Bind(pp.x, unary1);
                         bindings.Add(binding);
                     }
                     else
                     {
-                        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-                        var binding = Expression.Bind(pp, method);
+                        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.x.PropertyType), param, name);
+                        var binding = Expression.Bind(pp.x, method);
                         bindings.Add(binding);
                     }
                 }
 
             }
 
+            //foreach (var pp in pps)
+            //{
+            //    var typecode = Type.GetTypeCode(pp.PropertyType);
+            //    var property = pp.PropertyType;
+            //    if (pp.PropertyType.IsGenericType==true&&pp.PropertyType.GetGenericTypeDefinition()==typeof(Nullable<>))
+            //    {
+            //        property = pp.PropertyType.GetGenericArguments()[0];
+            //        typecode = Type.GetTypeCode(property);
+            //    }
+            //    var regattr = pp.GetCustomAttributes(true).FirstOrDefault();
+            //    Expression name = null;
+            //    if (regattr != null && regattr is RegSubKeyName)
+            //    {
+            //        RegSubKeyName subkeyname = regattr as RegSubKeyName;
+            //        var expr = subkeyname.ToExpression(pp.PropertyType, param);
+            //        var  binding = Expression.Bind(pp, expr);
+            //        bindings.Add(binding);
+            //    }
+            //    else if (regattr != null && regattr is RegPropertyName)
+            //    {
+            //        var reganme = regattr as RegPropertyName;
+            //        name = Expression.Constant(reganme.Name, typeof(string));
+            //    }
+            //    else
+            //    {
+            //        name = Expression.Constant(pp.Name, typeof(string));
+            //    }
+            //    if (name != null)
+            //    {
+            //        if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            //        {
+            //            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+            //            UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
+            //            var binding = Expression.Bind(pp, unary1);
+            //            bindings.Add(binding);
+            //        }
+            //        else
+            //        {
+            //            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
+            //            var binding = Expression.Bind(pp, method);
+            //            bindings.Add(binding);
+            //        }
+            //    }
+
+            //}
+
             var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
 
             return memberinit;
         }
+
+
+        
 
 
         public static Type Find(this Type src, MethodInfo method, string target)

@@ -8,6 +8,37 @@ namespace QSoft.Registry
 {
     public static class RegistryKeyEx
     {
+        public interface IHeiratey<T> :IEnumerable<T>
+        {
+            IEnumerable<T> Childs { set; get; }
+
+        }
+
+        public static IEnumerable<RegistryKey> FindAll(this RegistryKey src, Func<RegistryKey, bool> func)
+        {
+            var subkeys = src.GetSubKeyNames();
+            foreach(var subkey in subkeys)
+            {
+                System.Diagnostics.Trace.WriteLine(subkey);
+                var reg = src.OpenSubKey(subkey);
+                if(func(reg) == true)
+                {
+                    yield return reg;
+                }
+                else
+                {
+                    
+                    var rr = reg.FindAll(func);
+                    foreach(var oo in rr)
+                    {
+                        yield return oo;
+                    }
+                    reg.Close();
+                    
+                }
+            }
+        }
+
         public static T GetValue<T>(this RegistryKey src, string name)
         {
             T t = default(T);

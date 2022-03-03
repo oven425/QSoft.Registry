@@ -190,36 +190,51 @@ class Program
 
             try
             {
-                var regt_h = new RegQuery<A>()
-                    .useSetting(x =>
-                    {
-                        x.Hive = RegistryHive.CurrentConfig;
-                        x.View = RegistryView.Registry64;
-                        x.SubKey = @"hierarchy";
-                    });
-                var aa = regt_h.Hierarchy(x => x.AA != null);
+                //var regt_h = new RegQuery<A>()
+                //    .useSetting(x =>
+                //    {
+                //        x.Hive = RegistryHive.CurrentConfig;
+                //        x.View = RegistryView.Registry64;
+                //        x.SubKey = @"hierarchy";
+                //    });
+                //var aa = regt_h.Hierarchy(x => x.AA != null);
 
 
-                RegistryKey temp;
-                var testkey = Registry.CurrentConfig.OpenSubKey(@"hierarchy", true);
+                //RegistryKey temp;
+                //var testkey = Registry.CurrentConfig.OpenSubKey(@"hierarchy", true);
+                //var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
+                //var bb = query.Select(x => Build<A>(x)).ToArray();
+                //var valuenames = testkey.GetValueNames();
+                //foreach (var oo in valuenames)
+                //{
+                //    var kind = testkey.GetValueKind(oo);
+                //    var vlu = testkey.GetValue(oo);
+                //}
+                //var regs = testkey.FindAll(x => x.GetValue<string>("port") != "").ToList();
+                //var names = testkey.GetSubKeyNames();
+
+
+
+                var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
                 var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
-                var bb = query.Select(x => Build<A>(x)).ToArray();
-                var valuenames = testkey.GetValueNames();
-                foreach(var oo in valuenames)
-                {
-                    var kind = testkey.GetValueKind(oo);
-                    var vlu = testkey.GetValue(oo);
-                }
-                var regs = testkey.FindAll(x=> x.GetValue<string>("port")!="").ToList();
-                var names = testkey.GetSubKeyNames();
-                
-                
+                var syntax = from oo in query
+                             where oo.GetValue<string>("DisplayName") != ""
+                             let kk1 = oo.GetValue<string>("DisplayName").ToLower()
+                             let kk2 = oo.GetValue<string>("DisplayName").ToUpper()
+                             select new { d1 = oo.GetValue<string>("DisplayName"), d2 = kk1, d3 = kk2 };
+
+
+                var qq = query.Where(x => x.GetValue<string>("DisplayName") != "")
+                    .Select(x => new { x, kk1 = x.GetValue<string>("DisplayName").ToLower() })
+                    .Select(x => new { x1 = x.x, x2 = x, kk2 = x.x.GetValue<string>("DisplayName").ToUpper() })
+                    .Select(x => new { d1=x.x1.GetValue<string>("DisplayName"), d2=x.x2.kk1, d3=x.kk2 });
+
             }
-            catch(Exception ee)
+            catch (Exception ee)
             {
                 System.Diagnostics.Trace.WriteLine(ee.Message);
             }
-            
+
             //string user = Environment.UserDomainName + "\\" + Environment.UserName;
             //RegistrySecurity rs = new RegistrySecurity();
 
@@ -336,10 +351,16 @@ class Program
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                     x.View = RegistryView.Registry64;
                 });
-            regt.Insert(new List<InstalledApp>()
+
+            var sytnax = from oo in regt
+                         where oo.DisplayName != null
+                         let kk1 =oo.DisplayName.ToUpper()
+                         let kk2 = oo.DisplayName.ToLower()
+                         select oo;
+            foreach(var oo in sytnax)
             {
-                new InstalledApp()
-            });
+
+            }
             var testq = regt.Where(x => x.DisplayName.Contains("A"));
             var tolist = testq.ToList();
             var dictionary = testq.ToLookup(x => x.DisplayName);

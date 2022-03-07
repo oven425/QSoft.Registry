@@ -190,14 +190,13 @@ class Program
 
             try
             {
-                //var regt_h = new RegQuery<A>()
-                //    .useSetting(x =>
-                //    {
-                //        x.Hive = RegistryHive.CurrentConfig;
-                //        x.View = RegistryView.Registry64;
-                //        x.SubKey = @"hierarchy";
-                //    });
-                //var aa = regt_h.Hierarchy(x => x.AA != null);
+                var regt_h = new RegQuery<A>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.View = RegistryView.Registry64;
+                        x.SubKey = @"hierarchy";
+                    });
 
 
                 //RegistryKey temp;

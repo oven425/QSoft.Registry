@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -185,13 +186,33 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        [Obsolete("Testing", true)]
-        public void Backup(string filename)
+        void Admin(string se)
         {
-            if(File.Exists(filename) == false)
-            {
+            IntPtr token;
+            NativeMethod.OpenProcessToken(NativeMethod.GetCurrentProcess(), NativeMethod.TOKEN_ALL_ACCESS, out token);
+            NativeMethod.LUID PrivilegeRequired = new NativeMethod.LUID();
+            bool bRes = false;
+            bRes = NativeMethod.LookupPrivilegeValue(null, se, ref PrivilegeRequired);
+            
+            NativeMethod.TOKEN_PRIVILEGES tp = new NativeMethod.TOKEN_PRIVILEGES();
+            tp.PrivilegeCount = 1;
+            tp.Privileges[0].Luid = PrivilegeRequired;
+            tp.Privileges[0].Attributes = NativeMethod.SE_PRIVILEGE_ENABLED;
+            NativeMethod.TOKEN_PRIVILEGES tp1 = new NativeMethod.TOKEN_PRIVILEGES();
+            uint hr;
+            bRes = NativeMethod.AdjustTokenPrivileges(token, false, ref tp, (uint)Marshal.SizeOf(tp), ref tp1, out hr);
 
+            NativeMethod.CloseHandle(token);
+        }
+
+        [Obsolete("Testing", true)]
+        public void Backup(string filename, bool overwrite=true)
+        {
+            if(File.Exists(filename) == true&& overwrite==false)
+            {
+                throw new Exception("File is Existed");
             }
+
         }
 
         [Obsolete("Testing", true)]

@@ -19,12 +19,13 @@ namespace QSoft.Registry.Linq
             this.Expression = Expression.Constant(this);
         }
 
-        //RegSetting m_Setting;
+        RegSetting m_Setting = new RegSetting();
         RegProvider<T> m_Provider = new RegProvider<T>();
         public RegQuery<T> useSetting(Action<RegSetting> data)
         {
             
             data(this.m_Provider.Setting);
+            data(this.m_Setting);
             //m_Setting = provider.Setting;
             this.Provider = this.m_Provider;
             return this;
@@ -195,6 +196,7 @@ namespace QSoft.Registry.Linq
             bRes = NativeMethod.LookupPrivilegeValue(null, se, ref PrivilegeRequired);
             
             NativeMethod.TOKEN_PRIVILEGES tp = new NativeMethod.TOKEN_PRIVILEGES();
+            tp.Privileges = new NativeMethod.LUID_AND_ATTRIBUTES[1];
             tp.PrivilegeCount = 1;
             tp.Privileges[0].Luid = PrivilegeRequired;
             tp.Privileges[0].Attributes = NativeMethod.SE_PRIVILEGE_ENABLED;
@@ -205,13 +207,103 @@ namespace QSoft.Registry.Linq
             NativeMethod.CloseHandle(token);
         }
 
-        [Obsolete("Testing", true)]
+        string ErrMsg(int data)
+        {
+            //LPTSTR errorText = NULL;
+
+            //FormatMessage(
+            //    // use system message tables to retrieve error text
+            //    FORMAT_MESSAGE_FROM_SYSTEM
+            //    // allocate buffer on local heap for error text
+            //    | FORMAT_MESSAGE_ALLOCATE_BUFFER
+            //    // Important! will fail otherwise, since we're not 
+            //    // (and CANNOT) pass insertion parameters
+            //    | FORMAT_MESSAGE_IGNORE_INSERTS,
+            //    NULL,    // unused with FORMAT_MESSAGE_FROM_SYSTEM
+            //    data,
+            //    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+            //    (LPTSTR) & errorText,  // output 
+            //    0, // minimum size for output buffer
+            //    NULL);   // arguments - see note 
+            StringBuilder strb = new StringBuilder(234);
+            int hr = NativeMethod.FormatMessage(NativeMethod.FORMAT_MESSAGE.FROM_SYSTEM | NativeMethod.FORMAT_MESSAGE.ALLOCATE_BUFFER | NativeMethod.FORMAT_MESSAGE.IGNORE_INSERTS, IntPtr.Zero, data, 0, out strb, strb.Capacity, IntPtr.Zero);
+            return strb.ToString();
+        } 
+
+
+        [Obsolete("Testing")]
         public void Backup(string filename, bool overwrite=true)
         {
-            if(File.Exists(filename) == true&& overwrite==false)
+            
+
+
+            //bool is_success = false;
+            //DWORD dwDisposition = 0;
+            //HKEY hKey;
+            //LONG ret;
+            ////const wchar_t* hiveName = L"UnitTest\\Company";
+            ////const wchar_t* filename = L"test1";
+            //ret = RegCreateKeyEx(root, subkey, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
+            //
+
+            //if (ret != ERROR_SUCCESS)
+            //{
+            //    LPTSTR errorText = ErrMsg(ret);
+            //    errorText = NULL;
+            //}
+            //else if (dwDisposition != REG_OPENED_EXISTING_KEY)
+            //{
+            //    RegCloseKey(hKey);
+            //}
+            //else
+            //{
+            //    is_success = (RegSaveKeyEx(hKey, filename, NULL, REG_STANDARD_FORMAT) == ERROR_SUCCESS);
+            //    RegCloseKey(hKey);
+            //}
+            
+            int ret = 0;
+            IntPtr hKey = IntPtr.Zero;
+            NativeMethod.RegistryDispositionValue dwDisposition;
+            try
             {
-                throw new Exception("File is Existed");
+                if (File.Exists(filename) == true && overwrite == false)
+                {
+                    throw new Exception("File is Existed");
+                }
+                Admin("SeBackupPrivilege");
+                ret = NativeMethod.RegCreateKeyEx((uint)this.m_Setting.Hive, this.m_Setting.SubKey, 0, null, 4, 0, IntPtr.Zero, out hKey, out dwDisposition);
+                if (ret != 0)
+                {
+                    var err = ErrMsg(ret);
+                    err = "";
+                }
+                else
+                {
+                    int is_success = NativeMethod.RegSaveKeyEx((int)RegistryHive.CurrentConfig, filename, IntPtr.Zero, 1);
+                    if(is_success != 0)
+                    {
+                        var err = ErrMsg(is_success);
+                        throw new Exception(err);
+                        err = "";
+                    }
+                    
+                    //NativeMethod.RegCloseKey();
+                }
             }
+            catch(Exception ee)
+            {
+                throw;
+            }
+            finally
+            {
+                if(hKey != IntPtr.Zero)
+                {
+                    NativeMethod.RegCloseKey(hKey);
+                }
+            }
+            
+            
+            
 
         }
 

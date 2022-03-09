@@ -13,8 +13,11 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
-            Node node = new Node { Value = 1 };
-
+            BinaryTree btree = new BinaryTree();
+            btree.Insert(10);
+            btree.Insert(9);
+            btree.Insert(8);
+            Console.ReadLine();
         }
 
         static void Insert()
@@ -33,15 +36,32 @@ namespace ConsoleApp2
                 this.Root = new Node() { Value = data };
                 return;
             }
+            Node parent = this.Root;
             while(true)
             {
-                if(this.Root.Value >data)
+                if(parent.Value > data)
                 {
-
+                    if(parent.Left == null)
+                    {
+                        parent.Left = new Node() { Value = data };
+                        break;
+                    }
+                    else
+                    {
+                        parent = parent.Left;
+                    }
                 }
                 else
                 {
-
+                    if (parent.Right == null)
+                    {
+                        parent.Right = new Node() { Value = data };
+                        break;
+                    }
+                    else
+                    {
+                        parent = parent.Right;
+                    }
                 }
             }
         }

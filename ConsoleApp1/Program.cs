@@ -197,7 +197,7 @@ class Program
                         x.View = RegistryView.Registry64;
                         x.SubKey = @"hierarchy";
                     });
-
+                regt_h.Backup("123");
 
                 //RegistryKey temp;
                 //var testkey = Registry.CurrentConfig.OpenSubKey(@"hierarchy", true);

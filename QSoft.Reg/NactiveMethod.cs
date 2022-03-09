@@ -76,5 +76,53 @@ namespace QSoft.Registry
    [MarshalAs(UnmanagedType.Bool)]bool DisableAllPrivileges,
    ref TOKEN_PRIVILEGES NewState,
    UInt32 BufferLengthInBytes, ref TOKEN_PRIVILEGES PreviousState, out UInt32 ReturnLengthInBytes);
+
+
+        public enum FORMAT_MESSAGE : uint
+        {
+            ALLOCATE_BUFFER = 0x00000100,
+            IGNORE_INSERTS = 0x00000200,
+            FROM_SYSTEM = 0x00001000,
+            ARGUMENT_ARRAY = 0x00002000,
+            FROM_HMODULE = 0x00000800,
+            FROM_STRING = 0x00000400
+        }
+        [DllImport("kernel32.dll")]
+        public static extern int FormatMessage(FORMAT_MESSAGE dwFlags, IntPtr lpSource, int dwMessageId, uint dwLanguageId, out StringBuilder msgOut, int nSize, IntPtr Arguments);
+
+        //[DllImport("advapi32.dll", SetLastError = true)]
+        //static extern Int32 RegLoadKey(UInt32 hKey, String lpSubKey, String lpFile);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SECURITY_ATTRIBUTES
+        {
+            public int nLength;
+            public IntPtr lpSecurityDescriptor;
+            public int bInheritHandle;
+        }
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern int RegSaveKeyEx(
+             int hKey,
+             string lpFile,
+  IntPtr lpSecurityAttributes,
+             int Flags
+);
+        [Flags]
+        public enum RegistryDispositionValue : uint
+        {
+            REG_CREATED_NEW_KEY = 0x00000001,
+            REG_OPENED_EXISTING_KEY = 0x00000002
+        }
+        [DllImport("Advapi32.dll")]
+        public static extern int RegCreateKeyEx(
+   uint hKey, string lpSubKey, uint dwReserved, string lpClass,
+   uint dwOptions, int samDesired, IntPtr lpSecurityAttributes,
+   out IntPtr phkResult, out RegistryDispositionValue lpdwDisposition);
+
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern int RegCloseKey(IntPtr hKey);
+
     }
 }

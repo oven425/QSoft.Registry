@@ -230,56 +230,34 @@ namespace QSoft.Registry.Linq
             return strb.ToString();
         } 
 
-
-        [Obsolete("Testing")]
         public void Backup(string filename, bool overwrite=true)
         {
-            
-
-
-            //bool is_success = false;
-            //DWORD dwDisposition = 0;
-            //HKEY hKey;
-            //LONG ret;
-            ////const wchar_t* hiveName = L"UnitTest\\Company";
-            ////const wchar_t* filename = L"test1";
-            //ret = RegCreateKeyEx(root, subkey, 0, NULL, REG_OPTION_BACKUP_RESTORE, 0, NULL, &hKey, &dwDisposition);
-            //
-
-            //if (ret != ERROR_SUCCESS)
-            //{
-            //    LPTSTR errorText = ErrMsg(ret);
-            //    errorText = NULL;
-            //}
-            //else if (dwDisposition != REG_OPENED_EXISTING_KEY)
-            //{
-            //    RegCloseKey(hKey);
-            //}
-            //else
-            //{
-            //    is_success = (RegSaveKeyEx(hKey, filename, NULL, REG_STANDARD_FORMAT) == ERROR_SUCCESS);
-            //    RegCloseKey(hKey);
-            //}
-            
             int ret = 0;
             IntPtr hKey = IntPtr.Zero;
             NativeMethod.RegistryDispositionValue dwDisposition;
             try
             {
-                if (File.Exists(filename) == true && overwrite == false)
+                if (File.Exists(filename) == true)
                 {
-                    throw new Exception("File is Existed");
+                    if(overwrite == false)
+                    {
+                        throw new Exception("File is Existed");
+                    }
+                    else
+                    {
+                        File.Delete(filename);
+                    }
                 }
                 Admin("SeBackupPrivilege");
                 ret = NativeMethod.RegCreateKeyEx((uint)this.m_Setting.Hive, this.m_Setting.SubKey, 0, null, 4, 0, IntPtr.Zero, out hKey, out dwDisposition);
                 if (ret != 0)
                 {
                     var err = ErrMsg(ret);
-                    err = "";
+                    throw new Exception(err);
                 }
                 else
                 {
-                    int is_success = NativeMethod.RegSaveKeyEx((int)RegistryHive.CurrentConfig, filename, IntPtr.Zero, 1);
+                    int is_success = NativeMethod.RegSaveKeyEx(hKey, filename, IntPtr.Zero, 1);
                     if(is_success != 0)
                     {
                         var err = ErrMsg(is_success);
@@ -301,18 +279,54 @@ namespace QSoft.Registry.Linq
                     NativeMethod.RegCloseKey(hKey);
                 }
             }
-            
-            
-            
-
         }
 
-        [Obsolete("Testing", true)]
         public void Restore(string filename)
         {
-            if (File.Exists(filename) == true)
+            if (File.Exists(filename) == false)
             {
+                throw new Exception("File is not Existed");
+            }
+            IntPtr hKey = IntPtr.Zero;
+            try
+            {
+                Admin("SeRestorePrivilege");
+                NativeMethod.RegistryDispositionValue dwDisposition;
+                
+                int ret;
+                //const wchar_t* hiveName = L"Citys1";
+                //const wchar_t* filename = L"test";
+                ret = NativeMethod.RegCreateKeyEx((uint)this.m_Setting.Hive, this.m_Setting.SubKey, 0, null, 4, 0, IntPtr.Zero, out hKey, out dwDisposition);
 
+                if (ret != 0)
+                {
+                    var err = ErrMsg(ret);
+                    throw new Exception(err);
+                }
+                //else if (dwDisposition != REG_OPENED_EXISTING_KEY)
+                //{
+                //    RegCloseKey(hKey);
+                //}
+                else
+                {
+                    int is_success = NativeMethod.RegRestoreKey(hKey, filename, 8);
+                    if(is_success != 0)
+                    {
+                        var err = ErrMsg(ret);
+                        throw new Exception(err);
+                    }
+                }
+            }
+            catch(Exception ee)
+            {
+                throw;
+            }
+            finally
+            {
+                if (hKey != IntPtr.Zero)
+                {
+                    NativeMethod.RegCloseKey(hKey);
+                }
             }
         }
 

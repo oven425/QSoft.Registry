@@ -195,9 +195,10 @@ class Program
                     {
                         x.Hive = RegistryHive.CurrentConfig;
                         x.View = RegistryView.Registry64;
-                        x.SubKey = @"hierarchy";
+                        x.SubKey = @"Users";
                     });
-                regt_h.Backup("123");
+                regt_h.Backup("Users");
+                regt_h.Restore("Users");
 
                 //RegistryKey temp;
                 //var testkey = Registry.CurrentConfig.OpenSubKey(@"hierarchy", true);

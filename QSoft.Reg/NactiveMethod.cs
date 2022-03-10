@@ -103,7 +103,7 @@ namespace QSoft.Registry
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern int RegSaveKeyEx(
-             int hKey,
+             IntPtr hKey,
              string lpFile,
   IntPtr lpSecurityAttributes,
              int Flags
@@ -123,6 +123,12 @@ namespace QSoft.Registry
 
         [DllImport("advapi32.dll", SetLastError = true)]
         public static extern int RegCloseKey(IntPtr hKey);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        static extern Int32 RegLoadKey(UInt32 hKey, String lpSubKey, String lpFile);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern Int32 RegRestoreKey(IntPtr hKey, string lpFile, int dwFlags);
 
     }
 }

@@ -218,85 +218,14 @@ void Restore(HKEY root, const wchar_t* subkey, const wchar_t* filename)
 		RegCloseKey(hKey);
 	}
 }
-#include <wdmguid.h>
-PVOID
-CreateCallbackContext(
-	_In_ CALLBACK_MODE CallbackMode,
-	_In_ PCWSTR AltitudeString
-)
-/*++
-Routine Description:
-	Utility method to create a callback context. Callback context
-	should be freed using DeleteCallbackContext.
 
-Arguments:
-	CallbackMode - the callback mode value
-	AltitudeString - a string with the altitude the callback will be
-		registered at
-Return Value:
-	Pointer to the allocated and initialized callback context
---*/
-{
 
-	PCALLBACK_CONTEXT CallbackCtx = NULL;
-	NTSTATUS Status;
-	BOOLEAN Success = FALSE;
-
-	CallbackCtx = (PCALLBACK_CONTEXT)ExAllocatePoolZero(
-		PagedPool,
-		sizeof(CALLBACK_CONTEXT),
-		REGFLTR_CONTEXT_POOL_TAG);
-
-	if (CallbackCtx == NULL) {
-		ErrorPrint("CreateCallbackContext failed due to insufficient resources.");
-		goto Exit;
-	}
-
-	CallbackCtx->CallbackMode = CallbackMode;
-	CallbackCtx->ProcessId = PsGetCurrentProcessId();
-
-	Status = RtlStringCbPrintfW(CallbackCtx->AltitudeBuffer,
-		MAX_ALTITUDE_BUFFER_LENGTH * sizeof(WCHAR),
-		L"%s",
-		AltitudeString);
-
-	if (!NT_SUCCESS(Status)) {
-		ErrorPrint("RtlStringCbPrintfW in CreateCallbackContext failed. Status 0x%x", Status);
-		goto Exit;
-	}
-
-	RtlInitUnicodeString(&CallbackCtx->Altitude, CallbackCtx->AltitudeBuffer);
-
-	Success = TRUE;
-
-Exit:
-
-	if (Success == FALSE) {
-		if (CallbackCtx != NULL) {
-			ExFreePoolWithTag(CallbackCtx, REGFLTR_CONTEXT_POOL_TAG);
-			CallbackCtx = NULL;
-		}
-	}
-
-	return CallbackCtx;
-
-}
-
-void DetectChanged1()
-{
-	CallbackCtxHigh = CreateCallbackContext(CALLBACK_MODE_MULTIPLE_ALTITUDE_MONITOR,
-		CALLBACK_HIGH_ALTITUDE);
-	CallbackCtxMid = CreateCallbackContext(CALLBACK_MODE_MULTIPLE_ALTITUDE_BLOCK_DURING_PRE,
-		CALLBACK_ALTITUDE);
-	CallbackCtxLow = CreateCallbackContext(CALLBACK_MODE_MULTIPLE_ALTITUDE_MONITOR,
-		CALLBACK_LOW_ALTITUDE);
-}
 
 void main(int argc, TCHAR *argv[])
 {
 	//Transacted();
-	Backup(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet", L"Controlset");
-	//Restore(HKEY_CURRENT_CONFIG, L"Test", L"Controlset");
+	//Backup(HKEY_CURRENT_CONFIG, L"Users", L"Users");
+	Restore(HKEY_CURRENT_CONFIG, L"Users", L"Users");
     std::cout << "Hello World!\n";
 }
 

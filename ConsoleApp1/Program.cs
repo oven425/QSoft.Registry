@@ -121,6 +121,26 @@ namespace ConsoleApp1
         public AA AA { set; get; }
     }
 
+    //public class Phone
+    //{
+    //    public string home { set; get; }
+    //    public string mobile { set; get; }
+    //}
+
+    public class Phone
+    {
+        public string company { set; get; }
+        public string number { set; get; }
+    }
+
+    public class People
+    {
+        public string Name { set; get; }
+        public int Height { set; get; }
+        //public Phone phones { set; get; }
+        public List<Phone> phones { set; get; }
+    }
+
 class Program
     {
         
@@ -138,7 +158,6 @@ class Program
             T obj = Activator.CreateInstance<T>();
             foreach (var pp in pps)
             {
-
                 var typecode = Type.GetTypeCode(pp.x.PropertyType);
                 if(typecode == TypeCode.Object)
                 {
@@ -146,30 +165,76 @@ class Program
                     {
                         var methd= typeof(Program).GetMethods().Where(x=>x.Name == "Build");
                         var subobj = methd.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg.OpenSubKey(pp.x.Name) });
-
                         pp.x.SetValue(obj, subobj);
                     }
+                }
+                else
+                {
+                    var vv = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
+                    var h = vv.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] {reg, pp.x.Name });
+                    pp.x.SetValue(obj, h);
                 }
             }
 
             return obj;
         }
 
+        private static int AddMethod(int a, int b)
+        {
+            return a + b;
+        }
+
+
+        static private void Test()
+        {
+            Func<int, int, int> add1 = (a, b) => a + b;
+            Func<int, int, int> add2 = AddMethod;
+
+            var x = Expression.Parameter(typeof(int));
+            var y = Expression.Parameter(typeof(int));
+            var additionExpr = Expression.Add(x, y);
+            Func<int, int, int> add3 =
+                          Expression.Lambda<Func<int, int, int>>(
+                              additionExpr, x, y).Compile();
+            //the above steps cost a lot of time, relatively.
+
+            //performance of these three should be identical
+            int count = 9999999;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < count; i++)
+            {
+                add1(1, 2);
+            }
+            sw.Stop();
+            var time = (double)count / sw.ElapsedMilliseconds;
+            System.Diagnostics.Trace.WriteLine($"1. {time} {sw.ElapsedMilliseconds}");
+
+            sw = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < count; i++)
+            {
+                add2(1, 2);
+            }
+            sw.Stop();
+            time = (double)count / sw.ElapsedMilliseconds;
+            System.Diagnostics.Trace.WriteLine($"2. {time} {sw.ElapsedMilliseconds}");
+
+            sw = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 0; i < count; i++)
+            {
+                add3(1, 2);
+            }
+            sw.Stop();
+            time = (double)count / sw.ElapsedMilliseconds;
+            System.Diagnostics.Trace.WriteLine($"3. {time} {sw.ElapsedMilliseconds}");
+        }
+
+
         static void Main(string[] args)
         {
+            Test();
 
-
-            ////List<int> testlist = Enumerable.Range(1, 5).ToList();
-            ////var qur = testlist.AsQueryable();
-            ////foreach(var oo in testlist)
-            ////{
-            ////    if(oo==2)
-            ////    {
-            ////        testlist[0] = 100;
-            ////    }
-            ////}
-
-
+            //add2(1, 2);
+            //add3(1, 2);
 
 
             //TestDB();
@@ -197,8 +262,8 @@ class Program
                         x.View = RegistryView.Registry64;
                         x.SubKey = @"Users";
                     });
-                regt_h.Backup("Users");
-                regt_h.Restore("Users");
+                //regt_h.Backup("Users");
+                //regt_h.Restore("Users");
 
                 //RegistryKey temp;
                 //var testkey = Registry.CurrentConfig.OpenSubKey(@"hierarchy", true);
@@ -229,6 +294,16 @@ class Program
                     .Select(x => new { x1 = x.x, x2 = x, kk2 = x.x.GetValue<string>("DisplayName").ToUpper() })
                     .Select(x => new { d1=x.x1.GetValue<string>("DisplayName"), d2=x.x2.kk1, d3=x.kk2 });
 
+                
+
+                var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
+                var people_query = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x)).AsQueryable();
+
+                var peopels = people_query.Select(x => Build<People>(x));
+                foreach(var oo in peopels)
+                {
+
+                }
             }
             catch (Exception ee)
             {

@@ -10,9 +10,19 @@ namespace ConsoleApp2
 {
     class Program
     {
+        static int BB<T>(T a, T b) where T : System.IComparable<T>
+        {
+            //System.IComparable<T>
+
+            return Comparer<T>.Default.Compare(a, b);
+        }
+
         static void Main(string[] args)
         {
-            BTree btree = new BTree();
+            //int a = Comparer<TY>.Default.Compare(new TY(), new TY());
+            //int b = Comparer<int>.Default.Compare(2, 1);
+            //int c = Comparer<int>.Default.Compare(1, 1);
+            BTree<int> btree = new BTree<int>();
             btree.Insert(1);
             btree.Insert(2);
             btree.Insert(3);
@@ -20,21 +30,17 @@ namespace ConsoleApp2
             btree.Insert(5);
             btree.Insert(6);
             btree.Insert(7);
+            btree.Insert(8);
+            btree.Insert(9);
             //var isfind = btree.Find(5);
-            btree.GetAll();
+            btree.Traverse();
+            
             Console.ReadLine();
         }
+        
     }
 
-    //public class BTreeItem
-    //{
-    //    public int Value { set; get; }
 
-    //    public override string ToString()
-    //    {
-    //        return $"Value:{this.Value}";
-    //    }
-    //}
     public class BTreeNodeBase
     {
         public BTreeNode Parent { set; get; }
@@ -53,24 +59,50 @@ namespace ConsoleApp2
         public BTreeNode Next { set; get; }
     }
 
-    public class BTree
+    public class BTree<T> where T: System.IComparable<T>
     {
-        public void GetAll()
+        Comparer<T> m_Compare = Comparer<T>.Default;
+
+        public void Traverse()
         {
             var node = this.Root;
-            while(node.Nodes.Count != 0)
+            while (node.Nodes.Count != 0)
             {
                 node = node.Nodes[0];
             }
-            StringBuilder strb = new StringBuilder();
+
+            Stack<List<BTreeNode>> ll = new Stack<List<BTreeNode>>();
+            List<BTreeNode> childs = new List<BTreeNode>();
+            while (true)
+            {
+                childs.Add(node);
+                node = node.Next;
+                if (node == null)
+                {
+                    ll.Push(childs.ToList());
+                    
+                    break;
+                }
+            }
             while(true)
             {
-                node.Items.ForEach(x => strb.Append($"{x},"));
-                node = node.Next;
-                if(node == null)
+                var parents = childs.GroupBy(x => x.Parent).Select(x => x.Key).ToList();
+                ll.Push(parents);
+                childs.Clear();
+                childs.AddRange(parents);
+                if(parents.Count == 1)
                 {
                     break;
                 }
+            }
+            StringBuilder strb = new StringBuilder();
+            foreach(var levels in ll)
+            {
+                foreach(var item in levels)
+                {
+                    item.Items.ForEach(x => strb.Append($"{x},"));
+                }
+                strb.AppendLine();
             }
             System.Diagnostics.Trace.WriteLine(strb.ToString());
         }
@@ -80,6 +112,7 @@ namespace ConsoleApp2
         {
             BTreeNode hr = null;
             int index = int.MaxValue;
+
             for (int i = 0; i < node.Items.Count; i++)
             {
                 if (node.Items[i] == data)

@@ -143,10 +143,6 @@ namespace ConsoleApp1
 
 class Program
     {
-        
-        static object dyy = new { A = 1 };
-
-
         public static T Build<T>(RegistryKey reg)
         {
             var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true)
@@ -178,6 +174,23 @@ class Program
 
             return obj;
         }
+        //https://www.codeproject.com/Articles/107477/Use-of-Expression-Trees-in-NET-for-Lambda-Decompos
+        static void BuildExpr<T>(RegistryKey reg)
+        {
+            var expression = Expression.Constant(typeof(T), typeof(Type));
+            var getpps = typeof(Type).GetMethods().Where(x => x.Name == "GetProperties");
+            var getpp = Expression.Call(expression, getpps.First());
+            var linqmethods = typeof(Enumerable).GetMethods();
+
+
+            var pps1 = typeof(T).GetProperties().AsQueryable().Where(x => x.CanWrite == true).Select(x => new
+            {
+                x,
+                attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+            }).Where(x => !(x.attr is RegIgnore));
+            Expression.Loop(pps1.Expression);
+        }
+
 
         private static int AddMethod(int a, int b)
         {
@@ -280,21 +293,31 @@ class Program
 
 
 
-                var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-                var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
-                var syntax = from oo in query
-                             where oo.GetValue<string>("DisplayName") != ""
-                             let kk1 = oo.GetValue<string>("DisplayName").ToLower()
-                             let kk2 = oo.GetValue<string>("DisplayName").ToUpper()
-                             select new { d1 = oo.GetValue<string>("DisplayName"), d2 = kk1, d3 = kk2 };
+                //var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+                //var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
+                //var syntax = from oo in query
+                //             where oo.GetValue<string>("DisplayName") != ""
+                //             let kk1 = oo.GetValue<string>("DisplayName").ToLower()
+                //             let kk2 = oo.GetValue<string>("DisplayName").ToUpper()
+                //             select new { d1 = oo.GetValue<string>("DisplayName"), d2 = kk1, d3 = kk2 };
 
 
-                var qq = query.Where(x => x.GetValue<string>("DisplayName") != "")
-                    .Select(x => new { x, kk1 = x.GetValue<string>("DisplayName").ToLower() })
-                    .Select(x => new { x1 = x.x, x2 = x, kk2 = x.x.GetValue<string>("DisplayName").ToUpper() })
-                    .Select(x => new { d1=x.x1.GetValue<string>("DisplayName"), d2=x.x2.kk1, d3=x.kk2 });
+                //var qq = query.Where(x => x.GetValue<string>("DisplayName") != "")
+                //    .Select(x => new { x, kk1 = x.GetValue<string>("DisplayName").ToLower() })
+                //    .Select(x => new { x1 = x.x, x2 = x, kk2 = x.x.GetValue<string>("DisplayName").ToUpper() })
+                //    .Select(x => new { d1=x.x1.GetValue<string>("DisplayName"), d2=x.x2.kk1, d3=x.kk2 });
 
-                
+
+
+                //var pps = dst.GetProperties().Where(x => x.CanWrite == true)
+                //.Select(x => new
+                //{
+                //    x,
+                //    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                //}).Where(x => !(x.attr is RegIgnore));
+
+
+                BuildExpr<People>(null);
 
                 var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
                 var people_query = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x)).AsQueryable();

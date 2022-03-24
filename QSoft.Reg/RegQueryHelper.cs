@@ -473,61 +473,10 @@ namespace QSoft.Registry.Linq
                 }
 
             }
-
-            //foreach (var pp in pps)
-            //{
-            //    var typecode = Type.GetTypeCode(pp.PropertyType);
-            //    var property = pp.PropertyType;
-            //    if (pp.PropertyType.IsGenericType==true&&pp.PropertyType.GetGenericTypeDefinition()==typeof(Nullable<>))
-            //    {
-            //        property = pp.PropertyType.GetGenericArguments()[0];
-            //        typecode = Type.GetTypeCode(property);
-            //    }
-            //    var regattr = pp.GetCustomAttributes(true).FirstOrDefault();
-            //    Expression name = null;
-            //    if (regattr != null && regattr is RegSubKeyName)
-            //    {
-            //        RegSubKeyName subkeyname = regattr as RegSubKeyName;
-            //        var expr = subkeyname.ToExpression(pp.PropertyType, param);
-            //        var  binding = Expression.Bind(pp, expr);
-            //        bindings.Add(binding);
-            //    }
-            //    else if (regattr != null && regattr is RegPropertyName)
-            //    {
-            //        var reganme = regattr as RegPropertyName;
-            //        name = Expression.Constant(reganme.Name, typeof(string));
-            //    }
-            //    else
-            //    {
-            //        name = Expression.Constant(pp.Name, typeof(string));
-            //    }
-            //    if (name != null)
-            //    {
-            //        if (pp.PropertyType.IsGenericTypeDefinition == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-            //        {
-            //            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-            //            UnaryExpression unary1 = Expression.Convert(method, pp.PropertyType);
-            //            var binding = Expression.Bind(pp, unary1);
-            //            bindings.Add(binding);
-            //        }
-            //        else
-            //        {
-            //            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.PropertyType), param, name);
-            //            var binding = Expression.Bind(pp, method);
-            //            bindings.Add(binding);
-            //        }
-            //    }
-
-            //}
-
             var memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
 
             return memberinit;
         }
-
-
-        
-
 
         public static Type Find(this Type src, MethodInfo method, string target)
         {
@@ -669,39 +618,39 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static Dictionary<string,Type> GetTypess(this IEnumerable<Expression> src, MethodInfo method)
-        {
-            if (method.IsGenericMethod == true)
-            {
-                var method_define = method.GetGenericMethodDefinition();
-                var names = method_define.GetGenericArguments().Select(x => x.Name).ToArray();
+        //public static Dictionary<string,Type> GetTypess(this IEnumerable<Expression> src, MethodInfo method)
+        //{
+        //    if (method.IsGenericMethod == true)
+        //    {
+        //        var method_define = method.GetGenericMethodDefinition();
+        //        var names = method_define.GetGenericArguments().Select(x => x.Name).ToArray();
 
-                var method_pps = method_define.GetParameters();
-                var types1 = new Dictionary<string, Type>();
-
-
-                for (int i = 0; i < names.Length; i++)
-                {
-                    for (int j = 0; j < method_pps.Length; j++)
-                    {
-                        var ttype = names.ElementAt(i).Findd(src.ElementAt(j).Type, method_pps[j].ParameterType);
-                        if (ttype != null)
-                        {
-                            types1[names.ElementAt(i)] = ttype;
-                            break;
-                        }
-                    }
+        //        var method_pps = method_define.GetParameters();
+        //        var types1 = new Dictionary<string, Type>();
 
 
-                }
-                return types1;
-            }
-            else
-            {
-                return src.ToDictionary(x => x.Type.Name, x => x.Type);
-               // return src.Select(x => x.Type).ToArray();
-            }
-        }
+        //        for (int i = 0; i < names.Length; i++)
+        //        {
+        //            for (int j = 0; j < method_pps.Length; j++)
+        //            {
+        //                var ttype = names.ElementAt(i).Findd(src.ElementAt(j).Type, method_pps[j].ParameterType);
+        //                if (ttype != null)
+        //                {
+        //                    types1[names.ElementAt(i)] = ttype;
+        //                    break;
+        //                }
+        //            }
+
+
+        //        }
+        //        return types1;
+        //    }
+        //    else
+        //    {
+        //        return src.ToDictionary(x => x.Type.Name, x => x.Type);
+        //       // return src.Select(x => x.Type).ToArray();
+        //    }
+        //}
 
 
         public static string GetLastSegement(this string src)

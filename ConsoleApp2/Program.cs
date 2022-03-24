@@ -10,29 +10,30 @@ namespace ConsoleApp2
 {
     class Program
     {
-        static int BB<T>(T a, T b) where T : System.IComparable<T>
-        {
-            //System.IComparable<T>
-
-            return Comparer<T>.Default.Compare(a, b);
-        }
-
         static void Main(string[] args)
         {
-            //int a = Comparer<TY>.Default.Compare(new TY(), new TY());
-            //int b = Comparer<int>.Default.Compare(2, 1);
-            //int c = Comparer<int>.Default.Compare(1, 1);
             BTree<int> btree = new BTree<int>();
-            btree.Insert(1);
-            btree.Insert(2);
-            btree.Insert(3);
-            btree.Insert(4);
-            btree.Insert(5);
-            btree.Insert(6);
-            btree.Insert(7);
-            btree.Insert(8);
+            //btree.Insert(1);
+            //btree.Insert(2);
+            //btree.Insert(3);
+            //btree.Insert(4);
+            //btree.Insert(5);
+            //btree.Insert(6);
+            //btree.Insert(7);
+            //btree.Insert(8);
+            //btree.Insert(9);
+
+            
             btree.Insert(9);
-            //var isfind = btree.Find(5);
+            btree.Insert(8);
+            btree.Insert(7);
+            btree.Insert(6);
+            //btree.Insert(5);
+            //btree.Insert(4);
+            //btree.Insert(3);
+            //btree.Insert(2);
+            //btree.Insert(1);
+
             btree.Traverse();
             
             Console.ReadLine();
@@ -40,24 +41,14 @@ namespace ConsoleApp2
         
     }
 
-
-    public class BTreeNodeBase
+    public class BTreeNode<T>
     {
-        public BTreeNode Parent { set; get; }
-        public List<int> Items { set; get; } = new List<int>();
-    }
-    public class BTreeNode
-    {
-        public BTreeNode Parent { set; get; }
-        public List<int> Items { set; get; } = new List<int>();
-        public List<BTreeNode> Nodes { set; get; } = new List<BTreeNode>();
-        public BTreeNode Next { set; get; }
+        public BTreeNode<T> Parent { set; get; }
+        public List<T> Items { set; get; } = new List<T>();
+        public List<BTreeNode<T>> Nodes { set; get; } = new List<BTreeNode<T>>();
+        public BTreeNode<T> Next { set; get; }
     }
 
-    public class BTreeLeaf: BTreeNodeBase
-    {
-        public BTreeNode Next { set; get; }
-    }
 
     public class BTree<T> where T: System.IComparable<T>
     {
@@ -71,8 +62,8 @@ namespace ConsoleApp2
                 node = node.Nodes[0];
             }
 
-            Stack<List<BTreeNode>> ll = new Stack<List<BTreeNode>>();
-            List<BTreeNode> childs = new List<BTreeNode>();
+            Stack<List<BTreeNode<T>>> ll = new Stack<List<BTreeNode<T>>>();
+            List<BTreeNode<T>> childs = new List<BTreeNode<T>>();
             while (true)
             {
                 childs.Add(node);
@@ -101,29 +92,43 @@ namespace ConsoleApp2
                 foreach(var item in levels)
                 {
                     item.Items.ForEach(x => strb.Append($"{x},"));
+                    strb.Append("-");
                 }
                 strb.AppendLine();
             }
             System.Diagnostics.Trace.WriteLine(strb.ToString());
         }
-        public BTreeNode Root { protected set; get; } = null;
+        public BTreeNode<T> Root { protected set; get; } = null;
 
-        BTreeNode Insert(BTreeNode node, int data)
+        BTreeNode<T> Insert(BTreeNode<T> node, T data)
         {
-            BTreeNode hr = null;
+            BTreeNode<T> hr = null;
             int index = int.MaxValue;
-
-            for (int i = 0; i < node.Items.Count; i++)
+            if (this.m_Compare.Compare(data, node.Items.First()) < 0)
             {
-                if (node.Items[i] == data)
+                index = int.MinValue;
+            }
+            else if(this.m_Compare.Compare(data, node.Items.First()) > 0)
+            {
+                index = int.MaxValue;
+            }
+            else
+            {
+                for (int i = 0; i < node.Items.Count; i++)
                 {
-                    break;
-                }
-                else if (data < node.Items[i])
-                {
-                    break;
+                    if (this.m_Compare.Compare(node.Items[i], data) == 0)
+                    {
+                        index = i;
+                        break;
+                    }
+                    else if (this.m_Compare.Compare(data, node.Items[i]) < 0)
+                    {
+                        index = i;
+                        break;
+                    }
                 }
             }
+            
 
             if(index == int.MaxValue)
             {
@@ -138,42 +143,54 @@ namespace ConsoleApp2
                 }
                 
             }
+            else if(index == int.MinValue)
+            {
+                if (node.Nodes.Count > 0)
+                {
+                    hr = this.Insert(node.Nodes.First(), data);
+                }
+                else
+                {
+                    node.Items.Insert(0, data);
+                    hr = node;
+                }
+            }
 
-            return hr;
+                return hr;
         }
 
-        public BTreeNode CheckDegree(BTreeNode node, int degree)
+        public BTreeNode<T> CheckDegree(BTreeNode<T> node, int degree)
         {
             if (node.Items.Count > degree)
             {
-                BTreeNode right = null;
-                BTreeNode left = null;
+                BTreeNode<T> right = null;
+                BTreeNode<T> left = null;
                 int count = node.Items.Count;
                 int middle = node.Items.Count / degree;
                 if (node == this.Root)
                 {
                     if(node.Nodes.Count == 0)
                     {
-                        left = new BTreeNode();
+                        left = new BTreeNode<T>();
                         left.Items.AddRange(node.Items.Take(middle));
 
-                        right = new BTreeNode();
+                        right = new BTreeNode<T>();
                         right.Items.AddRange(node.Items.Skip(middle).Take(count - middle));
                     }
                     else
                     {
                         int takecount = node.Nodes.Count / 2;
-                        left = new BTreeNode();
+                        left = new BTreeNode<T>();
                         left.Items.AddRange(node.Items.Take(middle));
                         left.Nodes.AddRange(node.Nodes.Take(takecount));
                         left.Nodes.ForEach(x => x.Parent = left);
 
-                        right = new BTreeNode();
+                        right = new BTreeNode<T>();
                         right.Items.AddRange(node.Items.Skip(middle+1).Take(count - middle-1));
                         right.Nodes.AddRange(node.Nodes.Skip(takecount).Take(takecount));
                         right.Nodes.ForEach(x => x.Parent = right);
 
-                        var center = new BTreeNode();
+                        var center = new BTreeNode<T>();
                         center.Items.AddRange(node.Items.Skip(middle).Take(1));
                         center.Nodes.Add(left);
                         center.Nodes.Add(right);
@@ -188,27 +205,27 @@ namespace ConsoleApp2
                 }
                 else if (node.Nodes.Count == 0)
                 {
-                    left = new BTreeNode();
+                    left = new BTreeNode<T>();
                     left.Items.AddRange(node.Items.Take(middle));
 
-                    right = new BTreeNode();
+                    right = new BTreeNode<T>();
                     right.Items.AddRange(node.Items.Skip(middle).Take(count - middle));
                 }
                 else
                 {
                     int takecount = node.Nodes.Count / 2;
-                    left = new BTreeNode();
+                    left = new BTreeNode<T>();
                     left.Items.AddRange(node.Items.Take(middle));
                     left.Nodes.AddRange(node.Nodes.Take(takecount));
                     left.Nodes.ForEach(x => x.Parent = left);
 
-                    right = new BTreeNode();
+                    right = new BTreeNode<T>();
                     right.Items.AddRange(node.Items.Skip(middle + 1).Take(count - middle - 1));
                     var nodes = node.Nodes.Skip(takecount).Take(takecount);
                     right.Nodes.AddRange(node.Nodes.Skip(takecount).Take(takecount));
                     right.Nodes.ForEach(x => x.Parent = right);
 
-                    var center = node.Parent??new BTreeNode();
+                    var center = node.Parent??new BTreeNode<T>();
                     center.Nodes.Remove(node);
                     center.Items.AddRange(node.Items.Skip(middle).Take(1));
                     center.Nodes.Add(left);
@@ -222,24 +239,7 @@ namespace ConsoleApp2
                     return center;
                 }
 
-                BTreeNode parent = node.Parent ?? new BTreeNode();
-                //parent.Items.Add(node.Items[middle]);
-                //if (parent.Items[middle - 1] == left.Items[0])
-                //{
-                //    left = new BTreeNode();
-                //    left.Items.AddRange(node.Items.Take(middle));
-                //    parent.Nodes.Insert(parent.Nodes.Count-1, left);
-                //    parent.Nodes.Remove(parent.Nodes.Last());
-                //    //parent.Left.Next = left;
-                //    //parent.Nodes.Insert(0, left);
-                //}
-                //else
-                //{
-                //    //parent.Left = left;
-                //    parent.Nodes.Insert(0, left);
-                //}
-
-                //parent.Right = right;
+                BTreeNode<T> parent = node.Parent ?? new BTreeNode<T>();
                 if(parent.Items.Count == 0)
                 {
                     parent.Items.Add(node.Items[middle]);
@@ -252,14 +252,15 @@ namespace ConsoleApp2
                 else
                 {
                     int findindex = int.MaxValue;
+
                     for (int i = 0; i < parent.Items.Count; i++)
                     {
-                        if (parent.Items[i] == node.Items[middle])
+                        if (this.m_Compare.Compare(parent.Items[i], node.Items[middle]) == 0)
                         {
                             findindex = i;
                             break;
                         }
-                        else if (parent.Items[i] > node.Items[middle])
+                        else if (this.m_Compare.Compare(parent.Items[i], node.Items[middle]) >=0)
                         {
                             findindex = i;
                             break;
@@ -317,11 +318,11 @@ namespace ConsoleApp2
             return node;
         }
 
-        public void Insert(int data)
+        public void Insert(T data)
         {
             if(this.Root == null)
             {
-                this.Root = new BTreeNode();
+                this.Root = new BTreeNode<T>();
                 this.Root.Items.Add(data);
             }
             else
@@ -347,7 +348,7 @@ namespace ConsoleApp2
         //    return this.Find(this.Root, data);
         //}
 
-        //bool Find(BTreeNode node, int data)
+        //bool Find(BTreeNode<T> node, int data)
         //{
         //    int index = 0;
         //    for (; index < node.Items.Count; index++)

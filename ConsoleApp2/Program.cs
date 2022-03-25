@@ -13,27 +13,76 @@ namespace ConsoleApp2
         static void Main(string[] args)
         {
             BTree<int> btree = new BTree<int>();
-            //btree.Insert(1);
-            //btree.Insert(2);
-            //btree.Insert(3);
-            //btree.Insert(4);
-            //btree.Insert(5);
-            //btree.Insert(6);
-            //btree.Insert(7);
-            //btree.Insert(8);
-            //btree.Insert(9);
-
-            
-            btree.Insert(9);
-            btree.Insert(8);
-            btree.Insert(7);
+            btree.Insert(1);
+            btree.Insert(2);
+            btree.Insert(3);
+            btree.Insert(4);
+            btree.Insert(5);
             btree.Insert(6);
+            btree.Insert(7);
+            btree.Insert(8);
+            btree.Insert(9);
+
+
+            //btree.Insert(9);
+            //btree.Insert(8);
+            //btree.Insert(7);
+            //btree.Insert(6);
             //btree.Insert(5);
             //btree.Insert(4);
             //btree.Insert(3);
             //btree.Insert(2);
             //btree.Insert(1);
 
+            var lls = new Stack<List<List<int>>>();
+            lls.Push(new List<List<int>>() { new List<int>() { 1 }, new List<int>() { 2 }, new List<int>() { 3 }, new List<int>() { 4 }, new List<int>() { 5 }, new List<int>() { 6 }, new List<int>() { 7 }, new List<int>() { 8, 9 } });
+            lls.Push(new List<List<int>>() { new List<int>() { 2 }, new List<int>() { 4 }, new List<int>() { 6 }, new List<int>() { 8 } });
+            lls.Push(new List<List<int>>() { new List<int>() { 3 }, new List<int>() { 7 } });
+            lls.Push(new List<List<int>>() { new List<int>() { 5 } });
+            var op = lls.Aggregate(new StringBuilder(), (aa, bb) =>
+            {
+                aa.AppendLine(bb.Aggregate("", (hh, yy) =>
+                {
+                    var str = yy.Select(x => x.ToString()).Aggregate("", (x, y) => x + (string.IsNullOrEmpty(x) ? "" : ",") + y);
+                    if (string.IsNullOrEmpty(hh) == false)
+                    {
+                        str = hh + "-" + str;
+                    }
+                    return str;
+                }));
+                return aa;
+            });
+            System.Diagnostics.Trace.WriteLine(op.ToString());
+
+            StringBuilder strb = new StringBuilder();
+            foreach(var ll in lls)
+            {
+                var sb = new StringBuilder();
+
+
+                var aaaa = ll.Aggregate("", (hh, yy) =>
+                {
+                    var str = yy.Select(x => x.ToString()).Aggregate("", (x, y) => x + (string.IsNullOrEmpty(x) ? "" : ",") + y);
+                    if (string.IsNullOrEmpty(hh) == false)
+                    {
+                        str = hh+"-" + str;
+                    }
+
+                    return str;
+                });
+                strb.AppendLine(aaaa);
+            }
+            System.Diagnostics.Trace.WriteLine(strb.ToString());
+            var hhr = Enumerable.Range(1, 5).Select(x=>x.ToString()).Aggregate("", (x, y) =>
+            {
+                return x+(x==""?"":",") + y;
+                if(string.IsNullOrEmpty(x)==false)
+                {
+                    x = x + ",";
+                }
+                x = x + y;
+                return x;
+            });
             btree.Traverse();
             
             Console.ReadLine();
@@ -91,7 +140,8 @@ namespace ConsoleApp2
             {
                 foreach(var item in levels)
                 {
-                    item.Items.ForEach(x => strb.Append($"{x},"));
+                    //item.Items.ForEach(x => strb.Append($"{x},"));
+                    strb.Append(item.Items.Select(x => x.ToString()).Aggregate("", (x, y) => x + (x == "" ? "" : ",") + y));
                     strb.Append("-");
                 }
                 strb.AppendLine();

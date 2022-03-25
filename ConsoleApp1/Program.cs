@@ -177,18 +177,30 @@ class Program
         //https://www.codeproject.com/Articles/107477/Use-of-Expression-Trees-in-NET-for-Lambda-Decompos
         static void BuildExpr<T>(RegistryKey reg)
         {
-            var expression = Expression.Constant(typeof(T), typeof(Type));
-            var getpps = typeof(Type).GetMethods().Where(x => x.Name == "GetProperties");
-            var getpp = Expression.Call(expression, getpps.First());
-            var linqmethods = typeof(Enumerable).GetMethods();
-
-
-            var pps1 = typeof(T).GetProperties().AsQueryable().Where(x => x.CanWrite == true).Select(x => new
+            try
             {
-                x,
-                attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
-            }).Where(x => !(x.attr is RegIgnore));
-            Expression.Loop(pps1.Expression);
+                var pps = typeof(T).GetProperties();
+                
+                foreach (var pp in pps)
+                {
+
+                }
+                var expression = Expression.Constant(typeof(T), typeof(Type));
+                var getproperties = typeof(Type).GetMethods().Where(x => x.Name == "GetProperties");
+                var getproperties_expr = Expression.Call(expression, getproperties.First());
+
+                ParameterExpression enumerableExpression = Expression.Parameter(getproperties_expr.Type, "x");
+
+                ParameterExpression enumerator = Expression.Variable(getproperties_expr.Type, "enumerator");
+                var getenumerator = getproperties_expr.Type.GetMethod("GetEnumerator");
+                var getenumerator_expr = Expression.Call(enumerableExpression, getenumerator);
+                BinaryExpression assignenumerator = Expression.Assign(enumerator, Expression.Call(enumerableExpression, getenumerator));
+            }
+            catch(Exception ee)
+            {
+                System.Diagnostics.Trace.WriteLine(ee.Message);
+            }
+            
         }
 
 

@@ -141,7 +141,14 @@ namespace ConsoleApp1
         public List<Phone> phones { set; get; }
     }
 
-class Program
+    public static class ExpressionEX
+    {
+        public static void Foreach(this Expression src)
+        {
+
+        }
+    }
+    class Program
     {
         public static T Build<T>(RegistryKey reg)
         {
@@ -174,29 +181,113 @@ class Program
 
             return obj;
         }
+
+        public static T Build1<T>(RegistryKey reg)
+        {
+            var pps = typeof(T).GetProperties().Where(x => x.CanWrite == true)
+                .Select(x => new
+                {
+                    x,
+                    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                }).Where(x => !(x.attr is RegIgnore));
+            T obj = Activator.CreateInstance<T>();
+            foreach (var pp in pps)
+            {
+                var typecode = Type.GetTypeCode(pp.x.PropertyType);
+                if (typecode == TypeCode.Object)
+                {
+                    if (reg.GetSubKeyNames().Any(x => x == pp.x.Name) == true)
+                    {
+                        var methd = typeof(Program).GetMethods().Where(x => x.Name == "Build");
+                        var subobj = methd.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg.OpenSubKey(pp.x.Name) });
+                        pp.x.SetValue(obj, subobj);
+                    }
+                }
+                else
+                {
+                    var vv = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
+                    var h = vv.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg, pp.x.Name });
+                    pp.x.SetValue(obj, h);
+                }
+            }
+
+            return obj;
+        }
+
+        public static IEnumerable<PropertyInfo> GetPPs<T>()
+        {
+            return typeof(T).GetProperties();
+        }
+
+
         //https://www.codeproject.com/Articles/107477/Use-of-Expression-Trees-in-NET-for-Lambda-Decompos
         static void BuildExpr<T>(RegistryKey reg)
         {
             try
             {
-                var pps = typeof(T).GetProperties();
-                
-                foreach (var pp in pps)
-                {
+                var vv = typeof(People).GetProperties().AsQueryable().Where(x => x.CanWrite == true);
+                var m = (vv.Expression as MethodCallExpression);
+                var t = Expression.Constant(typeof(T), typeof(Type));
+                var mm = typeof(Type).GetMethod("GetProperties", new Type[] { });
+                var getproperty_expr = Expression.Call(t, mm);
+                Expression<Func<PropertyInfo[]>> ll = Expression.Lambda<Func<PropertyInfo[]>>(getproperty_expr);
+                var oi = ll.Compile();
+                var aaaa = oi();
 
-                }
-                var expression = Expression.Constant(typeof(T), typeof(Type));
-                var getproperties = typeof(Type).GetMethods().Where(x => x.Name == "GetProperties");
-                var getproperties_expr = Expression.Call(expression, getproperties.First());
+                var asenumable = typeof(Enumerable).GetMethod("AsEnumerable");
+                asenumable = asenumable.MakeGenericMethod(typeof(PropertyInfo));
+                var asenumable_expr = Expression.Call(asenumable, getproperty_expr);
 
-                ParameterExpression enumerableExpression = Expression.Parameter(getproperties_expr.Type, "x");
+                var where = typeof(Enumerable).GetMethods().Where(x => x.Name == "Where").First();
+                where = where.MakeGenericMethod(typeof(PropertyInfo));
+                var parameter = Expression.Parameter(typeof(PropertyInfo), "x");
+                var p = Expression.Property(parameter, "CanWrite");
+                var binary = Expression.MakeBinary(ExpressionType.Equal, p, Expression.Constant(true, typeof(bool)));
+                var lambda = Expression.Lambda(binary, parameter);
+                var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, lambda.Type);
 
-                ParameterExpression enumerator = Expression.Variable(getproperties_expr.Type, "enumerator");
-                var getenumerator = getproperties_expr.Type.GetMethod("GetEnumerator");
-                var getenumerator_expr = Expression.Call(enumerableExpression, getenumerator);
-                BinaryExpression assignenumerator = Expression.Assign(enumerator, Expression.Call(enumerableExpression, getenumerator));
+                var where_expr = Expression.Call(where, getproperty_expr, lambda);
+
+                var t1 = Expression.Lambda<IEnumerable<PropertyInfo>>(where_expr);
+
+                mm = null;
+                //ParameterExpression enumerableExpression = Expression.Parameter(typeof(IEnumerable<PropertyInfo>), "x");
+
+
+
+                //ParameterExpression enumerator = Expression.Variable(typeof(IEnumerator<PropertyInfo>), "enumerator");
+                //BinaryExpression assignenumerator = Expression.Assign(enumerator,
+                //    Expression.Call(enumerableExpression, typeof(IEnumerable<PropertyInfo>).GetMethod("GetEnumerator")));
+
+
+                //var currentelement = Expression.Parameter(typeof(PropertyInfo), "i");
+                //var ss = typeof(System.Diagnostics.Trace).GetMethod("WriteLine", new Type[] { typeof(string) });
+                //var pp = Expression.Property(currentelement, "Name");
+                //var methodcall = Expression.Call(null, ss, pp);
+                //var callCurrent = Expression.Assign(currentelement, Expression.Property(enumerator, "Current"));
+
+
+                //MethodCallExpression movenext = Expression.Call(enumerator, typeof(IEnumerator).GetMethod("MoveNext"));
+
+                //LabelTarget looplabel = Expression.Label("looplabel");
+                //LabelTarget returnLabel = Expression.Label(typeof(bool), "retval");
+
+                //BlockExpression block = Expression.Block(
+                //        new ParameterExpression[] {enumerator, currentelement },
+                //        assignenumerator,
+                //        Expression.Loop(
+                //            Expression.IfThenElse(
+                //                Expression.NotEqual(movenext, Expression.Constant(false)),
+                //                Expression.Block(callCurrent, methodcall),
+                //                Expression.Break(looplabel)),
+                //                looplabel));
+
+                //Expression<Action<IEnumerable<PropertyInfo>>> lambda = Expression.Lambda<Action<IEnumerable<PropertyInfo>>>(block, enumerableExpression);
+
+                //Action<IEnumerable<PropertyInfo>> dividesectionmethod = lambda.Compile();
+                //dividesectionmethod(typeof(T).GetProperties());
             }
-            catch(Exception ee)
+            catch (Exception ee)
             {
                 System.Diagnostics.Trace.WriteLine(ee.Message);
             }
@@ -208,6 +299,8 @@ class Program
         {
             return a + b;
         }
+
+        
 
 
         static private void Test()
@@ -256,7 +349,7 @@ class Program
 
         static void Main(string[] args)
         {
-            Test();
+            //Test();
 
             //add2(1, 2);
             //add3(1, 2);
@@ -329,13 +422,14 @@ class Program
                 //}).Where(x => !(x.attr is RegIgnore));
 
 
+
                 BuildExpr<People>(null);
 
                 var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
                 var people_query = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x)).AsQueryable();
 
                 var peopels = people_query.Select(x => Build<People>(x));
-                foreach(var oo in peopels)
+                foreach (var oo in peopels)
                 {
 
                 }
@@ -471,7 +565,7 @@ class Program
             {
 
             }
-            var testq = regt.Where(x => x.DisplayName.Contains("A"));
+            var testq = regt.Where(x => x.DisplayName.Contains("A")).ToList();
             var tolist = testq.ToList();
             var dictionary = testq.ToLookup(x => x.DisplayName);
             regt.GroupBy(x => x.DisplayName, x => x.DisplayName).ToList();

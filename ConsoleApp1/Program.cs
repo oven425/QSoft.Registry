@@ -135,19 +135,13 @@ namespace ConsoleApp1
 
     public class People
     {
+        [RegIgnore]
         public string Name { set; get; }
         public int Height { set; get; }
         //public Phone phones { set; get; }
         public List<Phone> phones { set; get; }
     }
 
-    public static class ExpressionEX
-    {
-        public static void Foreach(this Expression src)
-        {
-
-        }
-    }
     class Program
     {
         public static T Build<T>(RegistryKey reg)
@@ -225,6 +219,13 @@ namespace ConsoleApp1
         {
             try
             {
+                var pps = typeof(T).GetProperties().AsQueryable().Where(x => x.CanWrite == true)
+                .Select(x => new
+                {
+                    x,
+                    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                }).Where((x,i)=>!(x.attr is RegIgnore));
+
                 var vv = typeof(People).GetProperties().AsQueryable().Where(x => x.CanWrite == true);
                 var m = (vv.Expression as MethodCallExpression);
                 var t = Expression.Constant(typeof(T), typeof(Type));
@@ -234,9 +235,6 @@ namespace ConsoleApp1
                 var oi = ll.Compile();
                 var aaaa = oi();
 
-                var asenumable = typeof(Enumerable).GetMethod("AsEnumerable");
-                asenumable = asenumable.MakeGenericMethod(typeof(PropertyInfo));
-                var asenumable_expr = Expression.Call(asenumable, getproperty_expr);
 
                 var where = typeof(Enumerable).GetMethods().Where(x => x.Name == "Where").First();
                 where = where.MakeGenericMethod(typeof(PropertyInfo));
@@ -244,13 +242,69 @@ namespace ConsoleApp1
                 var p = Expression.Property(parameter, "CanWrite");
                 var binary = Expression.MakeBinary(ExpressionType.Equal, p, Expression.Constant(true, typeof(bool)));
                 var lambda = Expression.Lambda(binary, parameter);
-                var unary = Expression.MakeUnary(ExpressionType.Quote, lambda, lambda.Type);
 
+                var wwwh = ExpressionEx.Where(getproperty_expr, lambda);
                 var where_expr = Expression.Call(where, getproperty_expr, lambda);
+                var t1 = Expression.Lambda<Func<IEnumerable<PropertyInfo>>>(wwwh);
 
-                var t1 = Expression.Lambda<IEnumerable<PropertyInfo>>(where_expr);
+                var aa = new List<Tuple<Type, string>>() { Tuple.Create(typeof(PropertyInfo), "x"), Tuple.Create(typeof(object), "attr")};
+                var select_type= aa.BuildType(null);
+                var pos = select_type.GetProperties().Where(x => x.CanWrite == true);
+                var select_param = Expression.Parameter(typeof(PropertyInfo), "x");
+                List<Expression> exprs = new List<Expression>();
+                foreach(var po in pos)
+                {
+                    switch(po.Name)
+                    {
+                        case "x":
+                            {
+                                exprs.Add(select_param);
+                            }
+                            break;
+                        case "attr":
+                            {
+                                var method = typeof(PropertyInfo).GetMethod("GetCustomAttributes", new Type[] {typeof(bool) });
+                                var getcust_expr = Expression.Call(select_param, method, Expression.Constant(true));
 
+                                //exprs.Add(Expression.Call(select_param, method, Expression.Constant(true)));
+                                var first_param = Expression.Parameter(typeof(object), "x");
+                                var is_regsubkey = Expression.TypeIs(first_param, typeof(RegSubKeyName));
+                                var is_regignore = Expression.TypeIs(first_param, typeof(RegIgnore));
+                                var is_regproperty = Expression.TypeIs(first_param, typeof(RegPropertyName));
+                                var or1 = Expression.MakeBinary(ExpressionType.Or, is_regsubkey, is_regignore);
+                                or1 = Expression.MakeBinary(ExpressionType.Or, or1, is_regproperty);
+                                var first_lambda = Expression.Lambda(or1, first_param);
+                                var first = typeof(Enumerable).GetMethods().Where(x => x.Name == "FirstOrDefault").Last().MakeGenericMethod(typeof(object));
+                                var first_expr = Expression.Call(first, getcust_expr, first_lambda);
+                                exprs.Add(first_expr);
+                            }
+                            break;
+                    }
+                }
+                var ccs = select_type.GetConstructors();
+                var owi = ccs[0].GetParameters();
+                var expr_new = Expression.New(select_type.GetConstructors()[0], exprs);
+                var select_lambda = Expression.Lambda(expr_new, select_param);
+                var select = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").First().MakeGenericMethod(typeof(PropertyInfo), select_type);
+                var select_expr = Expression.Call(select, where_expr, select_lambda);
+                select_expr = ExpressionEx.Select(where_expr, select_lambda);
+
+                var where_param = Expression.Parameter(select_expr.Type.GetGenericArguments()[0], "x");
+                var where_param1 = Expression.Property(where_param, "attr");
+                var where_binary = Expression.MakeBinary(ExpressionType.NotEqual, Expression.TypeIs(where_param1, typeof(RegIgnore)), Expression.Constant(true));
+
+                where = typeof(Enumerable).GetMethods().Where(x => x.Name == "Where").First().MakeGenericMethod(select_expr.Type.GetGenericArguments()[0]);
+                var where_expr1 = Expression.Call(where, select_expr, Expression.Lambda(where_binary, where_param));
+                where_expr1 = ExpressionEx.Where(select_expr, Expression.Lambda(where_binary, where_param));
+                var uy = typeof(Func<>).MakeGenericType(select_expr.Type);
+                var mmmm = typeof(Expression).GetMethods().Where(x => x.Name == "Lambda"&&x.IsGenericMethod).First().MakeGenericMethod(uy);
+                //var pp_func = Expression.Lambda<uy.GetType()>(where_expr1);
+                var sss = Expression.Lambda(where_expr1).Compile();
+                var pou = sss.DynamicInvoke();
                 mm = null;
+
+
+
                 //ParameterExpression enumerableExpression = Expression.Parameter(typeof(IEnumerable<PropertyInfo>), "x");
 
 

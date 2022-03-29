@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace QSoft.Registry.Linq
 {
-    internal static class RegQueryHelper
+    public static class RegQueryHelper
     {
         static int m_BuildTypeCount = 0;
         static void AddProperty(this TypeBuilder tb, FieldBuilder fbNumber, GenericTypeParameterBuilder generic, bool canread, bool canwrite)
@@ -137,7 +137,7 @@ namespace QSoft.Registry.Linq
 
             foreach (var oo in fileds.Zip(ggps, (x, y)=>new { x,y}))
             {
-                AddProperty(tb, oo.x, oo.y, true, false);
+                AddProperty(tb, oo.x, oo.y, true, true);
             }
 
             var type = tb.CreateType();

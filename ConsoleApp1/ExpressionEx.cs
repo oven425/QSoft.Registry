@@ -61,5 +61,14 @@ namespace ConsoleApp1
             var methodcall = Expression.Call(method, src, lambda);
             return methodcall;
         }
+
+
+        public static MethodCallExpression FirstOrDefault(Expression src, LambdaExpression lambda)
+        {
+            var method = typeof(Enumerable).GetMethods().FirstOrDefault(x => x.Name == "FirstOrDefault" && x.GetParameters().Length>1);
+            method = method.MakeGenericMethod(src.GetType1());
+            var methodcall = Expression.Call(method, src, lambda);
+            return methodcall;
+        }
     }
 }

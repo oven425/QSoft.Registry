@@ -70,5 +70,28 @@ namespace ConsoleApp1
             var methodcall = Expression.Call(method, src, lambda);
             return methodcall;
         }
+
+        public static MethodCallExpression ToString(Expression src)
+        {
+            var method = src.Type.GetMethod("ToString", new Type[] { });
+            var methodcall = Expression.Call(src, method);
+            return methodcall;
+        }
+
+        public static MethodCallExpression ToStringExpr(this Expression src)
+        {
+            var method = src.Type.GetMethod("ToString", new Type[] { });
+            var methodcall = Expression.Call(src, method);
+            return methodcall;
+        }
+
+        public static MethodCallExpression WriteLineExpr(this Expression src)
+        {
+            var expr = src.ToStringExpr();
+            var method = typeof(System.Diagnostics.Trace).GetMethod("WriteLine");
+            var methodcall = Expression.Call(src, method);
+            return methodcall;
+        }
+
     }
 }

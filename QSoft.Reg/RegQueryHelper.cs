@@ -420,7 +420,6 @@ namespace QSoft.Registry.Linq
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
             var getvaluenames = typeof(RegistryKey).GetMethod("GetValueNames");
 
-            //var pps = dst.GetProperties().Where(x => x.CanWrite == true && x.GetCustomAttributes(typeof(RegIgnore), true).Length == 0);
             var pps = dst.GetProperties().Where(x => x.CanWrite == true)
                 .Select(x => new
                 {

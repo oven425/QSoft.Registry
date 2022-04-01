@@ -303,6 +303,7 @@ namespace ConsoleApp1
                 var typecodeelement = Expression.Parameter(typeof(TypeCode), "typecode");
                 var bindingselement = Expression.Parameter(typeof(List<MemberAssignment>), "bindings");
                 var nameelement = Expression.Parameter(typeof(string), "name");
+                var propertyinfoelement = Expression.Parameter(typeof(PropertyInfo), "propertyinfo");
 
                 //var propertytype_var = Expression.Parameter(typeof(Type), "property");
                 //var propertytype_expr = Expression.Property(Expression.Property(currentelement, "x"), "PropertyType");
@@ -344,12 +345,15 @@ namespace ConsoleApp1
                 var movenext_expr_hr = Expression.NotEqual(movenext_expr, Expression.Constant(false));
 
                 var method1 = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(propertyelement.Type), Expression.Constant(reg, typeof(RegistryKey)), nameelement);
-                //var binding = Expression.Bind(pp.x, method);
-                var build_block_expr = Expression.Block(method1);
+                var convert = Expression.Convert(method1, propertyelement.Type);
+                var mmes = typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression)});
+                //var bind_expr = Expression.Call(mmes, Expression.Constant(null, typeof(PropertyInfo)), convert);
+                //Expression.Bind(Expression.Property(currentelement, "x"))
+                var build_block_expr = Expression.Block(convert);
 
                 var if_nullable_expr1 = Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso, cch1, cch2), build_block_expr);
 
-                var if_buid_expr = Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, nameelement, Expression.Constant(null, typeof(Expression))), if_nullable_expr1);
+                var if_buid_expr = Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, nameelement, Expression.Constant(null, typeof(string))), if_nullable_expr1);
 
                 var dd = Expression.IfThenElse(movenext_expr_hr, Expression.Block(
                     new ParameterExpression[] { propertyelement, typecodeelement, nameelement }
@@ -544,12 +548,13 @@ namespace ConsoleApp1
 
 
                 //Build<People>(null);
-                BuildExpr<People>(null);
+                
 
                 var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
-                var people_query = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x)).AsQueryable();
-
-                var peopels = people_query.Select(x => Build<People>(x));
+                var peoplekeys = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x));
+                var peoples_query = peoplekeys.AsQueryable();
+                BuildExpr<People>(peoplekeys.First());
+                var peopels = peoples_query.Select(x => Build<People>(x));
                 foreach (var oo in peopels)
                 {
 

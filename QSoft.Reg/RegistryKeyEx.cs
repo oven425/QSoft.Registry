@@ -2,18 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Win32;
 
 namespace QSoft.Registry
 {
     public static class RegistryKeyEx
     {
-        public interface IHeiratey<T> :IEnumerable<T>
-        {
-            IEnumerable<T> Childs { set; get; }
-
-        }
-
         public static IEnumerable<RegistryKey> FindAll(this RegistryKey src, Func<RegistryKey, bool> func)
         {
             var subkeys = src.GetSubKeyNames();
@@ -37,6 +32,13 @@ namespace QSoft.Registry
                     
                 }
             }
+        }
+
+        public static void Test(this RegistryKey src, Type expr, string name)
+        {
+            var tt = expr.GetType();
+            var methods = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue").First().MakeGenericMethod(expr);
+            Expression.Call(methods, Expression.Constant(name));
         }
 
         public static T GetValue<T>(this RegistryKey src, string name)

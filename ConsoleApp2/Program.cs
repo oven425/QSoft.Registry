@@ -13,76 +13,28 @@ namespace ConsoleApp2
         static void Main(string[] args)
         {
             BTree<int> btree = new BTree<int>();
-            btree.Insert(1);
-            btree.Insert(2);
-            btree.Insert(3);
-            btree.Insert(4);
-            btree.Insert(5);
-            btree.Insert(6);
-            btree.Insert(7);
-            btree.Insert(8);
-            btree.Insert(9);
-
-
-            //btree.Insert(9);
-            //btree.Insert(8);
-            //btree.Insert(7);
-            //btree.Insert(6);
-            //btree.Insert(5);
-            //btree.Insert(4);
-            //btree.Insert(3);
-            //btree.Insert(2);
             //btree.Insert(1);
-
-            var lls = new Stack<List<List<int>>>();
-            lls.Push(new List<List<int>>() { new List<int>() { 1 }, new List<int>() { 2 }, new List<int>() { 3 }, new List<int>() { 4 }, new List<int>() { 5 }, new List<int>() { 6 }, new List<int>() { 7 }, new List<int>() { 8, 9 } });
-            lls.Push(new List<List<int>>() { new List<int>() { 2 }, new List<int>() { 4 }, new List<int>() { 6 }, new List<int>() { 8 } });
-            lls.Push(new List<List<int>>() { new List<int>() { 3 }, new List<int>() { 7 } });
-            lls.Push(new List<List<int>>() { new List<int>() { 5 } });
-            var op = lls.Aggregate(new StringBuilder(), (aa, bb) =>
-            {
-                aa.AppendLine(bb.Aggregate("", (hh, yy) =>
-                {
-                    var str = yy.Select(x => x.ToString()).Aggregate("", (x, y) => x + (string.IsNullOrEmpty(x) ? "" : ",") + y);
-                    if (string.IsNullOrEmpty(hh) == false)
-                    {
-                        str = hh + "-" + str;
-                    }
-                    return str;
-                }));
-                return aa;
-            });
-            System.Diagnostics.Trace.WriteLine(op.ToString());
-
-            StringBuilder strb = new StringBuilder();
-            foreach(var ll in lls)
-            {
-                var sb = new StringBuilder();
+            //btree.Insert(2);
+            //btree.Insert(3);
+            //btree.Insert(4);
+            //btree.Insert(5);
+            //btree.Insert(6);
+            //btree.Insert(7);
+            //btree.Insert(8);
+            //btree.Insert(9);
 
 
-                var aaaa = ll.Aggregate("", (hh, yy) =>
-                {
-                    var str = yy.Select(x => x.ToString()).Aggregate("", (x, y) => x + (string.IsNullOrEmpty(x) ? "" : ",") + y);
-                    if (string.IsNullOrEmpty(hh) == false)
-                    {
-                        str = hh+"-" + str;
-                    }
+            btree.Insert(9);
+            btree.Insert(8);
+            btree.Insert(7);
+            btree.Insert(6);
+            btree.Insert(5);
+            btree.Insert(4);
+            btree.Insert(3);
+            btree.Insert(2);
+            btree.Insert(1);
 
-                    return str;
-                });
-                strb.AppendLine(aaaa);
-            }
-            System.Diagnostics.Trace.WriteLine(strb.ToString());
-            var hhr = Enumerable.Range(1, 5).Select(x=>x.ToString()).Aggregate("", (x, y) =>
-            {
-                return x+(x==""?"":",") + y;
-                if(string.IsNullOrEmpty(x)==false)
-                {
-                    x = x + ",";
-                }
-                x = x + y;
-                return x;
-            });
+
             btree.Traverse();
             
             Console.ReadLine();
@@ -136,17 +88,20 @@ namespace ConsoleApp2
                 }
             }
             StringBuilder strb = new StringBuilder();
-            foreach(var levels in ll)
+            var op = ll.Aggregate(new StringBuilder(), (aa, bb) =>
             {
-                foreach(var item in levels)
+                aa.AppendLine(bb.Aggregate("", (hh, yy) =>
                 {
-                    //item.Items.ForEach(x => strb.Append($"{x},"));
-                    strb.Append(item.Items.Select(x => x.ToString()).Aggregate("", (x, y) => x + (x == "" ? "" : ",") + y));
-                    strb.Append("-");
-                }
-                strb.AppendLine();
-            }
-            System.Diagnostics.Trace.WriteLine(strb.ToString());
+                    var str = yy.Items.Select(x=>x).Select(x => x.ToString()).Aggregate("", (x, y) => x + (string.IsNullOrEmpty(x) ? "" : ",") + y);
+                    if (string.IsNullOrEmpty(hh) == false)
+                    {
+                        str = hh + "-" + str;
+                    }
+                    return str;
+                }));
+                return aa;
+            });
+            System.Diagnostics.Trace.WriteLine(op.ToString());
         }
         public BTreeNode<T> Root { protected set; get; } = null;
 
@@ -257,7 +212,6 @@ namespace ConsoleApp2
                 {
                     left = new BTreeNode<T>();
                     left.Items.AddRange(node.Items.Take(middle));
-
                     right = new BTreeNode<T>();
                     right.Items.AddRange(node.Items.Skip(middle).Take(count - middle));
                 }
@@ -317,7 +271,11 @@ namespace ConsoleApp2
                         }
                     }
                     parent.Nodes.Remove(node);
-
+                    if(left.Nodes.Count == 0)
+                    {
+                        left.Next = right;
+                        right.Next = node.Next;
+                    }
                     if (findindex == int.MaxValue)
                     {
                         parent.Items.Add(node.Items[middle]);
@@ -340,18 +298,19 @@ namespace ConsoleApp2
                     }
                     else
                     {
-                        parent.Nodes.Insert(findindex + 1, left);
+                        parent.Nodes.Insert(findindex + 1, right);
                     }
+
                     for (int i = 0; i < parent.Nodes.Count; i++)
                     {
-                        if (i + 1 == parent.Nodes.Count)
-                        {
-                            parent.Nodes[i].Next = null;
-                        }
-                        else
-                        {
-                            parent.Nodes[i].Next = parent.Nodes[i + 1];
-                        }
+                        //if (i + 1 == parent.Nodes.Count)
+                        //{
+                        //    parent.Nodes[i].Next = null;
+                        //}
+                        //else
+                        //{
+                        //    parent.Nodes[i].Next = parent.Nodes[i + 1];
+                        //}
                         parent.Nodes[i].Parent = parent;
                     }
                 }

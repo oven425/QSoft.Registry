@@ -230,22 +230,23 @@ namespace ConsoleApp1
                 var poi = m3.Method.GetParameters();
                 var m4 = m3.Arguments[1] as MethodCallExpression;
                 List<MemberBinding> bbindings = new List<MemberBinding>();
+                
                 try
                 {
                     foreach (var pp in pps)
                     {
-                        //var m3_1_arg0 = Expression.Call(Expression.Constant(reg_getvalue), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), Expression.Constant(pp.x.PropertyType, typeof(Type))));
-                        //var m3_1_arg1 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(reg));
-                        //var m3_1_arg2 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(pp.x.Name));
-                        //var m3_1 = Expression.Call(typeof(Expression).GetMethod("Call", new Type[] {typeof(MethodInfo), typeof(Expression), typeof(Expression)}), m3_1_arg0, m3_1_arg1, m3_1_arg2);
+                        var m3_1_arg0 = Expression.Call(Expression.Constant(reg_getvalue), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), Expression.Constant(pp.x.PropertyType, typeof(Type))));
+                        var m3_1_arg1 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(reg));
+                        var m3_1_arg2 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(pp.x.Name));
+                        var m3_1 = Expression.Call(typeof(Expression).GetMethod("Call", new Type[] { typeof(MethodInfo), typeof(Expression), typeof(Expression) }), m3_1_arg0, m3_1_arg1, m3_1_arg2);
 
-                        //var m2_1_arg0 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(typeof(string)));
-                        //var m2_1_arg1 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(m3_1));
-                        //var bind_method = typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) });
-                        //var m2_1 = Expression.Call(bind_method, Expression.Constant(pp.x), m3_1);
-                        
-                        //var po1i = Expression.Lambda(m2_1).Compile().DynamicInvoke() as MemberBinding;
-                        //bbindings.Add(po1i);
+                        var m2_1_arg0 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(typeof(string)));
+                        var m2_1_arg1 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(m3_1));
+                        var bind_method = typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) });
+                        var m2_1 = Expression.Call(bind_method, Expression.Constant(pp.x), m3_1);
+
+                        var po1i = Expression.Lambda(m2_1).Compile().DynamicInvoke() as MemberBinding;
+                        bbindings.Add(po1i);
                     }
 
                     
@@ -314,7 +315,7 @@ namespace ConsoleApp1
                 var where_expr = ExpressionEx.Where(getproperty_expr, lambda);
                 var t1 = Expression.Lambda<Func<IEnumerable<PropertyInfo>>>(where_expr);
 
-                var aa = new List<Tuple<Type, string>>() {Tuple.Create(typeof(MemberBinding), "binding"), Tuple.Create(typeof(PropertyInfo), "x"), Tuple.Create(typeof(object), "attr")};
+                var aa = new List<Tuple<Type, string>>() {Tuple.Create(typeof(PropertyInfo), "x"), Tuple.Create(typeof(object), "attr")};
                 var select_type= aa.BuildType(null);
                 var pos = select_type.GetProperties().Where(x => x.CanWrite == true);
                 var select_param = Expression.Parameter(typeof(PropertyInfo), "x");
@@ -323,20 +324,6 @@ namespace ConsoleApp1
                 {
                     switch(po.Name)
                     {
-                        case "binding":
-                            {
-                                var m3_1_arg0 = Expression.Call(Expression.Constant(reg_getvalue), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), Expression.Constant(po.PropertyType, typeof(Type))));
-                                var m3_1_arg1 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(reg));
-                                var m3_1_arg2 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(po.Name));
-                                var m3_1 = Expression.Call(typeof(Expression).GetMethod("Call", new Type[] { typeof(MethodInfo), typeof(Expression), typeof(Expression) }), m3_1_arg0, m3_1_arg1, m3_1_arg2);
-
-                                var m2_1_arg0 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(typeof(string)));
-                                var m2_1_arg1 = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(m3_1));
-                                var bind_method = typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) });
-                                var m2_1 = Expression.Call(bind_method, Expression.Constant(po), m3_1);
-                                exprs.Add(m2_1);
-                            }
-                            break;
                         case "x":
                             {
                                 exprs.Add(select_param);

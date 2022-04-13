@@ -71,13 +71,6 @@ namespace ConsoleApp1
             return methodcall;
         }
 
-        public static MethodCallExpression ToString(Expression src)
-        {
-            var method = src.Type.GetMethod("ToString", new Type[] { });
-            var methodcall = Expression.Call(src, method);
-            return methodcall;
-        }
-
         public static MethodCallExpression ToStringExpr(this Expression src)
         {
             var method = src.Type.GetMethod("ToString", new Type[] { });
@@ -88,9 +81,21 @@ namespace ConsoleApp1
         public static MethodCallExpression WriteLineExpr(this Expression src)
         {
             var expr = src.ToStringExpr();
-            var method = typeof(System.Diagnostics.Trace).GetMethod("WriteLine");
-            var methodcall = Expression.Call(src, method);
+            var method = typeof(System.Diagnostics.Trace).GetMethod("WriteLine", new Type[] { src.Type});
+            var methodcall = Expression.Call(method, src);
             return methodcall;
+        }
+
+        public static Expression Foreach(this Expression src)
+        {
+            if(src.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                var getenumerator = src.Type.GetMethod("GetEnumerator");
+                
+                var tt = src.Type.GetGenericArguments().First();
+                typeof(IEnumerator<>).MakeGenericType(tt);
+            }
+            return null;
         }
 
     }

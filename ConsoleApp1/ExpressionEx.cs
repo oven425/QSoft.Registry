@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -82,20 +83,38 @@ namespace ConsoleApp1
         {
             var expr = src.ToStringExpr();
             var method = typeof(System.Diagnostics.Trace).GetMethod("WriteLine", new Type[] { src.Type});
-            var methodcall = Expression.Call(method, src);
+            MethodCallExpression methodcall = null;
+            if (Type.GetTypeCode(src.Type) != TypeCode.Object)
+            {
+                methodcall = Expression.Call(method, src.ToStringExpr());
+            }
+            else
+            {
+                methodcall = Expression.Call(method, src);
+            }
             return methodcall;
         }
 
-        public static Expression Foreach(this Expression src)
+        public static MethodCallExpression WriteLineExpr(this string src)
+        {
+            return Expression.Constant(src).WriteLineExpr();
+        }
+
+        public static Expression Foreach(this Expression src, Expression block)
         {
             if(src.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
                 var getenumerator = src.Type.GetMethod("GetEnumerator");
-                
+                LabelTarget label = Expression.Label("foreach_break");
                 var tt = src.Type.GetGenericArguments().First();
                 typeof(IEnumerator<>).MakeGenericType(tt);
             }
             return null;
+        }
+
+        public static MemberExpression PropertyExpr(this Expression src, string name)
+        {
+            return Expression.Property(src, name);
         }
 
     }

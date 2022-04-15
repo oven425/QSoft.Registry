@@ -136,15 +136,18 @@ namespace ConsoleApp1
 
     public class People
     {
-        //public int? AA { set; get; }
-        //[RegIgnore]
         public string Name { set; get; }
-        [RegPropertyName(Name="Weight")]
-        public int Weight { set; get; } 
+        [RegSubKeyName]
+        public string Key { set; get; }
+        public int? Weight { set; get; }
+        [RegPropertyName(Name = "height")]
         public int Height { set; get; }
-        //public Phone phones { set; get; }
+
+        public Phone phone { set; get; }
         //public List<Phone> phones { set; get; }
     }
+
+
 
     class Program
     {
@@ -168,25 +171,25 @@ namespace ConsoleApp1
             }
             T obj = Activator.CreateInstance<T>();
 
-            //foreach (var pp in pps)
-            //{
-            //    var typecode = Type.GetTypeCode(pp.x.PropertyType);
-            //    if (typecode == TypeCode.Object)
-            //    {
-            //        if (reg.GetSubKeyNames().Any(x => x == pp.x.Name) == true)
-            //        {
-            //            var methd = typeof(Program).GetMethods().Where(x => x.Name == "Build");
-            //            var subobj = methd.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg.OpenSubKey(pp.x.Name) });
-            //            pp.x.SetValue(obj, subobj, null);
-            //        }
-            //    }
-            //    else
-            //    {
-            //        var vv = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
-            //        var h = vv.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg, pp.x.Name });
-            //        pp.x.SetValue(obj, h, null);
-            //    }
-            //}
+            foreach (var pp in pps)
+            {
+                var typecode = Type.GetTypeCode(pp.x.PropertyType);
+                if (typecode == TypeCode.Object)
+                {
+                    if (reg.GetSubKeyNames().Any(x => x == pp.x.Name) == true)
+                    {
+                        var methd = typeof(Program).GetMethods().Where(x => x.Name == "Build");
+                        var subobj = methd.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg.OpenSubKey(pp.x.Name) });
+                        pp.x.SetValue(obj, subobj, null);
+                    }
+                }
+                else
+                {
+                    var vv = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue");
+                    var h = vv.First().MakeGenericMethod(pp.x.PropertyType).Invoke(null, new object[] { reg, pp.x.Name });
+                    pp.x.SetValue(obj, h, null);
+                }
+            }
 
             return obj;
         }
@@ -215,19 +218,21 @@ namespace ConsoleApp1
                 Expression.Call(consoleWriteLineMethod, variableB));
         }
 
-        static void TT(Expression<Func<int>> func)
+        static void TT(Expression<Func<int, int>> func)
         {
 
+        }
+
+        public class BuildExprTemp
+        {
+            public object attr { set; get; }
+            public PropertyInfo x { set; get; }
         }
 
 
         //https://www.codeproject.com/Articles/107477/Use-of-Expression-Trees-in-NET-for-Lambda-Decompos
         static void BuildExpr<T>(RegistryKey reg)
         {
-            
-            TT(() => 1);
-            var a1a = CreateStatementBlock();
-            Expression.Lambda(a1a).Compile().DynamicInvoke();
             try
             {
                 var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
@@ -237,6 +242,7 @@ namespace ConsoleApp1
                     .Select(x=>x.PropertyType.GetGenericArguments()[0]);
                 var cc = typeof(T).GetConstructors()[0];
                 var newexpr = Expression.New(cc);
+                
                 var pps = typeof(T).GetProperties().AsQueryable().Where(x => x.CanWrite == true)
                 .Select(x => new
                 {
@@ -381,8 +387,9 @@ namespace ConsoleApp1
                                 var is_regsubkey = Expression.TypeIs(first_param, typeof(RegSubKeyName));
                                 var is_regignore = Expression.TypeIs(first_param, typeof(RegIgnore));
                                 var is_regproperty = Expression.TypeIs(first_param, typeof(RegPropertyName));
-                                var or1 = Expression.MakeBinary(ExpressionType.Or, is_regsubkey, is_regignore);
-                                or1 = Expression.MakeBinary(ExpressionType.Or, or1, is_regproperty);
+                                //var or1 = Expression.MakeBinary(ExpressionType.OrElse, is_regsubkey, is_regignore);
+                                //or1 = Expression.MakeBinary(ExpressionType.OrElse, or1, is_regproperty);
+                                var or1 = ExpressionType.OrElse.MakeBinary(is_regsubkey, is_regignore, is_regproperty);
                                 var first_lambda = Expression.Lambda(or1, first_param);
                                 var first_expr = ExpressionEx.FirstOrDefault(getcust_expr, first_lambda);
                                 exprs.Add(first_expr);
@@ -408,54 +415,95 @@ namespace ConsoleApp1
                 //var pou = sss.DynamicInvoke();
                 mm = null;
 
+                var poiqs = typeof(T).GetProperties().AsQueryable().Where(x => x.CanWrite == true).Select(x => new BuildExprTemp()
+                {
+                    x = x,
+                    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                });
+
+                var where_oiyt = typeof(Enumerable).GetMethods().First(x=>x.Name=="Where"&& x.GetParameters()[1].ParameterType.GetGenericArguments().Length==2);
+                where_oiyt = where_oiyt.MakeGenericMethod(typeof(PropertyInfo));
+                var select_oiyt = typeof(Enumerable).GetMethods().First(x => x.Name == "Select" && x.GetParameters()[1].ParameterType.GetGenericArguments().Length == 2);
+                select_oiyt = select_oiyt.MakeGenericMethod(typeof(PropertyInfo), typeof(BuildExprTemp));
+                ParameterExpression where_p_1 = Expression.Variable(typeof(PropertyInfo), "where_p_1");
+                ParameterExpression select_p_1 = Expression.Variable(typeof(PropertyInfo), "where_p_1");
+                var linqexpr = Expression.Block(new[] { where_p_1 },
+                    Expression.Call(select_oiyt,
+                        Expression.Call(where_oiyt, Expression.Call(Expression.Constant(typeof(T)), typeof(Type).GetMethod("GetProperties", new Type[] { })), Expression.Lambda(Expression.MakeBinary(ExpressionType.Equal, where_p_1.PropertyExpr("CanWrite"), Expression.Constant(true)), where_p_1)),
+                        Expression.Lambda(Expression.MemberInit(Expression.New(typeof(BuildExprTemp))), select_p_1))
+
+
+                    );
+
 
                 LabelTarget label = Expression.Label();
+                ParameterExpression regkey = Expression.Variable(typeof(RegistryKey), "reg");
                 ParameterExpression enumerator = Expression.Variable(typeof(IEnumerator<>).MakeGenericType(where_expr1.Type.GetGenericArguments()[0]), "enumerator");
                 ParameterExpression typecode = Expression.Variable(typeof(TypeCode), "typecode");
-                ParameterExpression property = Expression.Variable(typeof(Type));
+                ParameterExpression property = Expression.Variable(typeof(Type), "property");
                 ParameterExpression name = Expression.Variable(typeof(Expression), "name");
                 ParameterExpression memberbinds = Expression.Variable(typeof(List<MemberBinding>), "memberbinds");
-                var foreach1 = Expression.Block(new[] { enumerator, memberbinds },
+                ParameterExpression isconvert = Expression.Variable(typeof(bool), "isconvert");
+
+                var foreach1 = Expression.Block(new[] { enumerator, memberbinds, regkey },
                     Expression.Assign(enumerator, Expression.Call(where_expr1, where_expr1.Type.GetMethod("GetEnumerator"))),
                     Expression.Assign(memberbinds, Expression.New(typeof(List<MemberBinding>))),
                     Expression.Loop(
                         Expression.Block(
                             Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Call(enumerator, typeof(IEnumerator).GetMethod("MoveNext")), Expression.Constant(true)),
-                            Expression.Block(new[] { typecode, property, name },
-
+                            Expression.Block(new[] { typecode, property, name, isconvert },
+                                Expression.Assign(isconvert, Expression.Constant(false)),
+                                Expression.Assign(regkey, Expression.Constant(reg)),
                                 Expression.Assign(property, enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("PropertyType")),
                                 Expression.Assign(typecode, Expression.Call(typeof(Type).GetMethod("GetTypeCode"), property)),
                                 Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
                                         Expression.MakeBinary(ExpressionType.Equal, property.PropertyExpr("IsGenericType"), Expression.Constant(true)),
                                         Expression.MakeBinary(ExpressionType.Equal, Expression.Call(property, typeof(Type).GetMethod("GetGenericTypeDefinition")), Expression.Constant(typeof(Nullable<>)))),
                                     Expression.Block(
+                                        Expression.Assign(isconvert, Expression.Constant(true)),
                                         Expression.Assign(property, Expression.ArrayIndex(Expression.Call(property, typeof(Type).GetMethod("GetGenericArguments")), Expression.Constant(0))),
                                         Expression.Assign(typecode, Expression.Call(typeof(Type).GetMethod("GetTypeCode"), property))
                                         )
                                         ),
-
+                                Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, typecode, Expression.Constant(TypeCode.Object)), "object".WriteLineExpr()),
                                 Expression.Assign(name, Expression.Constant(null, typeof(Expression))),
-                                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, enumerator.PropertyExpr("Current").PropertyExpr("attr"), Expression.Constant(null, typeof(object))),
+                                Expression.IfThenElse(Expression.MakeBinary(ExpressionType.NotEqual, enumerator.PropertyExpr("Current").PropertyExpr("attr"), Expression.Constant(null, typeof(object))),
                                     Expression.Block(
+                                        Expression.IfThen(Expression.TypeIs(enumerator.PropertyExpr("Current").PropertyExpr("attr"), typeof(RegSubKeyName)),
+                                            Expression.Block(
+                                                Expression.Call(memberbinds, typeof(List<MemberBinding>).GetMethod("Add"),
+                                                Expression.Call(typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) }),
+                                                    enumerator.PropertyExpr("Current").PropertyExpr("x"),
+                                                    Expression.Call(Expression.TypeAs(enumerator.PropertyExpr("Current").PropertyExpr("attr"), typeof(RegSubKeyName)), typeof(RegSubKeyName).GetMethod("ToExpression"), property, Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), regkey))))
+                                                )),
                                         Expression.IfThen(Expression.TypeIs(enumerator.PropertyExpr("Current").PropertyExpr("attr"), typeof(RegPropertyName))
-                                            , Expression.AddAssign(name, Expression.TypeAs(enumerator.PropertyExpr("Current").PropertyExpr("attr"), typeof(RegPropertyName)))),
+                                            , Expression.Assign(name, Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.TypeAs(enumerator.PropertyExpr("Current").PropertyExpr("attr"), typeof(RegPropertyName)).PropertyExpr("Name")))),
                                         "attr != null".WriteLineExpr()
+                                        ),
+                                        Expression.Block(
+                                            Expression.Assign(name, Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("Name")))
                                         )),
-                                Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, name, Expression.Constant(null, typeof(Expression))),
+                                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, name, Expression.Constant(null, typeof(Expression))),
+                                    Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, isconvert, Expression.Constant(true)),
                                     Expression.Block(
-                                        Expression.Assign(name, Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("Name")))
-                                        )),
-                                Expression.Block(
+                                        "Convert".WriteLineExpr(),
+                                        Expression.Call(memberbinds, typeof(List<MemberBinding>).GetMethod("Add"),
+                                        Expression.Call(typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) }),
+                                            enumerator.PropertyExpr("Current").PropertyExpr("x"),
+                                            Expression.Call(typeof(Expression).GetMethod("Convert", new Type[] { typeof(Expression), typeof(Type) }),
+                                                Expression.Call(typeof(Expression).GetMethod("Call", new Type[] { typeof(MethodInfo), typeof(Expression), typeof(Expression) }),
+                                                    Expression.Call(Expression.Constant(reg_getvalue), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), property)),
+                                                    Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), regkey),
+                                                    Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("Name"))), enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("PropertyType"))))
+                                        ), 
                                     Expression.Call(memberbinds, typeof(List<MemberBinding>).GetMethod("Add"),
-                                    Expression.Call(typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) }),
-                                        enumerator.PropertyExpr("Current").PropertyExpr("x"),
-                                        Expression.Call(typeof(Expression).GetMethod("Call", new Type[] { typeof(MethodInfo), typeof(Expression), typeof(Expression) }),
-                                            Expression.Call(Expression.Constant(reg_getvalue), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), property)),
-                                            Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(reg)),
-                                            Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("Name")))))
-                                    ),
+                                        Expression.Call(typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression) }),
+                                            enumerator.PropertyExpr("Current").PropertyExpr("x"),
+                                            Expression.Call(typeof(Expression).GetMethod("Call", new Type[] { typeof(MethodInfo), typeof(Expression), typeof(Expression) }),
+                                                Expression.Call(Expression.Constant(reg_getvalue), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), property)),
+                                                Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), regkey),
+                                                Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("Name"))))))),
                                 memberbinds.PropertyExpr("Count").WriteLineExpr()
-                                //"build member".WriteLineExpr()
                                 ),
                             Expression.Break(label)
                                 )
@@ -469,141 +517,12 @@ namespace ConsoleApp1
 
                     );
                 var mmmm = Expression.Lambda<Func<MemberInitExpression>>(foreach1).Compile()();
-                Expression.Lambda<Action>(foreach1).Compile()();
-
-                Expression.Lambda(foreach1).Compile().DynamicInvoke();
-                var getee = Expression.Call(where_expr1, where_expr1.Type.GetMethod("GetEnumerator"));
-                BinaryExpression assignenumerator = Expression.Assign(enumerator, getee);
-
-
-                //MethodCallExpression movenext_expr = Expression.Call(enumerator, typeof(IEnumerator).GetMethod("MoveNext"));
+                var hr = Expression.Lambda(mmmm).Compile().DynamicInvoke();
+                //Expression.Lambda(foreach1).Compile().DynamicInvoke();
+                //var getee = Expression.Call(where_expr1, where_expr1.Type.GetMethod("GetEnumerator"));
+                //BinaryExpression assignenumerator = Expression.Assign(enumerator, getee);
 
 
-                //var currentelement = Expression.Parameter(where_expr1.Type.GetGenericArguments()[0], "current");
-                //var propertyelement = Expression.Parameter(typeof(Type), "property");
-                //var typecodeelement = Expression.Parameter(typeof(TypeCode), "typecode");
-                //var bindingselement = Expression.Parameter(typeof(List<MemberAssignment>), "bindings");
-                //var nameelement = Expression.Parameter(typeof(string), "name");
-                //var xelement = Expression.Parameter(typeof(PropertyInfo), "x");
-
-                ////var propertytype_var = Expression.Parameter(typeof(Type), "property");
-                ////var propertytype_expr = Expression.Property(Expression.Property(currentelement, "x"), "PropertyType");
-                ////var assignproperty = Expression.Assign(propertytype_var, propertytype_expr);
-
-                //var typecode_method = typeof(Type).GetMethod("GetTypeCode");
-                //var typecode_expr = Expression.Call(typecode_method, propertyelement);
-
-                //var cch1 = Expression.MakeBinary(ExpressionType.Equal, Expression.Property(propertyelement, "IsGenericType"), Expression.Constant(true));
-                //var oioi = Expression.Call(propertyelement, propertyelement.Type.GetMethod("GetGenericTypeDefinition"));
-                //var cch2 = Expression.MakeBinary(ExpressionType.Equal, oioi, Expression.Constant(typeof(Nullable<>)));
-
-                //oioi = Expression.Call(propertyelement, propertyelement.Type.GetMethod("GetGenericArguments"));
-                //var aaa1a = Expression.ArrayIndex(oioi, Expression.Constant(0));
-                
-                //var ifsblock = Expression.Block(Expression.Assign(propertyelement, aaa1a), Expression.Assign(typecodeelement, typecode_expr));
-                ////property = current.x.PropertyType.GetGenericArguments()[0];
-                ////typecode = Type.GetTypeCode(property);
-
-                //var if_nullable_expr = Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso, cch1, cch2), ifsblock);
-
-                //var attr = Expression.Property(currentelement, "attr");
-                //var condition1 = Expression.MakeBinary(ExpressionType.NotEqual, attr, Expression.Constant(null, typeof(object)));
-
-                //var elsename_expr = Expression.Property(Expression.Property(currentelement, "x"), "Name");
-                //var ifregname_expr = Expression.IfThenElse(Expression.MakeBinary(ExpressionType.AndAlso, condition1, Expression.TypeIs(attr, typeof(RegPropertyName))), Expression.TypeAs(attr, typeof(RegPropertyName)), Expression.Assign(nameelement, elsename_expr));
-                //var ifregsuby_expr = Expression.IfThenElse(Expression.MakeBinary(ExpressionType.AndAlso, condition1, Expression.TypeIs(attr, typeof(RegSubKeyName))), Expression.TypeAs(attr, typeof(RegSubKeyName)), ifregname_expr);
-
-
-                //var methodcall = typecodeelement.ToStringExpr().WriteLineExpr();
-                //var callCurrent = Expression.Assign(currentelement, Expression.Property(enumerator, "Current"));
-                //var callProperty = Expression.Assign(propertyelement, Expression.Property(Expression.Property(currentelement, "x"), "PropertyType"));
-                //var callTyepCode = Expression.Assign(typecodeelement, typecode_expr);
-                //var mameCode = Expression.Assign(nameelement, Expression.Constant(null, typeof(string)));
-                //var xCode = Expression.Assign(xelement, Expression.Constant(null, typeof(PropertyInfo)));
-                //var bindingsCode = Expression.Assign(bindingselement, Expression.New(typeof(List<MemberAssignment>)));
-
-                //LabelTarget loop_expr = Expression.Label("break");
-                //var break_expr = Expression.Break(loop_expr);
-                //var movenext_expr_hr = Expression.NotEqual(movenext_expr, Expression.Constant(false));
-
-                //var getvalue_method = typeof(RegistryKey).GetMethod("GetValue", new Type[] { typeof(string)});
-                //var getvalue_expr = Expression.Call(Expression.Constant(reg, typeof(RegistryKey)), getvalue_method, nameelement);
-                //var writelinename_expr = nameelement.WriteLineExpr();
-                //var writeline_expr = getvalue_expr.WriteLineExpr();
-
-                //var bindingeee = Expression.Parameter(typeof(Expression), "method");
-                //var bindexprCode = Expression.Assign(bindingeee, Expression.Constant(null, typeof(Expression)));
-                //var add_method = typeof(List<MemberAssignment>).GetMethod("Add");
-                ////var bindings_expr = Expression.New(typeof(List<MemberAssignment>));
-                //var mmes = typeof(Expression).GetMethod("Bind", new Type[] { typeof(MemberInfo), typeof(Expression)});
-
-
-                ////Expression.Assign(bindingeee, getvalue_expr);
-                //var iiu = Expression.Constant(getvalue_expr);
-                //var bind_expr = Expression.Call(mmes, xelement,Expression.Constant(getvalue_expr));
-                ////var addbind_expr = Expression.Call(bindingselement, add_method, bind_expr);
-
-                //var build_block_expr = Expression.Block(new ParameterExpression[] { bindingeee }, bindexprCode, bind_expr);
-
-                ////var if_nullable_expr1 = Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso, cch1, cch2), build_block_expr);
-
-                ////var if_buid_expr = Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, nameelement, Expression.Constant(null, typeof(string))), if_nullable_expr1);
-
-                //var dd = Expression.IfThenElse(movenext_expr_hr, Expression.Block(
-                //    new ParameterExpression[] { propertyelement, typecodeelement, nameelement, xelement }
-                //, callCurrent, callProperty, callTyepCode, xCode
-                //, if_nullable_expr, mameCode, ifregsuby_expr, writelinename_expr, writeline_expr, methodcall), break_expr);
-                
-                //var loop = Expression.Loop(dd, loop_expr);
-                //var block = Expression.Block(new ParameterExpression[] { enumerator, currentelement, bindingselement }
-                //, assignenumerator,  loop, bindingsCode);
-
-                ////var catch_ee = Expression.Parameter(typeof(Exception), "ee");
-                ////var asdd = typeof(Trace).GetMethod("WriteLine", new Type[] { typeof(string)});
-                ////var catch_ee_expr = Expression.Call(asdd, Expression.Property(catch_ee, "Message"));
-                ////var catch_expr = Expression.Catch(catch_ee, catch_ee_expr);
-                ////var trycatch_expr = Expression.TryCatch(block, catch_expr);
-
-                //var loopfunc = Expression.Lambda(block).Compile();
-                //loopfunc.DynamicInvoke();
-                //loopfunc = null;
-
-
-                //ParameterExpression enumerableExpression = Expression.Parameter(typeof(IEnumerable<PropertyInfo>), "x");
-
-
-
-                //ParameterExpression enumerator = Expression.Variable(typeof(IEnumerator<PropertyInfo>), "enumerator");
-                //BinaryExpression assignenumerator = Expression.Assign(enumerator,
-                //    Expression.Call(enumerableExpression, typeof(IEnumerable<PropertyInfo>).GetMethod("GetEnumerator")));
-
-
-                //var currentelement = Expression.Parameter(typeof(PropertyInfo), "i");
-                //var ss = typeof(System.Diagnostics.Trace).GetMethod("WriteLine", new Type[] { typeof(string) });
-                //var pp = Expression.Property(currentelement, "Name");
-                //var methodcall = Expression.Call(null, ss, pp);
-                //var callCurrent = Expression.Assign(currentelement, Expression.Property(enumerator, "Current"));
-
-
-                //MethodCallExpression movenext = Expression.Call(enumerator, typeof(IEnumerator).GetMethod("MoveNext"));
-
-                //LabelTarget looplabel = Expression.Label("looplabel");
-                //LabelTarget returnLabel = Expression.Label(typeof(bool), "retval");
-
-                //BlockExpression block = Expression.Block(
-                //        new ParameterExpression[] {enumerator, currentelement },
-                //        assignenumerator,
-                //        Expression.Loop(
-                //            Expression.IfThenElse(
-                //                Expression.NotEqual(movenext, Expression.Constant(false)),
-                //                Expression.Block(callCurrent, methodcall),
-                //                Expression.Break(looplabel)),
-                //                looplabel));
-
-                //Expression<Action<IEnumerable<PropertyInfo>>> lambda = Expression.Lambda<Action<IEnumerable<PropertyInfo>>>(block, enumerableExpression);
-
-                //Action<IEnumerable<PropertyInfo>> dividesectionmethod = lambda.Compile();
-                //dividesectionmethod(typeof(T).GetProperties());
             }
             catch (Exception ee)
             {

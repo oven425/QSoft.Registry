@@ -117,5 +117,20 @@ namespace ConsoleApp1
             return Expression.Property(src, name);
         }
 
+        public static BinaryExpression MakeBinary(this ExpressionType src, params Expression[] exprs)
+        {
+            if(exprs.Length<2)
+            {
+                return null;
+            }
+            BinaryExpression binary = Expression.MakeBinary(src, exprs[0], exprs[1]);
+            for (int i=2; i<exprs.Length; i++)
+            {
+                binary = Expression.MakeBinary(src, binary, exprs[i]);
+            }
+
+            return binary;
+        }
+
     }
 }

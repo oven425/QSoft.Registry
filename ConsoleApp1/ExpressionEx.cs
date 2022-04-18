@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -102,13 +103,25 @@ namespace ConsoleApp1
 
         public static Expression Foreach(this Expression src, Expression block)
         {
-            if(src.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            {
-                var getenumerator = src.Type.GetMethod("GetEnumerator");
-                LabelTarget label = Expression.Label("foreach_break");
-                var tt = src.Type.GetGenericArguments().First();
-                typeof(IEnumerator<>).MakeGenericType(tt);
-            }
+            LabelTarget label = Expression.Label();
+            ParameterExpression enumerator = Expression.Variable(typeof(IEnumerator<PropertyInfo>), "enumerator");
+            var method = Expression.Call(src, src.Type.GetMethod("GetEnumerator"));
+            Expression.Assign(enumerator, Expression.Call(src, src.Type.GetMethod("GetEnumerator")));
+            Expression.Loop(
+                Expression.Block(
+                        Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Call(enumerator, typeof(IEnumerator).GetMethod("MoveNext")), Expression.Constant(true)),
+                            "123".WriteLineExpr(),
+                            Expression.Break(label))
+                    ),
+                label
+                );
+            //if (src.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            //{
+            //    var getenumerator = src.Type.GetMethod("GetEnumerator");
+            //    LabelTarget label = Expression.Label("foreach_break");
+            //    var tt = src.Type.GetGenericArguments().First();
+            //    typeof(IEnumerator<>).MakeGenericType(tt);
+            //}
             return null;
         }
 

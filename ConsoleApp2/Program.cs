@@ -9,39 +9,33 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp2
 {
-    public class Item<T, TProperty>
+    public class Node
     {
-        public TProperty Key { set; get; }
-        public T Value { set; get; }
+        public int Key { set; get; }
+        public List<Node> Nodes { set; get; }
+        public List<Leaf> Leafs { set; get; }
     }
 
-    public class Node<T, TProperty>
+
+    public class Leaf
     {
-        public List<Item<T, TProperty>> Items { set; get; } = new List<Item<T, TProperty>>();
-        public Node<T, TProperty> Parent { set; get; }
+        public int Key { set; get; }
+        public string Data { set; get; }
     }
 
-    public class Tree<T, TProperty>
+
+
+    public class Tree
     {
-        public Node<T, TProperty> Root { set; get; }
-        public Tree<T, TProperty> HaseKey(Expression<Func<T, TProperty>> func)
-        {
-            return this;
-        }
+        public Node Root { set; get; }
     }
 
-    public class TetsD
-    {
-        public int Data { set; get; }
-        public DateTime Now { set; get; } = DateTime.Now;
-    }
+
 
     class Program
     {
         static void Main(string[] args)
         {
-            Node<string, int> root = new Node<string, int>();
-            root.Items.Add(new Item<string, int>() { Key=1, Value="1" });
 
             BTree<int> btree = new BTree<int>();
             btree.Insert(1);

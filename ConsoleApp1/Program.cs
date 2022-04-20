@@ -543,10 +543,30 @@ namespace ConsoleApp1
 
                 var pps = Expression.Variable(typeof(IEnumerable<BuildExprTemp>), "pps");
                 
+                try
+                {
+                    var tts = Enumerable.Range(1, 2).AsQueryable().Select(x => new
+                    {
+                        lambda = Expression.Lambda<Func<int>>(Expression.Constant(1))
+                    });
+                    var oiu = Expression.Call(Expression.Constant(typeof(Func<>)), typeof(Type).GetMethod("MakeGenericType"), Expression.NewArrayInit(typeof(Type), Expression.Constant(typeof(int))));
+
+                    var aciuy = Expression.Lambda<Func<Type>>(oiu).Compile();
+                    var oi = typeof(Expression).GetMethods().Where(x => x.Name == "Lambda" && x.IsGenericMethod == true).First();
+
+                    var mms = typeof(MethodInfo).GetMethods().Where(x => x.Name == "MakeGenericMethod");
+                    var expression_lambda = Expression.Call(Expression.Constant(oi), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), Expression.Constant(typeof(Func<int>))));
+                    var mmmm = Expression.Lambda<Func<int>>(Expression.Constant(1));
+                    oi = oi.MakeGenericMethod(typeof(Func<int>));
+                    var ytr = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(1).Convert(typeof(object)));
+                    var aaa = Expression.Call(oi, ytr, Expression.NewArrayInit(typeof(ParameterExpression)));
+                }
+                catch (Exception ee)
+                {
+                    System.Diagnostics.Trace.WriteLine(ee.Message);
+                }
 
 
-
-                
                 var subregfunc = Expression.Variable(typeof(Func<RegistryKey, MemberInitExpression>), "subregfunc");
                 LabelTarget label = Expression.Label();
                 ParameterExpression regkey = Expression.Variable(typeof(RegistryKey), "reg");
@@ -592,6 +612,7 @@ namespace ConsoleApp1
                                             )
                                             ),
                                     enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("Name").WriteLineExpr(),
+                                    enumerator.PropertyExpr("Current").PropertyExpr("x").PropertyExpr("PropertyType").WriteLineExpr(),
                                     Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, typecode, Expression.Constant(TypeCode.Object)),
                                     Expression.Block(
                                         "Object".WriteLineExpr(), 

@@ -145,5 +145,9 @@ namespace ConsoleApp1
             return binary;
         }
 
+        public static UnaryExpression Convert(this Expression src, Type type)
+        {
+            return Expression.Convert(src, type);
+        }
     }
 }

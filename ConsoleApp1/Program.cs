@@ -545,21 +545,69 @@ namespace ConsoleApp1
                 
                 try
                 {
+                    var oi = typeof(Expression).GetMethods().Where(x => x.Name == "Lambda" && x.IsGenericMethod == true).First();
                     var tts = Enumerable.Range(1, 2).AsQueryable().Select(x => new
                     {
                         lambda = Expression.Lambda<Func<int>>(Expression.Constant(1))
                     });
-                    var oiu = Expression.Call(Expression.Constant(typeof(Func<>)), typeof(Type).GetMethod("MakeGenericType"), Expression.NewArrayInit(typeof(Type), Expression.Constant(typeof(int))));
-
-                    var aciuy = Expression.Lambda<Func<Type>>(oiu).Compile();
-                    var oi = typeof(Expression).GetMethods().Where(x => x.Name == "Lambda" && x.IsGenericMethod == true).First();
+                    typeof(Type).GetMethod("MakeGenericType");
+                    var mmn = Expression.NewArrayInit(typeof(Type), Expression.Constant(typeof(int)));
+                    var type = Expression.Call(Expression.Constant(typeof(Func<>)), typeof(Type).GetMethod("MakeGenericType"), mmn);
 
                     var mms = typeof(MethodInfo).GetMethods().Where(x => x.Name == "MakeGenericMethod");
-                    var expression_lambda = Expression.Call(Expression.Constant(oi), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), Expression.Constant(typeof(Func<int>))));
-                    var mmmm = Expression.Lambda<Func<int>>(Expression.Constant(1));
-                    oi = oi.MakeGenericMethod(typeof(Func<int>));
+                    var expression_lambda = Expression.Call(Expression.Constant(oi), typeof(MethodInfo).GetMethod("MakeGenericMethod"), Expression.NewArrayInit(typeof(Type), type));
+                    //var mmmm = Expression.Lambda<Func<int>>(Expression.Constant(1));
+                    //oi = oi.MakeGenericMethod(typeof(Func<int>));
                     var ytr = Expression.Call(typeof(Expression).GetMethod("Constant", new Type[] { typeof(object) }), Expression.Constant(1).Convert(typeof(object)));
-                    var aaa = Expression.Call(oi, ytr, Expression.NewArrayInit(typeof(ParameterExpression)));
+                    //var aaa = Expression.Call(oi, ytr, Expression.NewArrayInit(typeof(ParameterExpression)));
+                    var m3_1 = Expression.Call(typeof(Expression).GetMethod("Call", new Type[] { typeof(MethodInfo), typeof(Expression) }), expression_lambda, ytr);
+
+                    var ppp = Expression.Call(typeof(Expression).GetMethod("Parameter", new[] { typeof(Type), typeof(string) }), type, Expression.Constant("x"));
+                    var aaasi = Expression.Call(typeof(Expression).GetMethod("Assign"), ppp, m3_1);
+
+                    var invokeexpr = Expression.Call(typeof(Expression).GetMethod("Invoke",new[] { typeof(Expression), typeof(Expression[])}), ppp, Expression.NewArrayInit(typeof(Expression)));
+                    var hr = Expression.Lambda(invokeexpr).Compile().DynamicInvoke();
+
+
+
+                    var data = Expression.Parameter(typeof(int), "data");
+                    var data_in = Expression.Variable(typeof(int), "data_in");
+                    var func = Expression.Parameter(typeof(Action<int>), "func");
+                    //var result = Expression.Parameter(typeof(int), "result");
+                    var lable_break = Expression.Label("lable_break");
+                    //var blockc = Expression.Block(new[] { func, data_in },
+                    //    Expression.Assign(data_in, data),
+                    //    Expression.Assign(func, Expression.Lambda<Action<int>>(
+                    //        Expression.Block(
+                    //            Expression.Loop(
+                    //                Expression.Block(
+                    //            Expression.IfThenElse(Expression.MakeBinary(ExpressionType.GreaterThan, data_in, Expression.Constant(0)),
+                    //            Expression.Block(
+                    //                "GreaterThan 0".WriteLineExpr(),
+                    //                Expression.SubtractAssign(data_in, Expression.Constant(1))
+                    //                ), Expression.Break(lable_break)),
+                    //            data_in.WriteLineExpr()), lable_break)
+                    //            ), data)),
+                    //            Expression.Invoke(func, data_in)
+                    //    );
+                    //Expression.Lambda<Action<int>>(blockc, data).Compile()(5);
+
+                    var blockc = Expression.Block(new[] { func, data_in },
+                        Expression.Assign(data_in, data),
+                        Expression.Assign(func, Expression.Lambda<Action<int>>(
+                            Expression.Block(
+                                 data_in.WriteLineExpr(),
+                                Expression.IfThen(Expression.MakeBinary(ExpressionType.GreaterThan, data_in, Expression.Constant(0)),
+                                Expression.Block(
+                                    "GreaterThan 0".WriteLineExpr(),
+                                    Expression.SubtractAssign(data_in, Expression.Constant(1)),
+                                    Expression.Invoke(func, data_in)
+
+                                    ))
+                                ), data)),
+                                Expression.Invoke(func, data_in)
+                        );
+                    Expression.Lambda<Action<int>>(blockc, data).Compile()(5);
                 }
                 catch (Exception ee)
                 {

@@ -20,7 +20,7 @@ namespace ConsoleApp2
     public class Leaf
     {
         public int Key { set; get; }
-        public string Data { set; get; }
+        public string Value { set; get; }
     }
 
 

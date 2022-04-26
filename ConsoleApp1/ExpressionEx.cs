@@ -85,7 +85,12 @@ namespace ConsoleApp1
             var expr = src.ToStringExpr();
             var method = typeof(System.Diagnostics.Trace).GetMethod("WriteLine", new Type[] { src.Type});
             MethodCallExpression methodcall = null;
-            if (Type.GetTypeCode(src.Type) != TypeCode.Object)
+            TypeCode typecode = Type.GetTypeCode(src.Type);
+            if(typecode == TypeCode.String)
+            {
+                methodcall = Expression.Call(method, src);
+            }
+            else if (typecode != TypeCode.Object)
             {
                 methodcall = Expression.Call(method, src.ToStringExpr());
             }

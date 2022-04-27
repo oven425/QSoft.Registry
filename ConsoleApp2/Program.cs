@@ -9,21 +9,34 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp2
 {
-    public class Node
+    public class Node : INode
     {
-        public int Key { set; get; }
-        public List<Node> Nodes { set; get; }
-        public List<Leaf> Leafs { set; get; }
+        public int Key => Leafs==null?Nodes.Min(x=>x.Key):Leafs.Min(x=>x.Key);
+        public List<INode> Nodes { set; get; } = new List<INode>();
+        public List<ILeaf> Leafs { set; get; } = null;
     }
 
 
-    public class Leaf
+    public class Leaf: ILeaf
     {
-        public int Key { set; get; }
-        public string Value { set; get; }
+        public int Key => Values.Min();
+        public List<int> Values { set; get; } = new List<int>();
+        public ILeaf Next { set; get; }
     }
 
+    public interface ILeaf
+    {
+        int Key { get; }
+        ILeaf Next { set; get; }
+        List<int> Values { set; get; }
+    }
 
+    public interface INode
+    {
+        int Key { get; }
+        List<INode> Nodes { set; get; }
+        List<ILeaf> Leafs { set; get; }
+    }
 
     public class Tree
     {
@@ -36,7 +49,57 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
+            var li = Enumerable.Range(1, 9).ToList();
+            int agree = 3;
+            List<Leaf> leafs = new List<Leaf>();
+            int skip = 0;
+            while (true)
+            {
+                var values = li.Skip(skip).Take(agree - 1);
+                Leaf leaf = new Leaf();
+                leaf.Values.AddRange(values);
+                if(leafs.Count > 0)
+                {
+                    leafs.Last().Next = leaf;
+                }
+                leafs.Add(leaf);
+                if (values.Count() < (agree - 1))
+                {
+                    break;
+                }
+                skip = skip + (agree - 1);
+            }
+            List<List<Node>> tree = new List<List<Node>>();
+            List<Node> nodes = new List<Node>();
+            skip = 0;
+            while (true)
+            {
+                Node node = new Node();
+                node.Leafs = new List<ILeaf>();
+                while(true)
+                {
+                    var leaf = leafs.Skip(skip).Take(agree - 1);
 
+                    node.Leafs.AddRange(leaf);
+                    skip = skip + (agree - 1);
+                    if (node.Leafs.Count >= (agree - 1))
+                    {
+                        nodes.Add(node);
+                        break;
+                    }
+                    else if (skip > leafs.Count)
+                    {
+                        break;
+                    }
+                }
+                if(skip > leafs.Count)
+                {
+                    break;
+                }
+            }
+            
+            
+            
             BTree<int> btree = new BTree<int>();
             btree.Insert(1);
             btree.Insert(2);

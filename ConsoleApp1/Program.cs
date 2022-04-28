@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -132,6 +133,14 @@ namespace ConsoleApp1
     {
         public string company { set; get; }
         public string number { set; get; }
+        //[RegPropertyName(Name ="home")]
+        public PhoneCat home { set; get; }
+        public PhoneCat office { set; get; }
+    }
+
+    public class PhoneCat
+    {
+        public string name { set; get; }
     }
 
     public class People
@@ -142,7 +151,7 @@ namespace ConsoleApp1
         public int? Weight { set; get; }
         [RegPropertyName(Name = "height")]
         public int Height { set; get; }
-
+        
         public Phone phone { set; get; }
         //public List<Phone> phones { set; get; }
     }
@@ -613,6 +622,11 @@ namespace ConsoleApp1
                 //{
 
                 //}
+
+
+                var tryfin = Expression.TryFinally("123".WriteLineExpr(), "321".WriteLineExpr());
+                People pp = new People();
+                var nn = pp.phone?.home?.name;
                 var regt_people = new RegQuery<People>()
                     .useSetting(x=> 
                     {
@@ -620,7 +634,11 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "people";
                     });
-                var peopel_where = regt_people.Where(x => x.phone.company != "").ToList();
+                var peopel_where = regt_people.Where(x => x.phone.company != "");
+                foreach(var oo in peopel_where)
+                {
+
+                }
             }
             catch (Exception ee)
             {

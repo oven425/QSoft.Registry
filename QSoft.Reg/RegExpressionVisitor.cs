@@ -464,6 +464,7 @@ namespace QSoft.Registry.Linq
                         else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
                         {
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                            var typecode = Type.GetTypeCode(expr.Type);
                             var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
                             Expression member = null;
                             Expression left_args_1 = null;
@@ -483,8 +484,18 @@ namespace QSoft.Registry.Linq
                             }
                             if(member ==null&&left_args_1 == null)
                             {
-                                left_args_1 = Expression.Constant(expr.Member.Name);
-                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                if(typecode == TypeCode.Object)
+                                {
+                                    left_args_1 = Expression.Constant(expr.Member.Name);
+                                    var ssiu = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string)});
+                                    member = Expression.Call(exprs.ElementAt(0).Value, ssiu, left_args_1);
+                                    //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                }
+                                else
+                                {
+                                    left_args_1 = Expression.Constant(expr.Member.Name);
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                }
                             }
                             this.m_ExpressionSaves[expr] = member;
                         }
@@ -499,8 +510,6 @@ namespace QSoft.Registry.Linq
                             var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
                             var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
                             this.m_ExpressionSaves[expr] = expr_member;
-                            //var expr_member = Expression.MakeMemberAccess(exprs.First().Value, expr.Member);
-                            //this.m_ExpressionSaves[expr] = expr_member;
                         }
                     }
                     else
@@ -513,13 +522,9 @@ namespace QSoft.Registry.Linq
                 {
                     if(exprs.First().Value.Type == typeof(RegistryKey))
                     {
-                        //var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-                        //var left_args_1 = Expression.Constant(expr.Member.Name);
-                        //var member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
-                        //this.m_ExpressionSaves[expr] = member;
-
                         var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                         var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
+                        var typecode = Type.GetTypeCode(expr.Type);
                         Expression member = null;
                         Expression left_args_1 = null;
                         if (attr is RegIgnore)
@@ -539,7 +544,22 @@ namespace QSoft.Registry.Linq
                         if (member == null && left_args_1 == null)
                         {
                             left_args_1 = Expression.Constant(expr.Member.Name);
-                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                            if(typecode == TypeCode.Object)
+                            {
+                                var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                //member = Expression.Call(exprs.ElementAt(0).Value, ssiu, left_args_1);
+                                member = Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value, Expression.Constant(null, typeof(RegistryKey)))
+                                        , Expression.Call(exprs.ElementAt(0).Value, opensubkey, left_args_1)
+                                        , Expression.Constant(null, typeof(RegistryKey)));
+                            }
+                            else
+                            {
+                                member = Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value, Expression.Constant(null, typeof(RegistryKey)))
+                                        , Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1)
+                                        , Expression.Constant(null, expr.Type));
+                            }
+                            
+                            //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
                         }
                         this.m_ExpressionSaves[expr] = member;
                     }

@@ -614,6 +614,7 @@ namespace ConsoleApp1
 
                 var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
                 var peoplekeys = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x));
+                var iuyt = peoplekeys.First().OpenSubKey("phone\\home");
                 var peoples_query = peoplekeys.AsQueryable();
                 //Build<People>(peoplekeys.First());
                 //BuildExpr<People>(peoplekeys.First());
@@ -634,7 +635,7 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "people";
                     });
-                var peopel_where = regt_people.Where(x => x.phone.company != "");
+                var peopel_where = regt_people.Where(x => x.phone.home.name != "");
                 foreach(var oo in peopel_where)
                 {
 

@@ -635,7 +635,8 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "people";
                     });
-                var peopel_where = regt_people.Where(x => x.phone.home.name != "");
+                //var peopel_where = regt_people.Where(x => x.phone.home != null);
+                var peopel_where = regt_people.Where(x => x.phone.home != null);
                 foreach(var oo in peopel_where)
                 {
 

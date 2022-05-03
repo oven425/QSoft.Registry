@@ -8,6 +8,41 @@ namespace QSoft.Registry
 {
     public static class ExpressionEx
     {
+        public static MethodCallExpression WriteLineExpr(this string src)
+        {
+            return Expression.Constant(src).WriteLineExpr();
+        }
+
+        public static MethodCallExpression WriteLineExpr(this Expression src)
+        {
+            var expr = src.ToStringExpr();
+            var method = typeof(System.Diagnostics.Trace).GetMethod("WriteLine", new Type[] { src.Type });
+            MethodCallExpression methodcall = null;
+            TypeCode typecode = Type.GetTypeCode(src.Type);
+            if (typecode == TypeCode.String)
+            {
+                methodcall = Expression.Call(method, src);
+            }
+            else if (typecode != TypeCode.Object)
+            {
+                methodcall = Expression.Call(method, src.ToStringExpr());
+            }
+            else
+            {
+                methodcall = Expression.Call(method, src);
+            }
+            return methodcall;
+        }
+
+        public static MethodCallExpression ToStringExpr(this Expression src)
+        {
+            var method = src.Type.GetMethod("ToString", new Type[] { });
+            var methodcall = Expression.Call(src, method);
+            return methodcall;
+        }
+
+
+
         public static Expression DefaultExpr(this Type src)
         {
             ConstantExpression default_value = null;

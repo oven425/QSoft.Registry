@@ -141,6 +141,7 @@ namespace ConsoleApp1
     public class PhoneCat
     {
         public string name { set; get; }
+        public int? count { set; get; }
     }
 
     public class People
@@ -636,8 +637,14 @@ namespace ConsoleApp1
                         x.SubKey = "people";
                     });
                 //var peopel_where = regt_people.Where(x => x.phone.home != null);
-                var peopel_where = regt_people.Where(x => x.phone.home != null);
-                foreach(var oo in peopel_where)
+                int? aaa = null;
+                if(aaa != 15)
+                {
+
+                }
+                var peopel_where = regt_people.Where(x =>x.phone.home.count == 15);
+                //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);
+                foreach (var oo in peopel_where)
                 {
 
                 }

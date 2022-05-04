@@ -776,5 +776,126 @@ namespace QSoft.Registry.Linq
             basekey.Dispose();
             return reg;
         }
+
+        public static Tuple<Expression, Expression> BuildSubKey(this List<Tuple<Expression, MemberExpression>> members, ParameterExpression reg_p)
+        {
+            if (members.Count > 0)
+            {
+                var ss = members.Select(x => new
+                {
+                    expr = x.Item1,
+                    type = x.Item2.Type.IsGenericType == true && x.Item2.Type.GetGenericTypeDefinition() == typeof(Nullable<>) ? x.Item2.Type.GetGenericArguments()[0] : x.Item2.Type,
+                    type_src = x.Item2
+                });
+                var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
+                Expression getsubkeyexpr = null;
+                Expression getvalue = null;
+                var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+                var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                //var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                foreach (var item in group)
+                {
+                    if (item.Key == true)
+                    {
+                        var subkeyname = item.Select(x => x.type_src.Member.Name).Aggregate((x, y) => $"{x}\\{y}");
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                        getsubkeyexpr = Expression.Call(item.First().expr, opensubkey, Expression.Constant(subkeyname));
+                    }
+                    else
+                    {
+                        var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
+                        getvalue = Expression.Block(
+                                Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullableexpr, Expression.Constant(true)),
+                                    Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                        item.ElementAt(0).type_src.Type.DefaultExpr(),
+                                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
+                                    Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
+                            );
+
+                        //getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).Item2.Type), getsubkeyexpr, Expression.Constant(item.ElementAt(0).Item2.Member.Name));
+                    }
+                }
+                members.Clear();
+                Expression expr = getsubkeyexpr;
+                if(getvalue != null)
+                {
+                    expr = getvalue;
+                }
+                return Tuple.Create<Expression, Expression>(getsubkeyexpr, expr);
+            }
+
+            return Tuple.Create<Expression, Expression>(null, null);
+        }
+
+        public static Expression BuildSubKey(this List<Tuple<Expression, MemberExpression>> members, BinaryExpression node, DictionaryList<Expression, Expression> exprs)
+        {
+            var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+            var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+            var regss = members.BuildSubKey(reg_p);
+            
+            var reg_p_assign = Expression.Assign(reg_p, regss.Item1);
+            var binary_return = Expression.Parameter(typeof(bool), "hr");
+            var binary = Expression.Block(new[] { binary_return, reg_p },
+                reg_p_assign,
+                Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(regss.Item2!=null), Expression.Constant(true)),
+                    Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value)),
+                    Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
+                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                    Expression.Call(reg_p, disposesubkey)),
+                binary_return);
+            return binary;
+            //if (members.Count > 0)
+            //{
+            //    var ss = members.Select(x => new
+            //    {
+            //        expr = x.Item1,
+            //        type = x.Item2.Type.IsGenericType == true && x.Item2.Type.GetGenericTypeDefinition() == typeof(Nullable<>) ? x.Item2.Type.GetGenericArguments()[0] : x.Item2.Type,
+            //        type_src = x.Item2
+            //    });
+            //    var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
+            //    Expression getsubkeyexpr = null;
+            //    Expression getvalue = null;
+            //    var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+            //    var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+            //    var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+            //    bool hasvalue = false; ;
+            //    foreach (var item in group)
+            //    {
+            //        if (item.Key == true)
+            //        {
+            //            var subkeyname = item.Select(x => x.type_src.Member.Name).Aggregate((x, y) => $"{x}\\{y}");
+            //            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+            //            getsubkeyexpr = Expression.Call(item.First().expr, opensubkey, Expression.Constant(subkeyname));
+            //        }
+            //        else
+            //        {
+            //            hasvalue = true;
+            //            var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
+            //            getvalue = Expression.Block(
+            //                    Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullableexpr, Expression.Constant(true)),
+            //                        Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+            //                            item.ElementAt(0).type_src.Type.DefaultExpr(),
+            //                            Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
+            //                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
+            //                );
+
+            //            //getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).Item2.Type), getsubkeyexpr, Expression.Constant(item.ElementAt(0).Item2.Member.Name));
+            //        }
+            //    }
+            //    members.Clear();
+            //    var reg_p_assign = Expression.Assign(reg_p, getsubkeyexpr);
+            //    var binary_return = Expression.Parameter(typeof(bool), "hr");
+            //    var binary = Expression.Block(new[] { binary_return, reg_p },
+            //        reg_p_assign,
+            //        Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(hasvalue), Expression.Constant(true)),
+            //            Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, getvalue, exprs.ElementAt(1).Value)),
+            //            Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
+            //        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+            //            Expression.Call(reg_p, disposesubkey)),
+            //        binary_return);
+            //    return binary;
+            //}
+            return null;
+        }
     }
 }

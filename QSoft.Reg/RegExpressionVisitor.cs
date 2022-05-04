@@ -55,11 +55,77 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Debug.WriteLine($"VisitBinary");
 
             var expr = base.VisitBinary(node) as BinaryExpression;
-            if(this.m_Lastnode != null)
+            if (this.m_Lastnode != null)
             {
+                //if (this.m_MembersExprs.Count > 0)
+                //{
+                //    var ss = this.m_MembersExprs.Select(x => new
+                //    {
+                //        expr = x.Item1,
+                //        type = x.Item2.Type.IsGenericType==true&&x.Item2.Type.GetGenericTypeDefinition()==typeof(Nullable<>)? x.Item2.Type.GetGenericArguments()[0]: x.Item2.Type,
+                //        type_src = x.Item2
+                //    });
+                //    var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
+                //    Expression getsubkeyexpr = null;
+                //    Expression getvalue = null;
+                //    var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+                //    var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                //    var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                //    bool hasvalue = false; ;
+                //    foreach (var item in group)
+                //    {
+                //        if (item.Key == true)
+                //        {
+                //            var subkeyname = item.Select(x => x.type_src.Member.Name).Aggregate((x, y) => $"{x}\\{y}");
+                //            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                //            getsubkeyexpr = Expression.Call(item.First().expr, opensubkey, Expression.Constant(subkeyname));
+                //        }
+                //        else
+                //        {
+                //            hasvalue = true;
+                //            var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType==true&&item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
+                //            getvalue = Expression.Block(
+                //                    Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullableexpr, Expression.Constant(true)),
+                //                        Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                //                            item.ElementAt(0).type_src.Type.DefaultExpr(),
+                //                            Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
+                //                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
+                //                );
+
+                //            //getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).Item2.Type), getsubkeyexpr, Expression.Constant(item.ElementAt(0).Item2.Member.Name));
+                //        }
+                //    }
+                //    this.m_MembersExprs.Clear();
+                //    var exprs = this.m_ExpressionSaves.Clone(expr);
+                //    var reg_p_assign = Expression.Assign(reg_p, getsubkeyexpr);
+                //    var binary_return = Expression.Parameter(typeof(bool), "hr");
+                //    var binary = Expression.Block(new[] { binary_return, reg_p },
+                //        reg_p_assign,
+                //        Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(hasvalue), Expression.Constant(true)),
+                //            Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, getvalue, exprs.ElementAt(1).Value)),
+                //            Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
+                //        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                //            Expression.Call(reg_p, disposesubkey)),
+                //        binary_return);
+                //    this.m_ExpressionSaves[expr] = binary;
+                //}
+                //else
+                //{
+                //    var exprs = this.m_ExpressionSaves.Clone(expr);
+                //    var binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value, exprs.ElementAt(1).Value);
+                //    this.m_ExpressionSaves[expr] = binary;
+                //}
+                
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-                var binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value, exprs.ElementAt(1).Value);
+                var binary = this.m_MembersExprs.BuildSubKey(node, exprs);
+                if(binary == null)
+                {
+                    binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value, exprs.ElementAt(1).Value);
+                }
+                
                 this.m_ExpressionSaves[expr] = binary;
+
+
                 this.m_Lastnode = expr;
             }
             return expr;
@@ -276,7 +342,7 @@ namespace QSoft.Registry.Linq
             }
             
             var expr = base.VisitLambda(node);
-
+            
             var lambda = expr as LambdaExpression;
             Type type = lambda.Body.GetType();
             ParameterExpression[] parameters = new ParameterExpression[lambda.Parameters.Count];
@@ -421,6 +487,7 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+        public List<Tuple<Expression, MemberExpression>> m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
         public List<string> m_SubKeyNames = new List<string>();
         protected override Expression VisitMember(MemberExpression node)
         {
@@ -462,6 +529,7 @@ namespace QSoft.Registry.Linq
                         
                         else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
                         {
+                            this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                             var typecode = Type.GetTypeCode(expr.Type);
                             var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
@@ -485,28 +553,28 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object)
                                 {
-                                    left_args_1 = Expression.Constant(expr.Member.Name);
-                                    this.m_SubKeyNames.Add(expr.Member.Name);
+                                    //left_args_1 = Expression.Constant(expr.Member.Name);
+                                    //this.m_SubKeyNames.Add(expr.Member.Name);
 
-                                    var ssiu = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string)});
-                                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                                    var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+                                    //var ssiu = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string)});
+                                    //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                    //var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
 
-                                    var subkeyname = expr.Member.Name;
-                                    var reg_return = Expression.Parameter(typeof(RegistryKey));
-                                    var reg_dispose = Expression.Constant(this.m_SubKeyNames.Count > 1);
+                                    //var subkeyname = expr.Member.Name;
+                                    //var reg_return = Expression.Parameter(typeof(RegistryKey));
+                                    //var reg_dispose = Expression.Constant(this.m_SubKeyNames.Count > 1);
 
-                                    member = Expression.Block(new[] { reg_return },
-                                    Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Type.DefaultExpr()),
-                                        Expression.Block(Expression.Assign(reg_return, Expression.Call(exprs.ElementAt(0).Value, opensubkey, Expression.Constant(subkeyname))),
-                                            reg_return.WriteLineExpr(),
-                                            Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, reg_dispose, Expression.Constant(true)),
-                                                Expression.Block(
-                                                    Expression.Call(exprs.ElementAt(0).Value, disposesubkey),
-                                                    "dispose".WriteLineExpr()
-                                                    )
-                                                ), reg_return), typeof(RegistryKey).DefaultExpr()));
-                                    //member = exprs.ElementAt(0).Value;
+                                    //member = Expression.Block(new[] { reg_return },
+                                    //Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Type.DefaultExpr()),
+                                    //    Expression.Block(Expression.Assign(reg_return, Expression.Call(exprs.ElementAt(0).Value, opensubkey, Expression.Constant(subkeyname))),
+                                    //        reg_return.WriteLineExpr(),
+                                    //        Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, reg_dispose, Expression.Constant(true)),
+                                    //            Expression.Block(
+                                    //                Expression.Call(exprs.ElementAt(0).Value, disposesubkey),
+                                    //                "dispose".WriteLineExpr()
+                                    //                )
+                                    //            ), reg_return), typeof(RegistryKey).DefaultExpr()));
+                                    member = exprs.ElementAt(0).Value;
                                 }
                                 else
                                 {
@@ -539,6 +607,7 @@ namespace QSoft.Registry.Linq
                 {
                     if(exprs.First().Value.Type == typeof(RegistryKey))
                     {
+                        this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
                         var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                         var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
                         var typecode = Type.GetTypeCode(expr.Type);
@@ -563,42 +632,43 @@ namespace QSoft.Registry.Linq
                             left_args_1 = Expression.Constant(expr.Member.Name);
                             if(typecode == TypeCode.Object)
                             {
-                                this.m_SubKeyNames.Add(expr.Member.Name);
-                                var ssiu = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                                var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                                var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+                                //this.m_SubKeyNames.Add(expr.Member.Name);
+                                //var ssiu = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                //var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
 
-                                var subkeyname = expr.Member.Name;
-                                var reg_return = Expression.Parameter(typeof(RegistryKey));
-                                var reg_dispose = Expression.Constant(this.m_SubKeyNames.Count > 1);
+                                //var subkeyname = expr.Member.Name;
+                                //var reg_return = Expression.Parameter(typeof(RegistryKey));
+                                //var reg_dispose = Expression.Constant(this.m_SubKeyNames.Count > 1);
 
-                                member = Expression.Block(new[] { reg_return },
-                                   Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Type.DefaultExpr()),
-                                       Expression.Block(Expression.Assign(reg_return, Expression.Call(exprs.ElementAt(0).Value, opensubkey, Expression.Constant(subkeyname))),
-                                           reg_return.WriteLineExpr(),
-                                           Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, reg_dispose, Expression.Constant(true)),
-                                               Expression.Block(
-                                                   Expression.Call(exprs.ElementAt(0).Value, disposesubkey),
-                                                   "dispose".WriteLineExpr()
-                                                   )
-                                               ), reg_return), typeof(RegistryKey).DefaultExpr()));
-                                //member = exprs.ElementAt(0).Value;
+                                //member = Expression.Block(new[] { reg_return },
+                                //   Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Type.DefaultExpr()),
+                                //       Expression.Block(Expression.Assign(reg_return, Expression.Call(exprs.ElementAt(0).Value, opensubkey, Expression.Constant(subkeyname))),
+                                //           reg_return.WriteLineExpr(),
+                                //           Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, reg_dispose, Expression.Constant(true)),
+                                //               Expression.Block(
+                                //                   Expression.Call(exprs.ElementAt(0).Value, disposesubkey),
+                                //                   "dispose".WriteLineExpr()
+                                //                   )
+                                //               ), reg_return), typeof(RegistryKey).DefaultExpr()));
+                                member = exprs.ElementAt(0).Value;
                             }
                             else
                             {
-                                var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                                var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
-                                var subkeyname = this.m_SubKeyNames.Aggregate((x, y) => $"{x}\\{y}");
-                                var reg_return = Expression.Parameter(expr.Type);
-                                var reg_p = Expression.Parameter(typeof(RegistryKey));
-                                member = Expression.Block(new[] { reg_p, reg_return }, 
-                                    Expression.Assign(reg_p, Expression.Call(exprs.ElementAt(0).Value, opensubkey, Expression.Constant(subkeyname))),
-                                    Expression.Condition(Expression.MakeBinary( ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                                        Expression.Block(Expression.Assign(reg_return, Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), reg_p, left_args_1)),
-                                            Expression.Call(reg_p, disposesubkey),
-                                            reg_return),
-                                        expr.Type.DefaultExpr()));
-                                this.m_SubKeyNames.Clear();
+                                //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                //var disposesubkey = typeof(RegistryKey).GetMethod("Dispose");
+                                //var subkeyname = this.m_SubKeyNames.Aggregate((x, y) => $"{x}\\{y}");
+                                //var reg_return = Expression.Parameter(expr.Type);
+                                //var reg_p = Expression.Parameter(typeof(RegistryKey));
+                                //member = Expression.Block(new[] { reg_p, reg_return }, 
+                                //    Expression.Assign(reg_p, Expression.Call(exprs.ElementAt(0).Value, opensubkey, Expression.Constant(subkeyname))),
+                                //    Expression.Condition(Expression.MakeBinary( ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                //        Expression.Block(Expression.Assign(reg_return, Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), reg_p, left_args_1)),
+                                //            Expression.Call(reg_p, disposesubkey),
+                                //            reg_return),
+                                //        expr.Type.DefaultExpr()));
+                                //this.m_SubKeyNames.Clear();
+                                member = exprs.ElementAt(0).Value;
                             }
                         }
                         this.m_ExpressionSaves[expr] = member;
@@ -903,6 +973,7 @@ namespace QSoft.Registry.Linq
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
+
             var ttypes1 = exprs1.Select(x => x.Value).GetTypes(expr.Method);
             MethodCallExpression methodcall = null;
             if (expr.Method.IsStatic == true)

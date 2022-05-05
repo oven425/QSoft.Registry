@@ -117,7 +117,7 @@ namespace QSoft.Registry.Linq
                 //}
                 
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-                var binary = this.m_MembersExprs.BuildSubKey(node, exprs);
+                var binary = this.m_MembersExprs.ToBinary(node, exprs);
                 if(binary == null)
                 {
                     binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value, exprs.ElementAt(1).Value);
@@ -973,9 +973,9 @@ namespace QSoft.Registry.Linq
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
-
+            
             var ttypes1 = exprs1.Select(x => x.Value).GetTypes(expr.Method);
-            MethodCallExpression methodcall = null;
+            Expression methodcall = null;
             if (expr.Method.IsStatic == true)
             {
                 switch(expr.Method.Name)
@@ -1023,7 +1023,17 @@ namespace QSoft.Registry.Linq
                             }
                             else
                             {
-                                methodcall = Expression.Call(expr.Method, exprs1.Select(x => x.Value));
+                                var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
+                                var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value));
+                                if(bubkey != null)
+                                {
+                                    methodcall = bubkey;
+                                }
+                                else
+                                {
+                                    methodcall = Expression.Call(expr.Method, exprs1.Select(x => x.Value));
+                                }
+                                
                             }
                         }
                         break;
@@ -1038,7 +1048,17 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    methodcall = Expression.Call(exprs1.First().Value, expr.Method, exprs1.Skip(1).Select(x => x.Value));
+                    var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
+                    var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value));
+                    if (bubkey != null)
+                    {
+                        methodcall = bubkey;
+                    }
+                    else
+                    {
+                        methodcall = Expression.Call(exprs1.First().Value, expr.Method, exprs1.Skip(1).Select(x => x.Value));
+                    }
+                    
                 }
                 
             }

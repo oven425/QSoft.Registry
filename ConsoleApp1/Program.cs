@@ -525,7 +525,10 @@ namespace ConsoleApp1
 //    );
 
         }
-
+        static bool wherett(object src)
+        {
+            return true;
+        }
         static void Main(string[] args)
         {
             //TypeCode cc = TypeCode.Boolean;
@@ -642,8 +645,9 @@ namespace ConsoleApp1
                 {
 
                 }
-                var peopel_where = regt_people.Where(x =>x.phone.home.count == 15);
+                //var peopel_where = regt_people.Where(x =>x.phone.home.count == 15);
                 //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);
+                var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false&& wherett(x));
                 foreach (var oo in peopel_where)
                 {
 

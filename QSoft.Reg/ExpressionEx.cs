@@ -41,7 +41,17 @@ namespace QSoft.Registry
             return methodcall;
         }
 
+        public static MethodCallExpression DisposeExpr(this Expression src)
+        {
+            var method = src.Type.GetMethod("Dispose");
+            var methodcall = Expression.Call(src, method);
+            return methodcall;
+        }
 
+        public static MemberExpression PropertyExpr(this Expression src, string name)
+        {
+            return Expression.Property(src, name);
+        }
 
         public static Expression DefaultExpr(this Type src)
         {

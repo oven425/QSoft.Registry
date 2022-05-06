@@ -645,9 +645,9 @@ namespace ConsoleApp1
                 {
 
                 }
-                //var peopel_where = regt_people.Where(x =>x.phone.home.count == 15);
+                var peopel_where = regt_people.Where(x =>x.phone.home.count == 15);
                 //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);
-                var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false&& wherett(x));
+                //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)
                 {
 

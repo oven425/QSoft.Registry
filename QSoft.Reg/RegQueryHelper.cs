@@ -801,9 +801,11 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
+                        var isnullable_p = Expression.Parameter(typeof(bool), "isnullable_p");
                         var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
-                        getvalue = Expression.Block(
-                                Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullableexpr, Expression.Constant(true)),
+                        getvalue = Expression.Block(new[] { isnullable_p },
+                                Expression.Assign(isnullable_p, isnullableexpr),
+                                Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullable_p, Expression.Constant(true)),
                                     Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                                         item.ElementAt(0).type_src.Type.DefaultExpr(),
                                         Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
@@ -852,7 +854,7 @@ namespace QSoft.Registry.Linq
             {
                 return null;
             }
-            var method_return = Expression.Parameter(method.ReturnType);
+            var method_return = Expression.Parameter(method.ReturnType, "method_return");
             var reg_p_assign = Expression.Assign(reg_p, regss.Item1);
             BlockExpression block = null;
             if(method.IsStatic == true)
@@ -861,29 +863,28 @@ namespace QSoft.Registry.Linq
                 exprs.Add(regss.Item2);
                 exprs.AddRange(args.Skip(1));
                 block = Expression.Block(new[] { reg_p, method_return },
+                    Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
                     reg_p_assign,
-                    Expression.Assign(method_return, Expression.Call(method, exprs)),
-                    reg_p.DisposeExpr(),
+                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null,typeof(RegistryKey))),
+                        Expression.Assign(method_return, Expression.Call(method, exprs))),
+                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        reg_p.DisposeExpr()),
                     method_return
                 );
             }
             else
             {
                 block = Expression.Block(new[] { reg_p, method_return },
+                    Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
                     reg_p_assign,
-                    Expression.Assign(method_return, Expression.Call(regss.Item2, method, args)),
-                    reg_p.DisposeExpr(),
+                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.Assign(method_return, Expression.Call(regss.Item2, method, args))),
+                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        reg_p.DisposeExpr()),
                     method_return
                 );
             }
-            //block = Expression.Block(new[] { reg_p, method_return },
-            //    reg_p_assign,
-            //    Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(true), Expression.Constant(true)),
-            //        Expression.Assign(method_return, Expression.Call(method, regss.Item2)),
-            //        Expression.Assign(method_return, Expression.Call(regss.Item2, method))),
-            //    reg_p.DisposeExpr(),
-            //    method_return
-            //    );
+
             return block;
         }
     }

@@ -768,7 +768,6 @@ namespace QSoft.Registry.Linq
                     {
                         throw new Exception("RegistryHive not find");
                     }
-                    break;
             }
             var basekey = RegistryKey.OpenBaseKey(hive, src.View);
             var reg = basekey.OpenSubKey(path, true);

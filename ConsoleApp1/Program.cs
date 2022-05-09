@@ -614,12 +614,12 @@ namespace ConsoleApp1
 
 
                 //Build<People>(null);
-                
 
-                var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
-                var peoplekeys = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x));
-                var iuyt = peoplekeys.First().OpenSubKey("phone\\home");
-                var peoples_query = peoplekeys.AsQueryable();
+
+                //var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
+                //var peoplekeys = peoplekey.GetSubKeyNames().Select(x => peoplekey.OpenSubKey(x));
+                //var iuyt = peoplekeys.First().OpenSubKey("phone\\home");
+                //var peoples_query = peoplekeys.AsQueryable();
                 //Build<People>(peoplekeys.First());
                 //BuildExpr<People>(peoplekeys.First());
                 //var peopels = peoples_query.Select(x => Build<People>(x));
@@ -628,8 +628,16 @@ namespace ConsoleApp1
 
                 //}
 
+                var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
+                foreach (var name in peoplekey.GetSubKeyNames())
+                {
+                    if (name == "home")
+                    {
+                        
+                    }
+                }
 
-                var tryfin = Expression.TryFinally("123".WriteLineExpr(), "321".WriteLineExpr());
+
                 People pp = new People();
                 var nn = pp.phone?.home?.name;
                 var regt_people = new RegQuery<People>()
@@ -640,12 +648,9 @@ namespace ConsoleApp1
                         x.SubKey = "people";
                     });
                 //var peopel_where = regt_people.Where(x => x.phone.home != null);
-                int? aaa = null;
-                if(aaa != 15)
-                {
 
-                }
-                var peopel_where = regt_people.Where(x =>x.phone.home.count == 15);
+
+                var peopel_where = regt_people.Where(x =>x.phone.home.count == 16);
                 //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)

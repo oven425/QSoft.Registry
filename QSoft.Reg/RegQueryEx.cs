@@ -58,6 +58,11 @@ namespace QSoft.Registry.Linq
             return Tuple.Create(subkey, dicpps);
         }
 
+        static void Insert(this RegistryKey source, object data)
+        {
+
+        }
+
         static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction)
         {
             TData hasdefault = default(TData);
@@ -88,11 +93,36 @@ namespace QSoft.Registry.Linq
                 }
                 foreach (var pp in dicpps.Select(x => x.Key))
                 {
-                    var vv = pp.GetValue(data, null);
-                    if (vv != null)
+                    var typecode = Type.GetTypeCode(pp.PropertyType);
+                    if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
-                        child.SetValue(dicpps[pp], vv);
+                        typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
                     }
+                    switch(typecode)
+                    {
+                        case TypeCode.Object:
+                            {
+                                //var method_generic = typeof(RegQueryEx).GetMethods(BindingFlags.Static | BindingFlags.NonPublic).FirstOrDefault(x => x.Name == "Insert");
+                                //method_generic = method_generic.MakeGenericMethod(pp.PropertyType);
+                                //var object_type = typeof(List<>).MakeGenericType(pp.PropertyType);
+                                //var obj = Activator.CreateInstance(object_type);
+                                //typeof(List<>).GetMethod("Add").MakeGenericMethod(pp.PropertyType);
+                                //method_generic.Invoke(null, new object[] { child, obj, null });
+                                var vv = pp.GetValue(data, null);
+                                child.Insert(pp.GetValue(data, null));
+                            }
+                            break;
+                        default:
+                            {
+                                var vv = pp.GetValue(data, null);
+                                if (vv != null)
+                                {
+                                    child.SetValue(dicpps[pp], vv);
+                                }
+                            }
+                            break;
+                    }
+                    
                 }
                 child.Close();
                 count = count + 1;

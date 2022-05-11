@@ -671,6 +671,7 @@ namespace QSoft.Registry.Linq
                                 member = exprs.ElementAt(0).Value;
                             }
                         }
+                        member = exprs.ElementAt(0).Value;
                         this.m_ExpressionSaves[expr] = member;
                     }
                     else if(exprs.First().Value.Type.HaseRegistryKey() == true)

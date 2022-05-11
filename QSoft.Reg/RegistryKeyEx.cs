@@ -34,13 +34,6 @@ namespace QSoft.Registry
             }
         }
 
-        public static void Test(this RegistryKey src, Type expr, string name)
-        {
-            var tt = expr.GetType();
-            var methods = typeof(RegistryKeyEx).GetMethods().Where(x => x.Name == "GetValue").First().MakeGenericMethod(expr);
-            Expression.Call(methods, Expression.Constant(name));
-        }
-
         public static T GetValue<T>(this RegistryKey src, string name)
         {
             T t = default(T);

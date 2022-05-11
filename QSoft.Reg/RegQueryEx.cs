@@ -58,9 +58,52 @@ namespace QSoft.Registry.Linq
             return Tuple.Create(subkey, dicpps);
         }
 
-        static void Insert(this RegistryKey source, object data)
+        static void Insert(this RegistryKey source, object data, object defaulvalue)
         {
+            if (data == null) { return; }
+            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+            PropertyInfo subkey = null;
 
+            var p = data.GetType().PropertyName();
+            dicpps = p.Item2;
+            subkey = p.Item1;
+            RegistryKey child = null;
+            if (subkey == null)
+            {
+                child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            }
+            else
+            {
+                var vv = subkey.GetValue(data, null);
+                child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+            }
+            foreach (var pp in dicpps.Select(x => x.Key))
+            {
+                var typecode = Type.GetTypeCode(pp.PropertyType);
+                if (pp.PropertyType.IsGenericType == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
+                }
+                switch (typecode)
+                {
+                    case TypeCode.Object:
+                        {
+                            child.Insert(pp.GetValue(data, null), null);
+                        }
+                        break;
+                    default:
+                        {
+                            var vv = pp.GetValue(data, null);
+                            if (vv != null)
+                            {
+                                child.SetValue(dicpps[pp], vv);
+                            }
+                        }
+                        break;
+                }
+
+            }
+            child.Close();
         }
 
         static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction)
@@ -81,50 +124,51 @@ namespace QSoft.Registry.Linq
             subkey = p.Item1;
             foreach (var data in datas)
             {
-                RegistryKey child = null;
-                if (subkey == null)
-                {
-                    child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                else
-                {
-                    var vv = subkey.GetValue(data, null);
-                    child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                }
-                foreach (var pp in dicpps.Select(x => x.Key))
-                {
-                    var typecode = Type.GetTypeCode(pp.PropertyType);
-                    if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    {
-                        typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
-                    }
-                    switch(typecode)
-                    {
-                        case TypeCode.Object:
-                            {
-                                //var method_generic = typeof(RegQueryEx).GetMethods(BindingFlags.Static | BindingFlags.NonPublic).FirstOrDefault(x => x.Name == "Insert");
-                                //method_generic = method_generic.MakeGenericMethod(pp.PropertyType);
-                                //var object_type = typeof(List<>).MakeGenericType(pp.PropertyType);
-                                //var obj = Activator.CreateInstance(object_type);
-                                //typeof(List<>).GetMethod("Add").MakeGenericMethod(pp.PropertyType);
-                                //method_generic.Invoke(null, new object[] { child, obj, null });
-                                var vv = pp.GetValue(data, null);
-                                child.Insert(pp.GetValue(data, null));
-                            }
-                            break;
-                        default:
-                            {
-                                var vv = pp.GetValue(data, null);
-                                if (vv != null)
-                                {
-                                    child.SetValue(dicpps[pp], vv);
-                                }
-                            }
-                            break;
-                    }
-                    
-                }
-                child.Close();
+                source.Insert(data, null);
+                //RegistryKey child = null;
+                //if (subkey == null)
+                //{
+                //    child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                //}
+                //else
+                //{
+                //    var vv = subkey.GetValue(data, null);
+                //    child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                //}
+                //foreach (var pp in dicpps.Select(x => x.Key))
+                //{
+                //    var typecode = Type.GetTypeCode(pp.PropertyType);
+                //    if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                //    {
+                //        typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
+                //    }
+                //    switch(typecode)
+                //    {
+                //        case TypeCode.Object:
+                //            {
+                //                //var method_generic = typeof(RegQueryEx).GetMethods(BindingFlags.Static | BindingFlags.NonPublic).FirstOrDefault(x => x.Name == "Insert");
+                //                //method_generic = method_generic.MakeGenericMethod(pp.PropertyType);
+                //                //var object_type = typeof(List<>).MakeGenericType(pp.PropertyType);
+                //                //var obj = Activator.CreateInstance(object_type);
+                //                //typeof(List<>).GetMethod("Add").MakeGenericMethod(pp.PropertyType);
+                //                //method_generic.Invoke(null, new object[] { child, obj, null });
+                //                var vv = pp.GetValue(data, null);
+                //                child.Insert(pp.GetValue(data, null), null);
+                //            }
+                //            break;
+                //        default:
+                //            {
+                //                var vv = pp.GetValue(data, null);
+                //                if (vv != null)
+                //                {
+                //                    child.SetValue(dicpps[pp], vv);
+                //                }
+                //            }
+                //            break;
+                //    }
+
+                //}
+                //child.Close();
                 count = count + 1;
             }
             return count;

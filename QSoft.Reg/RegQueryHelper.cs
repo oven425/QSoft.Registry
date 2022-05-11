@@ -780,8 +780,28 @@ namespace QSoft.Registry.Linq
         {
             if (members.Count > 0)
             {
+                //if (attr is RegIgnore)
+                //{
+                //    this.Fail = $"{expr.Member.Name} is ignored, please do not use";
+                //}
+                //else if (attr is RegPropertyName)
+                //{
+                //    left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                //    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                //}
+                //else if (attr is RegSubKeyName)
+                //{
+                //    var subkeyname = attr as RegSubKeyName;
+                //    member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
+                //}
+                Func<MemberExpression, string> funcValue = delegate(MemberExpression member_expr)
+                {
+                    var attr = member_expr.Member.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;
+                    return attr?.Name ?? member_expr.Member.Name;
+                };
                 var ss = members.Select(x => new
                 {
+                    name = funcValue(x.Item2),
                     expr = x.Item1,
                     type = x.Item2.Type.IsGenericType == true && x.Item2.Type.GetGenericTypeDefinition() == typeof(Nullable<>) ? x.Item2.Type.GetGenericArguments()[0] : x.Item2.Type,
                     type_src = x.Item2
@@ -794,7 +814,7 @@ namespace QSoft.Registry.Linq
                 {
                     if (item.Key == true)
                     {
-                        var subkeyname = item.Select(x => x.type_src.Member.Name).Aggregate((x, y) => $"{x}\\{y}");
+                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
                         var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
                         getsubkeyexpr = Expression.Call(item.First().expr, opensubkey, Expression.Constant(subkeyname));
                     }

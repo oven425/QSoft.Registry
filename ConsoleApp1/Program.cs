@@ -133,15 +133,16 @@ namespace ConsoleApp1
     {
         public string company { set; get; }
         public string number { set; get; }
-        //[RegPropertyName(Name ="home")]
-        public PhoneCat home { set; get; }
+        [RegPropertyName(Name ="home")]
+        public PhoneCat Home { set; get; }
         public PhoneCat office { set; get; }
     }
 
     public class PhoneCat
     {
         public string name { set; get; }
-        public int? count { set; get; }
+        [RegPropertyName(Name ="count")]
+        public int? Count { set; get; }
     }
 
     public class People
@@ -638,8 +639,6 @@ namespace ConsoleApp1
                 }
 
 
-                People pp = new People();
-                var nn = pp.phone?.home?.name;
                 var regt_people = new RegQuery<People>()
                     .useSetting(x=> 
                     {
@@ -648,9 +647,9 @@ namespace ConsoleApp1
                         x.SubKey = "people";
                     });
                 //var peopel_where = regt_people.Where(x => x.phone.home != null);
-                regt_people.Insert(new List<People>() { new People() { Height=100, Weight=200, Name="123", Key="Key", phone = new Phone() } });
+                //regt_people.Insert(new List<People>() { new People() { Height=100, Weight=200, Name="123", Key="Key", phone = new Phone() } });
 
-                var peopel_where = regt_people.Where(x =>x.phone.home.count == 16);
+                var peopel_where = regt_people.Where(x =>x.phone.Home.Count == 15);
                 //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)

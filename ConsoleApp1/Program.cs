@@ -648,6 +648,7 @@ namespace ConsoleApp1
                     });
                 //var peopel_where = regt_people.Where(x => x.phone.home != null);
                 //regt_people.Insert(new List<People>() { new People() { Height=100, Weight=200, Name="123", Key="Key", phone = new Phone() } });
+                regt_people.Update(x => new People() { phone=new Phone() { company="tt123" } });
 
                 var peopel_where = regt_people.Where(x =>x.phone.Home.Count == 15);
                 //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);

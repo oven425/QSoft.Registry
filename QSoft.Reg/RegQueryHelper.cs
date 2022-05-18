@@ -150,9 +150,9 @@ namespace QSoft.Registry.Linq
             return types.Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType(null);
         }
 
-        public static Type BuildType(this IEnumerable<PropertyInfo> types)
+        public static Type BuildType(this IEnumerable<PropertyInfo> types, IEnumerable<Type> exists=null)
         {
-            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType(null);
+            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType(exists);
         }
         static public int Replace(this Type[] datas, Type src, Type dst)
         {

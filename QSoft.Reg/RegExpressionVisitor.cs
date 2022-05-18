@@ -243,7 +243,11 @@ namespace QSoft.Registry.Linq
                     case "Update":
                     case "InsertOrUpdate":
                         {
+                            var aaaa = exprs.Skip(1).Select(x => x.Value);
+                            
                             var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
+                            
+                            var pps = anyt.GetProperties();
                             var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
                             this.m_ExpressionSaves[expr] = expr_new;
                         }

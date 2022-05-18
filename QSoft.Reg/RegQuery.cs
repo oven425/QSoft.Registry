@@ -156,18 +156,18 @@ namespace QSoft.Registry.Linq
             }
             return dicpps;
         }
-        [Obsolete("Testing", true)]
-        public void Update(T data)
-        {
-            var setting = (this.Provider as RegProvider<T>)?.Setting;
-            RegistryKey reg = setting?.Open(true);
-            var pps = this.DumpPropertys(data);
-            foreach (var pp in pps)
-            {
-                var oo = pp.Key.GetValue(data, null);
-                reg.SetValue(pp.Value, oo);
-            }
-        }
+        //[Obsolete("Testing", true)]
+        //public void Update(T data)
+        //{
+        //    var setting = (this.Provider as RegProvider<T>)?.Setting;
+        //    RegistryKey reg = setting?.Open(true);
+        //    var pps = this.DumpPropertys(data);
+        //    foreach (var pp in pps)
+        //    {
+        //        var oo = pp.Key.GetValue(data, null);
+        //        reg.SetValue(pp.Value, oo);
+        //    }
+        //}
         [Obsolete("Testing", true)]
         public T Get()
         {

@@ -125,59 +125,15 @@ namespace QSoft.Registry.Linq
             foreach (var data in datas)
             {
                 source.Insert(data, null);
-                //RegistryKey child = null;
-                //if (subkey == null)
-                //{
-                //    child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                //}
-                //else
-                //{
-                //    var vv = subkey.GetValue(data, null);
-                //    child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
-                //}
-                //foreach (var pp in dicpps.Select(x => x.Key))
-                //{
-                //    var typecode = Type.GetTypeCode(pp.PropertyType);
-                //    if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                //    {
-                //        typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
-                //    }
-                //    switch(typecode)
-                //    {
-                //        case TypeCode.Object:
-                //            {
-                //                //var method_generic = typeof(RegQueryEx).GetMethods(BindingFlags.Static | BindingFlags.NonPublic).FirstOrDefault(x => x.Name == "Insert");
-                //                //method_generic = method_generic.MakeGenericMethod(pp.PropertyType);
-                //                //var object_type = typeof(List<>).MakeGenericType(pp.PropertyType);
-                //                //var obj = Activator.CreateInstance(object_type);
-                //                //typeof(List<>).GetMethod("Add").MakeGenericMethod(pp.PropertyType);
-                //                //method_generic.Invoke(null, new object[] { child, obj, null });
-                //                var vv = pp.GetValue(data, null);
-                //                child.Insert(pp.GetValue(data, null), null);
-                //            }
-                //            break;
-                //        default:
-                //            {
-                //                var vv = pp.GetValue(data, null);
-                //                if (vv != null)
-                //                {
-                //                    child.SetValue(dicpps[pp], vv);
-                //                }
-                //            }
-                //            break;
-                //    }
-
-                //}
-                //child.Close();
                 count = count + 1;
             }
             return count;
         }
 
-
-
         public static int Update<TSource, TResult>(this IQueryable<TSource> source, Expression<Func<TSource, TResult>> selector) where TResult : class
         {
+            var t1 = typeof(TSource);
+            var t2 = typeof(TResult);
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic|BindingFlags.Static).Where(x => x.Name == "Update");
             var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource), typeof(TResult)), source.Expression, selector);
             return source.Provider.Execute<int>(methdodcall);

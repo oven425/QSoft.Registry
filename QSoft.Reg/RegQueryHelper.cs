@@ -57,24 +57,24 @@ namespace QSoft.Registry.Linq
             AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
 
             //ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
-            if(mb == null)
+            if (mb == null)
             {
                 mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
             }
             Interlocked.Increment(ref m_BuildTypeCount);
             TypeBuilder tb = mb.DefineType($"<>q_AnyoumusType_{m_BuildTypeCount}_{types.Count()}_{exists?.Count()}", TypeAttributes.Public);
-            
+
             //List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
 
             var tts = new List<Tuple<Type, string>>();
             var types1 = types.ToList();
             var exists_count = 0;
-            if(exists != null)
+            if (exists != null)
             {
                 exists_count = exists.Count();
             }
             int existindex = types1.Count - exists_count;
-            for (int i=0; i<types1.Count; i++)
+            for (int i = 0; i < types1.Count; i++)
             {
                 tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
                 //if (i< existindex)
@@ -97,14 +97,14 @@ namespace QSoft.Registry.Linq
             var ggpnames = tts.Select(x => $"T_{x.Item2}").ToArray();
             var ggps = tb.DefineGenericParameters(ggpnames);
 
-            var fileds = tts.Zip(ggps, (x,y)=>new {x, y }).Select(x=>
-            {
-                if (Type.GetTypeCode(x.x.Item1) == TypeCode.Object && x.x.Item1 != typeof(RegistryKey))
+            var fileds = tts.Zip(ggps, (x, y) => new { x, y }).Select(x =>
                 {
+                    if (Type.GetTypeCode(x.x.Item1) == TypeCode.Object && x.x.Item1 != typeof(RegistryKey))
+                    {
                     //x.Item1.GetConstructors()[0].GetParameters().BuildType();
                 }
-                return tb.DefineField($"m_{x.x.Item2}", x.y, FieldAttributes.Private);
-            }).ToList();
+                    return tb.DefineField($"m_{x.x.Item2}", x.y, FieldAttributes.Private);
+                }).ToList();
 
             var fileds1 = tts.Select((x, i) =>
             {
@@ -116,7 +116,7 @@ namespace QSoft.Registry.Linq
             }).ToList();
 
 
-            
+
             Type[] parameterTypes = tts.Select(x => x.Item1).ToArray();
 
 
@@ -135,7 +135,7 @@ namespace QSoft.Registry.Linq
             ctor1IL.Emit(OpCodes.Ret);
 
 
-            foreach (var oo in fileds.Zip(ggps, (x, y)=>new { x,y}))
+            foreach (var oo in fileds.Zip(ggps, (x, y) => new { x, y }))
             {
                 AddProperty(tb, oo.x, oo.y, true, true);
             }
@@ -145,14 +145,91 @@ namespace QSoft.Registry.Linq
             return type1;
         }
 
+        public static Type BuildType(this IEnumerable<Tuple<Type, string>> types)
+        {
+            AssemblyName aName = new AssemblyName("RegQuery");
+            AssemblyBuilder ab = AppDomain.CurrentDomain.DefineDynamicAssembly(aName, AssemblyBuilderAccess.RunAndSave);
+
+            //ModuleBuilder mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+            if (mb == null)
+            {
+                mb = ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+            }
+            Interlocked.Increment(ref m_BuildTypeCount);
+            TypeBuilder tb = mb.DefineType($"<>q_AnyoumusType_{m_BuildTypeCount}_{types.Count()}_0", TypeAttributes.Public);
+
+            //List<KeyValuePair<string, Type>> typekeys = new List<KeyValuePair<string, Type>>();
+
+            var tts = new List<Tuple<Type, string>>();
+            var types1 = types.ToList();
+            for (int i = 0; i < types1.Count; i++)
+            {
+                tts.Add(Tuple.Create(types1[i].Item1, types1[i].Item2));
+            }
+
+            //var oiop = LatticeUtils.AnonymousTypeUtils.CreateType(typekeys);
+            //return oiop;
+
+            var ggpnames = tts.Select(x => $"T_{x.Item2}").ToArray();
+            var ggps = tb.DefineGenericParameters(ggpnames);
+
+            var fileds = tts.Zip(ggps, (x, y) => new { x, y }).Select(x =>
+            {
+                if (Type.GetTypeCode(x.x.Item1) == TypeCode.Object && x.x.Item1 != typeof(RegistryKey))
+                {
+                    //x.Item1.GetConstructors()[0].GetParameters().BuildType();
+                }
+                return tb.DefineField($"m_{x.x.Item2}", x.y, FieldAttributes.Private);
+            }).ToList();
+
+            var fileds1 = tts.Select((x, i) =>
+            {
+                if (Type.GetTypeCode(x.Item1) == TypeCode.Object && x.Item1 != typeof(RegistryKey))
+                {
+                    //x.Item1.GetConstructors()[0].GetParameters().BuildType();
+                }
+                return tb.DefineField($"m_{x.Item2}", x.Item1, FieldAttributes.Private);
+            }).ToList();
+
+
+
+            Type[] parameterTypes = tts.Select(x => x.Item1).ToArray();
+
+
+            ConstructorBuilder ctor1 = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, parameterTypes);
+
+            ILGenerator ctor1IL = ctor1.GetILGenerator();
+            ctor1IL.Emit(OpCodes.Ldarg_0);
+            ctor1IL.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes));
+            for (int i = 0; i < fileds.Count; i++)
+            {
+                ctor1IL.Emit(OpCodes.Ldarg_0);
+                ctor1IL.Emit(OpCodes.Ldarg_S, i + 1);
+                ctor1IL.Emit(OpCodes.Stfld, fileds[i]);
+            }
+
+            ctor1IL.Emit(OpCodes.Ret);
+
+
+            foreach (var oo in fileds.Zip(ggps, (x, y) => new { x, y }))
+            {
+                AddProperty(tb, oo.x, oo.y, true, true);
+            }
+
+            var type = tb.CreateType();
+            var type1 = type.MakeGenericType(types.Select(x => x.Item1).ToArray());
+            return type1;
+        }
+
+
         public static Type BuildType(this IEnumerable<ParameterInfo> types)
         {
-            return types.Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType(null);
+            return types.Select(x => Tuple.Create(x.ParameterType, x.Name)).BuildType();
         }
 
         public static Type BuildType(this IEnumerable<PropertyInfo> types, IEnumerable<Type> exists=null)
         {
-            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType(exists);
+            return types.Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType();
         }
         static public int Replace(this Type[] datas, Type src, Type dst)
         {

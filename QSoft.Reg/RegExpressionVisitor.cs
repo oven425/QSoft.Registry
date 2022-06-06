@@ -202,8 +202,9 @@ namespace QSoft.Registry.Linq
                     var pps1 = con_pps.Replace(typeof(TData), typeof(RegistryKey));
                     var pps2 = con_pps.Zip(exprs.Select(x => x.Value), (pp, values) => new { pp, values })
                         .Select(x => Tuple.Create(x.values.Type, x.pp.Name));
-                    var exists = exprs.Where(x => Type.GetTypeCode(x.Value.Type) == TypeCode.Object && x.Value.Type != typeof(RegistryKey)).Select(x => x.Value.Type);
-                    var anyt = pps2.BuildType(exists);
+                    //var exists = exprs.Where(x => Type.GetTypeCode(x.Value.Type) == TypeCode.Object && x.Value.Type != typeof(RegistryKey)).Select(x => x.Value.Type);
+                    //var anyt = pps2.BuildType(exists);
+                    var anyt = pps2.BuildType();
                     var po = anyt.GetConstructors()[0].GetParameters();
                     var pps = anyt.GetProperties();
                     expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value), anyt.GetProperties());

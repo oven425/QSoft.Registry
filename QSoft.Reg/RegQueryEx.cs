@@ -116,12 +116,6 @@ namespace QSoft.Registry.Linq
             }
             
             int count = 0;
-            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
-            PropertyInfo subkey = null;
-            
-            var p = typeof(TData).PropertyName();
-            dicpps = p.Item2;
-            subkey = p.Item1;
             foreach (var data in datas)
             {
                 source.Insert(data, null);
@@ -139,44 +133,94 @@ namespace QSoft.Registry.Linq
             return source.Provider.Execute<int>(methdodcall);
         }
 
-        static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> data)
+        static int Update<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> data_func)
         {
             var regs = source as IEnumerable<RegistryKey>;
             if (regs == null)
             {
                 throw new Exception("Source must be RegistryKey");
             }
-            var pps = data.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
-            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
-            foreach (var pp in pps)
-            {
-                dicpps[pp] = pp.Name;
-                var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
-                if (regnames.Length > 0)
-                {
-                    dicpps[pp] = regnames[0].Name;
-                }
-            }
+
+            //var pps = data_func.GetType().GetGenericArguments()[1].GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
+            //Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+            //foreach (var pp in pps)
+            //{
+            //    dicpps[pp] = pp.Name;
+            //    var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), true) as RegPropertyName[];
+            //    if (regnames.Length > 0)
+            //    {
+            //        dicpps[pp] = regnames[0].Name;
+            //    }
+            //}
 
             foreach (var oo in source)
             {
                 RegistryKey reg = oo as RegistryKey;
-                var obj = data(oo);
+                var obj = data_func(oo);
+                reg.Insert(obj, null);
+                //foreach (var pp in pps)
+                //{
+                //    var vv = pp.GetValue(obj, null);
 
-                foreach (var pp in pps)
-                {
-                    var vv = pp.GetValue(obj, null);
+                //    if (vv != null)
+                //    {
+                //        reg.SetValue(dicpps[pp], vv);
+                //    }
 
-                    if (vv != null)
-                    {
-                        reg.SetValue(dicpps[pp], vv);
-                    }
-
-                }
+                //}
             }
 
             return source.Count();
         }
+
+        //static void Update(this RegistryKey source, object data)
+        //{
+        //    if (data == null) { return; }
+        //    Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+        //    PropertyInfo subkey = null;
+
+        //    var p = data.GetType().PropertyName();
+        //    dicpps = p.Item2;
+        //    subkey = p.Item1;
+        //    RegistryKey child = null;
+        //    if (subkey == null)
+        //    {
+        //        child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
+        //    }
+        //    else
+        //    {
+        //        var vv = subkey.GetValue(data, null);
+        //        child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+        //    }
+        //    foreach (var pp in dicpps.Select(x => x.Key))
+        //    {
+        //        var typecode = Type.GetTypeCode(pp.PropertyType);
+        //        if (pp.PropertyType.IsGenericType == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+        //        {
+        //            typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
+        //        }
+        //        switch (typecode)
+        //        {
+        //            case TypeCode.Object:
+        //                {
+        //                    child.Insert(pp.GetValue(data, null), null);
+        //                }
+        //                break;
+        //            default:
+        //                {
+        //                    var vv = pp.GetValue(data, null);
+        //                    if (vv != null)
+        //                    {
+        //                        child.SetValue(dicpps[pp], vv);
+        //                    }
+        //                }
+        //                break;
+        //        }
+
+        //    }
+        //    child.Close();
+        //}
+
 
         //public static int InsertTo<TFirst, TSecond, TResult>(this IQueryable<TFirst> src, RegQuery<TSecond> dst, Expression<Func<TFirst, TResult>> selector)
         //{

@@ -246,27 +246,28 @@ namespace QSoft.Registry.Linq
                         {
                             var aaaa = exprs.Skip(1);
                             var typecode = Type.GetTypeCode(aaaa.First().Value.Type);
-                            var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
+                            var oiu = exprs[expr.NewExpression];
+                            var ll = expr.Bindings.Select(x => x.Member as PropertyInfo).ToList();
+
+                            List<Tuple<Type, string>> typedefines = new List<Tuple<Type, string>>();
+                            for(int i=0; i<ll.Count; i++)
+                            {
+                                if(Type.GetTypeCode(ll[i].PropertyType) == TypeCode.Object)
+                                {
+                                    var ooii = exprs.FirstOrDefault(x => x.Key.Type == ll[i].PropertyType);
+                                    typedefines.Add(Tuple.Create(ooii.Value.Type, ll[i].Name));
+                                }
+                                else
+                                {
+                                    typedefines.Add(Tuple.Create(ll[i].PropertyType, ll[i].Name));
+                                }
+                            }
+                            var anyt = typedefines.BuildType();
+                            //var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
 
                             var pps = anyt.GetProperties();
                             var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
                             this.m_ExpressionSaves[expr] = expr_new;
-                            //if(typecode != TypeCode.Object)
-                            //{
-                            //    var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
-
-                            //    var pps = anyt.GetProperties();
-                            //    var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
-                            //    this.m_ExpressionSaves[expr] = expr_new;
-                            //}
-                            //else
-                            //{
-
-                            //    var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).Select(x => Tuple.Create(x.PropertyType, x.Name)).BuildType(aaaa.Select(x=>x.Value.Type));
-                            //    var pps = anyt.GetProperties();
-                            //    var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
-                            //    this.m_ExpressionSaves[expr] = expr_new;
-                            //}
                         }
                         break;
                     default:

@@ -246,16 +246,17 @@ namespace QSoft.Registry.Linq
                         {
                             var aaaa = exprs.Skip(1);
                             var typecode = Type.GetTypeCode(aaaa.First().Value.Type);
-                            var oiu = exprs[expr.NewExpression];
-                            var ll = expr.Bindings.Select(x => x.Member as PropertyInfo).ToList();
 
+                            var ll = expr.Bindings.Select(x => x.Member as PropertyInfo).ToList();
+                            var p = exprs.First().Key.Type.PropertyName();
                             List<Tuple<Type, string>> typedefines = new List<Tuple<Type, string>>();
                             for(int i=0; i<ll.Count; i++)
                             {
                                 if(Type.GetTypeCode(ll[i].PropertyType) == TypeCode.Object)
                                 {
                                     var ooii = exprs.FirstOrDefault(x => x.Key.Type == ll[i].PropertyType);
-                                    typedefines.Add(Tuple.Create(ooii.Value.Type, ll[i].Name));
+                                    var iuy = p.Item2[ll[i]];
+                                    typedefines.Add(Tuple.Create(ooii.Value.Type, iuy??ll[i].Name));
                                 }
                                 else
                                 {

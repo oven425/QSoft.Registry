@@ -5,10 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace QSoft.Registry.Linq
 {
@@ -983,5 +981,41 @@ namespace QSoft.Registry.Linq
 
             return block;
         }
+
+        public static Tuple<PropertyInfo, Dictionary<PropertyInfo, string>> PropertyName(this Type src)
+        {
+            var group = src.GetProperties().Where(x => x.CanRead == true)
+                .Select(x => new { x, attr = x.GetCustomAttributes(true).Where(y => y is RegIgnore || y is RegSubKeyName || y is RegPropertyName).FirstOrDefault() })
+                .GroupBy(x => x.attr);
+            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
+            PropertyInfo subkey = null;
+            foreach (var items in group)
+            {
+                if (items.Key is RegPropertyName)
+                {
+                    foreach (var oo in items)
+                    {
+                        dicpps[oo.x] = (oo.attr as RegPropertyName)?.Name ?? oo.x.Name;
+                    }
+                }
+                else if (items.Key == null)
+                {
+                    foreach (var oo in items)
+                    {
+                        dicpps[oo.x] = oo.x.Name;
+                    }
+                }
+                else if (items.Key is RegSubKeyName)
+                {
+                    foreach (var oo in items)
+                    {
+                        subkey = oo.x;
+                    }
+                }
+            }
+
+            return Tuple.Create(subkey, dicpps);
+        }
+
     }
 }

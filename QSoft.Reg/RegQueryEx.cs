@@ -22,86 +22,56 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
-
-        static Tuple<PropertyInfo, Dictionary<PropertyInfo, string>>  PropertyName(this Type src)
-        {
-            var group = src.GetProperties().Where(x => x.CanRead == true)
-                .Select(x => new { x, attr = x.GetCustomAttributes(true).Where(y => y is RegIgnore || y is RegSubKeyName || y is RegPropertyName).FirstOrDefault() })
-                .GroupBy(x => x.attr);
-            Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
-            PropertyInfo subkey = null;
-            foreach (var items in group)
-            {
-                if (items.Key is RegPropertyName)
-                {
-                    foreach (var oo in items)
-                    {
-                        dicpps[oo.x] = (oo.attr as RegPropertyName)?.Name ?? oo.x.Name;
-                    }
-                }
-                else if (items.Key == null)
-                {
-                    foreach (var oo in items)
-                    {
-                        dicpps[oo.x] = oo.x.Name;
-                    }
-                }
-                else if (items.Key is RegSubKeyName)
-                {
-                    foreach (var oo in items)
-                    {
-                        subkey = oo.x;
-                    }
-                }
-            }
-
-            return Tuple.Create(subkey, dicpps);
-        }
-
-        static void Insert(this RegistryKey source, object data, object defaulvalue)
+        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert)
         {
             if (data == null) { return; }
+
             Dictionary<PropertyInfo, string> dicpps = new Dictionary<PropertyInfo, string>();
             PropertyInfo subkey = null;
 
             var p = data.GetType().PropertyName();
             dicpps = p.Item2;
             subkey = p.Item1;
-            RegistryKey child = null;
-            if (subkey == null)
+            RegistryKey child = source;
+            if(isinsert == true)
             {
-                child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
-            }
-            else
-            {
-                var vv = subkey.GetValue(data, null);
-                child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
-            }
-            foreach (var pp in dicpps.Select(x => x.Key))
-            {
-                var typecode = Type.GetTypeCode(pp.PropertyType);
-                if (pp.PropertyType.IsGenericType == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                if (subkey == null)
                 {
-                    typecode = Type.GetTypeCode(pp.PropertyType.GetGenericArguments()[0]);
+                    child = source.CreateSubKey($"{{{Guid.NewGuid().ToString().ToUpperInvariant()}}}_regquery", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+                else
+                {
+                    var vv = subkey.GetValue(data, null);
+                    child = source.CreateSubKey($"{vv.ToString()}", RegistryKeyPermissionCheck.ReadWriteSubTree);
+                }
+            }
+            isinsert = false;
+
+            foreach (var pp in dicpps)
+            {
+                var typecode = Type.GetTypeCode(pp.Key.PropertyType);
+                if (pp.Key.PropertyType.IsGenericType == true && pp.Key.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
                 switch (typecode)
                 {
                     case TypeCode.Object:
                         {
-                            child.Insert(pp.GetValue(data, null), null);
+                            var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                            cc.Insert(pp.Key.GetValue(data, null), null, isinsert);
                         }
                         break;
                     default:
                         {
-                            var vv = pp.GetValue(data, null);
+                            var vv = pp.Key.GetValue(data, null);
                             if (vv != null)
                             {
-                                child.SetValue(dicpps[pp], vv);
+                                child.SetValue(dicpps[pp.Key], vv);
                             }
                         }
                         break;
                 }
-
             }
             child.Close();
         }
@@ -118,7 +88,7 @@ namespace QSoft.Registry.Linq
             int count = 0;
             foreach (var data in datas)
             {
-                source.Insert(data, null);
+                source.Insert(data, null, true);
                 count = count + 1;
             }
             return count;
@@ -157,7 +127,7 @@ namespace QSoft.Registry.Linq
             {
                 RegistryKey reg = oo as RegistryKey;
                 var obj = data_func(oo);
-                reg.Insert(obj, null);
+                reg.Insert(obj, null, false);
                 //foreach (var pp in pps)
                 //{
                 //    var vv = pp.GetValue(obj, null);

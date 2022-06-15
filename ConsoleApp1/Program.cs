@@ -153,11 +153,11 @@ namespace ConsoleApp1
         public int? Weight { set; get; }
         [RegPropertyName(Name = "height")]
         public int Height { set; get; }
-        
+
+        [RegPropertyName(Name = "Phone1")]
         public Phone phone { set; get; }
         //public List<Phone> phones { set; get; }
     }
-
 
 
     class Program
@@ -647,8 +647,34 @@ namespace ConsoleApp1
                         x.SubKey = "people";
                     });
                 //var peopel_where = regt_people.Where(x => x.phone.home != null);
-                //regt_people.Insert(new List<People>() { new People() { Height=100, Weight=200, Name="123", Key="Key", phone = new Phone() } });
-                regt_people.Update(x => new People() { Height=100, phone=new Phone() { company="tt123", number="number" } });
+                //regt_people.Insert(new List<People>()
+                //{
+                //    new People() { Height=100, Weight=200, Name="123", Key="Key",
+                //        phone = new Phone()
+                //        {
+                //            company = "A",
+                //            number = "number_A",
+                //            Home = new PhoneCat()
+                //            {
+                //                Count = 1,
+                //                name="PhoneCat_Home"
+                //            },
+                //            office = new PhoneCat()
+                //            {
+                //                Count=2,
+                //                name="PhoneCat_office"
+                //            }
+                //        }}
+                //});
+                regt_people.Update(x => new People()
+                {
+                    Height =100,
+                    phone =new Phone()
+                    {
+                        company = "Phone_company",
+                        number = "Phone_number"
+                    }
+                });
 
                 var peopel_where = regt_people.Where(x =>x.phone.Home.Count == 15);
                 //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);

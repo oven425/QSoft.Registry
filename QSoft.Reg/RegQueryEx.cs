@@ -58,8 +58,12 @@ namespace QSoft.Registry.Linq
                 {
                     case TypeCode.Object:
                         {
-                            var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                            cc.Insert(pp.Key.GetValue(data, null), null, isinsert);
+                            var obj = pp.Key.GetValue(data, null);
+                            if(obj != null)
+                            {
+                                var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                                cc.Insert(pp.Key.GetValue(data, null), null, isinsert);
+                            }
                         }
                         break;
                     default:

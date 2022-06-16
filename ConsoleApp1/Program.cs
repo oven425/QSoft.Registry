@@ -133,16 +133,14 @@ namespace ConsoleApp1
     {
         public string company { set; get; }
         public string number { set; get; }
-        [RegPropertyName(Name ="home")]
-        public PhoneCat Home { set; get; }
-        public PhoneCat office { set; get; }
+        public Record First { set; get; }
+        public Record Last { set; get; }
     }
 
-    public class PhoneCat
+    public class Record
     {
-        public string name { set; get; }
-        [RegPropertyName(Name ="count")]
-        public int? Count { set; get; }
+        public DateTime Start { set; get; }
+        public DateTime Stop { set; get; }
     }
 
     public class People
@@ -614,7 +612,6 @@ namespace ConsoleApp1
                 //}).Where(x => !(x.attr is RegIgnore));
 
 
-                //Build<People>(null);
 
 
                 //var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
@@ -654,30 +651,29 @@ namespace ConsoleApp1
                 //        {
                 //            company = "A",
                 //            number = "number_A",
-                //            Home = new PhoneCat()
+                //            First = new Record()
                 //            {
-                //                Count = 1,
-                //                name="PhoneCat_Home"
-                //            },
-                //            office = new PhoneCat()
-                //            {
-                //                Count=2,
-                //                name="PhoneCat_office"
+                //                Start = DateTime.MinValue,
+                //                Stop = DateTime.MinValue+TimeSpan.FromDays(1)
                 //            }
-                //        }}
-                //});
-                regt_people.Update(x => new People()
-                {
-                    Height =100,
-                    phone =new Phone()
-                    {
-                        company = "Phone_company",
-                        number = "Phone_number"
-                    }
-                });
 
-                var peopel_where = regt_people.Where(x =>x.phone.Home.Count == 15);
-                //var peopel_where = regt_people.Where(x => string.IsNullOrEmpty(x.phone.home.name)==false);
+                //        },
+                //    }
+
+                //});
+                //regt_people.Update(x => new People()
+                //{
+                //    phone = new Phone()
+                //    {
+                //        Last = new Record()
+                //        {
+                //            Start = x.phone.First.Start.AddDays(1),
+                //            Stop = DateTime.Now.AddDays(1)
+                //        }
+                //    }
+                //});
+
+                var peopel_where = regt_people.Where(x =>x.phone.First!=null);
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)
                 {

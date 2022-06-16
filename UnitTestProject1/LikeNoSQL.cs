@@ -83,6 +83,11 @@ namespace LikeNoSQL
 
     }
 
+    public class People
+    {
+        public string Name { set; get; }
+    }
+
     public class App
     {
         public int ID { set; get; }

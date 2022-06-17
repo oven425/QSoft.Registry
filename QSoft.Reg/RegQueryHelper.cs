@@ -499,8 +499,9 @@ namespace QSoft.Registry.Linq
                 .Select(x => new
                 {
                     x,
-                    attr = x.GetCustomAttributes(true).FirstOrDefault(y=>y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
-                }).Where(x=>!(x.attr is RegIgnore));
+                    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
+                }).Where(x => !(x.attr is RegIgnore));
+
             var ccs = dst.GetConstructors();
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
@@ -522,12 +523,60 @@ namespace QSoft.Registry.Linq
                 }
                 else if (pp.attr != null && pp.attr is RegPropertyName)
                 {
-                    var reganme = pp.attr as RegPropertyName;
-                    name = Expression.Constant(reganme.Name, typeof(string));
+                    if (typecode == TypeCode.Object)
+                    {
+                        var subkeyname = (pp.attr as RegPropertyName)?.Name;
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                        var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
+                        var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
+                        var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
+                        var objexpr = pp.x.PropertyType.ToData(reg_p);
+                        var block = Expression.Block(new[] { reg_p, new_p },
+                            Expression.Assign(reg_p, getsubkeyexpr),
+                            Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                Expression.Block(
+                                    Expression.Assign(new_p, objexpr),
+                                    new_p
+                                    ),
+                                Expression.Constant(null, pp.x.PropertyType)
+                                )
+                            );
+                        var binding = Expression.Bind(pp.x, block);
+                        bindings.Add(binding);
+                    }
+                    else
+                    {
+                        var reganme = pp.attr as RegPropertyName;
+                        name = Expression.Constant(reganme.Name, typeof(string));
+                    }
                 }
                 else
                 {
-                    name = Expression.Constant(pp.x.Name, typeof(string));
+                    if (typecode == TypeCode.Object)
+                    {
+                        var subkeyname = pp.x.Name;
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                        var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
+                        var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
+                        var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
+                        var objexpr = pp.x.PropertyType.ToData(reg_p);
+                        var block = Expression.Block(new[] { reg_p, new_p },
+                            Expression.Assign(reg_p, getsubkeyexpr),
+                            Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                Expression.Block(
+                                    Expression.Assign(new_p, objexpr),
+                                    new_p
+                                    ),
+                                Expression.Constant(null, pp.x.PropertyType)
+                                )
+                            );
+                        var binding = Expression.Bind(pp.x, block);
+                        bindings.Add(binding);
+                    }
+                    else
+                    {
+                        name = Expression.Constant(pp.x.Name, typeof(string));
+                    }
                 }
                 if (name != null)
                 {
@@ -551,6 +600,8 @@ namespace QSoft.Registry.Linq
 
             return memberinit;
         }
+
+
 
         public static Type Find(this Type src, MethodInfo method, string target)
         {

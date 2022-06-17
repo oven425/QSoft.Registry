@@ -564,8 +564,15 @@ namespace QSoft.Registry.Linq
                             }
                             else if (attr is RegPropertyName)
                             {
-                                left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                                member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                if(typecode == TypeCode.Object)
+                                {
+                                    member = exprs.ElementAt(0).Value;
+                                }
+                                else
+                                {
+                                    left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                }
                             }
                             else if (attr is RegSubKeyName)
                             {

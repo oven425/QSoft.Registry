@@ -904,22 +904,15 @@ namespace QSoft.Registry.Linq
 
         public static Tuple<Expression, Expression> BuildSubKey(this List<Tuple<Expression, MemberExpression>> members, ParameterExpression reg_p)
         {
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+            if (members.Count == 1)
+            {
+                var yy = members.First().Item2.Member.Name;
+                var getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(members.First().Item2.Type), members.First().Item1, Expression.Constant(yy));
+                return Tuple.Create<Expression, Expression>(members.First().Item1, getvalue);
+            }
             if (members.Count > 0)
             {
-                //if (attr is RegIgnore)
-                //{
-                //    this.Fail = $"{expr.Member.Name} is ignored, please do not use";
-                //}
-                //else if (attr is RegPropertyName)
-                //{
-                //    left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                //    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
-                //}
-                //else if (attr is RegSubKeyName)
-                //{
-                //    var subkeyname = attr as RegSubKeyName;
-                //    member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
-                //}
                 Func<MemberExpression, string> funcValue = delegate(MemberExpression member_expr)
                 {
                     var attr = member_expr.Member.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;
@@ -935,7 +928,7 @@ namespace QSoft.Registry.Linq
                 var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
                 Expression getsubkeyexpr = null;
                 Expression getvalue = null;
-                var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+                
                 foreach (var item in group)
                 {
                     if (item.Key == true)
@@ -972,22 +965,32 @@ namespace QSoft.Registry.Linq
 
         public static Expression ToBinary(this List<Tuple<Expression, MemberExpression>> members, BinaryExpression node, DictionaryList<Expression, Expression> exprs)
         {
+            Expression binary = null;
             var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
             var regss = members.BuildSubKey(reg_p);
-            if(regss.Item1==null&& regss.Item2==null)
+            
+            if (regss.Item1==null&& regss.Item2==null)
             {
                 return null;
             }
-            var reg_p_assign = Expression.Assign(reg_p, regss.Item1);
-            var binary_return = Expression.Parameter(typeof(bool), "hr");
-            var binary = Expression.Block(new[] { binary_return, reg_p },
-                reg_p_assign,
-                Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(regss.Item2!=null), Expression.Constant(true)),
-                    Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value)),
-                    Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
-                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                    reg_p.DisposeExpr()),
-                binary_return);
+            else if(members.Count == 1)
+            {
+                binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
+            }
+            else
+            {
+                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                var binary_return = Expression.Parameter(typeof(bool), "hr");
+                binary = Expression.Block(new[] { binary_return, reg_p },
+                    reg_p_assign,
+                    Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(regss.Item2 != null), Expression.Constant(true)),
+                        Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value)),
+                        Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
+                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        reg_p.DisposeExpr()),
+                    binary_return);
+            }
+            
             return binary;
         }
 

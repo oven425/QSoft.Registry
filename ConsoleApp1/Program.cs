@@ -229,7 +229,14 @@ namespace ConsoleApp1
                 //    }
                 //});
 
-                var peopel_where = regt_people.ToList();
+                //var peopel_where = regt_people.Select(x => new
+                //{
+                //    height = x.Height,
+                //    name = x.Name,
+                //    weight = x.Weight,
+
+                //});
+                var peopel_where = regt_people.Where(x=>x.Weight != null);
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)
                 {

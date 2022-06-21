@@ -14,7 +14,7 @@ namespace QSoft.Registry
             var subkeys = src.GetSubKeyNames();
             foreach(var subkey in subkeys)
             {
-                System.Diagnostics.Trace.WriteLine(subkey);
+                System.Diagnostics.Debug.WriteLine(subkey);
                 var reg = src.OpenSubKey(subkey);
                 if(func(reg) == true)
                 {

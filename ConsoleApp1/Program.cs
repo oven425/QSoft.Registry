@@ -199,24 +199,23 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "people";
                     });
-                //var peopel_where = regt_people.Where(x => x.phone.home != null);
-                //regt_people.Insert(new List<People>()
-                //{
-                //    new People() { Height=100, Weight=200, Name="123", Key="Key",
-                //        phone = new Phone()
-                //        {
-                //            company = "A",
-                //            number = "number_A",
-                //            First = new Record()
-                //            {
-                //                Start = DateTime.MinValue,
-                //                Stop = DateTime.MinValue+TimeSpan.FromDays(1)
-                //            }
+                regt_people.Insert(new List<People>()
+                {
+                    new People() { Height=100, Weight=200, Name="123", Key="Key",
+                        phone = new Phone()
+                        {
+                            company = "A",
+                            number = "number_A",
+                            First = new Record()
+                            {
+                                Start = DateTime.MinValue,
+                                Stop = DateTime.MinValue+TimeSpan.FromDays(1)
+                            }
 
-                //        },
-                //    }
+                        },
+                    }
 
-                //});
+                });
                 //regt_people.Update(x => new People()
                 //{
                 //    phone = new Phone()
@@ -229,14 +228,11 @@ namespace ConsoleApp1
                 //    }
                 //});
 
-                //var peopel_where = regt_people.Select(x => new
-                //{
-                //    height = x.Height,
-                //    name = x.Name,
-                //    weight = x.Weight,
-
-                //});
-                var peopel_where = regt_people.Where(x=>x.Weight != null);
+                var peopel_where = regt_people.Select(x => new
+                {
+                    company = x.phone
+                });
+                //var peopel_where = regt_people.Where(x=>x.Weight != null && x.Name=="123" && x.phone.company=="A");
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)
                 {

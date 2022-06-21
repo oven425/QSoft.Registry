@@ -1071,5 +1071,18 @@ namespace QSoft.Registry.Linq
             return Tuple.Create(subkey, dicpps);
         }
 
+        public static bool IsNullable(this Type src)
+        {
+            bool hr = false;
+            if(src.IsGenericType==true)
+            {
+                if(src.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    hr = true;
+                }
+            }
+            return hr;
+        }
+
     }
 }

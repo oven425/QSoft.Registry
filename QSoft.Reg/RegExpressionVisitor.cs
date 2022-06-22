@@ -72,11 +72,19 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+        Dictionary<Expression, Expression> ToNew(Dictionary<Expression, Expression> members)
+        {
+            Dictionary<Expression, Expression> dic = new Dictionary<Expression, Expression>();
+
+            return dic;
+        }
+
         protected override Expression VisitNew(NewExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitNew");
             this.m_ExpressionSaves[node] = null;
             var expr = base.VisitNew(node) as NewExpression;
+
 
             var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value);
             for (int i = 0; i < exprs.Count; i++)

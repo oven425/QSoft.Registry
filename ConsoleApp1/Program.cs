@@ -123,6 +123,28 @@ namespace ConsoleApp1
         //public List<Phone> phones { set; get; }
     }
 
+    public class Address
+    {
+        public string IP { set; get; }
+        public int? Port { set; get; }
+        public Auth Root { set; get; }
+        public Auth Guest { set; get; }
+        public class Auth
+        {
+            public string Account { set; get; }
+            public string Password { set; get; }
+        }
+    }
+
+    public class Device
+    {
+        public Address Local { set; get; }
+        public Address Remote { set; get; }
+        public string Name { set; get; }
+        public int Width { set; get; }
+        public int Height { set; get; }
+    }
+
 
 
     class Program
@@ -139,10 +161,6 @@ namespace ConsoleApp1
             //var mm = typeof(TypeCode).GetMethod("ToString", new Type[] { });
             //mms = null;
             //Test();
-
-            //add2(1, 2);
-            //add3(1, 2);
-
 
             //TestDB();
 
@@ -230,7 +248,9 @@ namespace ConsoleApp1
 
                 var peopel_where = regt_people.Select(x => new
                 {
-                    company = x.phone
+                    name = x.Name,
+                    phone = x.phone,
+                    company = x.phone.company
                 });
                 //var peopel_where = regt_people.Where(x=>x.Weight != null && x.Name=="123" && x.phone.company=="A");
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);

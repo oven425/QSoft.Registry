@@ -72,12 +72,81 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        Dictionary<Expression, Expression> ToNew(Dictionary<Expression, Expression> members)
+        Dictionary<Expression, Expression> ToNew(List<Tuple<Expression, MemberExpression>> members, Dictionary<Expression, Expression> exprs)
         {
             Dictionary<Expression, Expression> dic = new Dictionary<Expression, Expression>();
+            var eex = exprs.Where(x => x.Key.Type != x.Value.Type);
+            var exprs1 = members.Select(x => new { member = x.Item2, expression = x.Item1 });
+
+            Dictionary<Expression, List<MemberExpression>> ddics = new Dictionary<Expression, List<MemberExpression>>();
+            List<Tuple<Expression, MemberExpression>> membs_temp = new List<Tuple<Expression, MemberExpression>>();
+            foreach(var member in members)
+            {
+                if(exprs.ContainsKey(member.Item2) == true)
+                {
+                    var aa = exprs[member.Item2];
+                    if (aa.Type != member.Item2.Type)
+                    {
+                        ddics.Add(member.Item2, new List<MemberExpression> {member.Item2 });
+                        ddics[member.Item2].InsertRange(0, membs_temp.Select(x=>x.Item2));
+                        membs_temp.Clear();
+                    }
+                }
+                else
+                {
+                    membs_temp.Add(member);
+                }
+            }
+
+            foreach(var items in ddics)
+            {
+                foreach (var oo in items.Value)
+                {
+                    var ss = items.Value.Select(x => new
+                    {
+                        name = x.SubKeyName(),
+                        type = x.Type.IsGenericType == true && x.Type.GetGenericTypeDefinition() == typeof(Nullable<>) ? x.Type.GetGenericArguments()[0] : x.Type,
+                        type_src = x
+                    });
+                    var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
+                    Expression getsubkeyexpr = null;
+                    Expression getvalue = null;
+
+                    //foreach (var item in group)
+                    //{
+                    //    if (item.Key == true)
+                    //    {
+                    //        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                    //        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                    //        getsubkeyexpr = Expression.Call(item.First().expr, opensubkey, Expression.Constant(subkeyname));
+                    //    }
+                    //    else
+                    //    {
+                    //        var isnullable_p = Expression.Parameter(typeof(bool), "isnullable_p");
+                    //        var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
+                    //        getvalue = Expression.Block(new[] { isnullable_p },
+                    //                Expression.Assign(isnullable_p, isnullableexpr),
+                    //                Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullable_p, Expression.Constant(true)),
+                    //                    Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                    //                        item.ElementAt(0).type_src.Type.DefaultExpr(),
+                    //                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
+                    //                    Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
+                    //            );
+                    //    }
+                    //}
+                    //members.Clear();
+                    //Expression expr = getsubkeyexpr;
+                    //if (getvalue != null)
+                    //{
+                    //    expr = getvalue;
+                    //}
+                }
+            }
 
             return dic;
         }
+
+
 
         protected override Expression VisitNew(NewExpression node)
         {
@@ -87,6 +156,8 @@ namespace QSoft.Registry.Linq
 
 
             var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value);
+            var newexpr = this.ToNew(this.m_MembersExprs, exprs);
+
             for (int i = 0; i < exprs.Count; i++)
             {
                 this.m_MembersExprs.Clear();

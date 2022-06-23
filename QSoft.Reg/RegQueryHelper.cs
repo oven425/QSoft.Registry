@@ -1084,5 +1084,11 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
+        public static string SubKeyName(this MemberExpression src)
+        {
+            var attr = src.Member.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;
+            return attr?.Name ?? src.Member.Name;
+        }
+
     }
 }

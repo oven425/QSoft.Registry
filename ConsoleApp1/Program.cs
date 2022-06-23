@@ -217,23 +217,23 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "people";
                     });
-                regt_people.Insert(new List<People>()
-                {
-                    new People() { Height=100, Weight=200, Name="123", Key="Key",
-                        phone = new Phone()
-                        {
-                            company = "A",
-                            number = "number_A",
-                            First = new Record()
-                            {
-                                Start = DateTime.MinValue,
-                                Stop = DateTime.MinValue+TimeSpan.FromDays(1)
-                            }
+                //regt_people.Insert(new List<People>()
+                //{
+                //    new People() { Height=100, Weight=200, Name="123", Key="Key",
+                //        phone = new Phone()
+                //        {
+                //            company = "A",
+                //            number = "number_A",
+                //            First = new Record()
+                //            {
+                //                Start = DateTime.MinValue,
+                //                Stop = DateTime.MinValue+TimeSpan.FromDays(1)
+                //            }
 
-                        },
-                    }
+                //        },
+                //    }
 
-                });
+                //});
                 //regt_people.Update(x => new People()
                 //{
                 //    phone = new Phone()

@@ -78,7 +78,7 @@ namespace QSoft.Registry.Linq
             var eex = exprs.Where(x => x.Key.Type != x.Value.Type);
             var exprs1 = members.Select(x => new { member = x.Item2, expression = x.Item1 });
 
-            Dictionary<Expression, List<MemberExpression>> ddics = new Dictionary<Expression, List<MemberExpression>>();
+            Dictionary<Expression, List<Tuple<Expression, MemberExpression>>> ddics = new Dictionary<Expression, List<Tuple<Expression, MemberExpression>>>();
             List<Tuple<Expression, MemberExpression>> membs_temp = new List<Tuple<Expression, MemberExpression>>();
             foreach(var member in members)
             {
@@ -87,8 +87,8 @@ namespace QSoft.Registry.Linq
                     var aa = exprs[member.Item2];
                     if (aa.Type != member.Item2.Type)
                     {
-                        ddics.Add(member.Item2, new List<MemberExpression> {member.Item2 });
-                        ddics[member.Item2].InsertRange(0, membs_temp.Select(x=>x.Item2));
+                        ddics.Add(member.Item2, new List<Tuple<Expression, MemberExpression>>() {member });
+                        ddics[member.Item2].InsertRange(0, membs_temp);
                         membs_temp.Clear();
                     }
                 }
@@ -98,48 +98,37 @@ namespace QSoft.Registry.Linq
                 }
             }
 
-            foreach(var items in ddics)
+            foreach (var items in ddics)
             {
-                foreach (var oo in items.Value)
+                var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                var regss = items.Value.BuildSubKey(reg_p);
+                if (regss.Item1 == null && regss.Item2 == null)
                 {
-                    var ss = items.Value.Select(x => new
-                    {
-                        name = x.SubKeyName(),
-                        type = x.Type.IsGenericType == true && x.Type.GetGenericTypeDefinition() == typeof(Nullable<>) ? x.Type.GetGenericArguments()[0] : x.Type,
-                        type_src = x
-                    });
-                    var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
-                    Expression getsubkeyexpr = null;
-                    Expression getvalue = null;
+                    return null;
+                }
+                else if (items.Value.Count == 1)
+                {
 
-                    //foreach (var item in group)
-                    //{
-                    //    if (item.Key == true)
-                    //    {
-                    //        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-                    //        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                    //        getsubkeyexpr = Expression.Call(item.First().expr, opensubkey, Expression.Constant(subkeyname));
-                    //    }
-                    //    else
-                    //    {
-                    //        var isnullable_p = Expression.Parameter(typeof(bool), "isnullable_p");
-                    //        var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
-                    //        getvalue = Expression.Block(new[] { isnullable_p },
-                    //                Expression.Assign(isnullable_p, isnullableexpr),
-                    //                Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullable_p, Expression.Constant(true)),
-                    //                    Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                    //                        item.ElementAt(0).type_src.Type.DefaultExpr(),
-                    //                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
-                    //                    Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
-                    //            );
-                    //    }
-                    //}
-                    //members.Clear();
-                    //Expression expr = getsubkeyexpr;
-                    //if (getvalue != null)
-                    //{
-                    //    expr = getvalue;
-                    //}
+                    //binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
+                }
+                else
+                {
+                    var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                    var hr_p = Expression.Parameter(items.Key.Type, "hr");
+                    var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                        reg_p_assign,
+                        hr_p_assign,
+                        Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.Block(
+                            Expression.Assign(hr_p, regss.Item2),
+                            reg_p.DisposeExpr()),
+                        Expression.Block(
+                            "123".WriteLineExpr()
+                            )),
+                        hr_p
+                        );
+                    exprs[items.Key] = membgervalue;
                 }
             }
 

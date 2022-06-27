@@ -436,11 +436,40 @@ namespace QSoft.Registry.Linq
                 {
                     if (pp.src.PropertyType == typeof(RegistryKey))
                     {
-                        var param1 = Expression.Property(param, pp.dst.Name);
-                        var expr = pp.dst.PropertyType.ToData(param1);
-                        var test = Expression.Equal(param1, Expression.Constant(null));
-                        var ifelse = Expression.Condition(test, Expression.Constant(null, pp.dst.PropertyType), expr);
-                        exprs.Add(ifelse);
+                        var typecode = Type.GetTypeCode(src);
+                        if(typecode == TypeCode.Object)
+                        {
+                            var param1 = Expression.Property(param, pp.src.Name);
+                            //var expr = pp.dst.PropertyType.ToData(param1);
+                            //var test = Expression.Equal(param1, Expression.Constant(null));
+                            //var ifelse = Expression.Condition(test, pp.dst.PropertyType.DefaultExpr(), expr);
+                            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                            var getsubkeyexpr = Expression.Call(param1, opensubkey, Expression.Constant("Phone1"));
+                            var objepxr = pp.dst.PropertyType.ToData(param1);
+                            var obj_p = Expression.Parameter(pp.dst.PropertyType, "obj");
+                            var aa = Expression.Block(new[] { obj_p },
+                                Expression.Assign(param1, getsubkeyexpr),
+                                Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, param1, Expression.Constant(null, typeof(RegistryKey))),
+                                Expression.Block(
+                                    Expression.Assign(obj_p, objepxr),
+                                param1.DisposeExpr(),
+                                obj_p
+                                    ),
+                                pp.dst.PropertyType.DefaultExpr())
+                                );
+                            exprs.Add(aa);
+
+                        }
+                        else
+                        {
+                            var param1 = Expression.Property(param, pp.dst.Name);
+                            var expr = pp.dst.PropertyType.ToData(param1);
+                            var test = Expression.Equal(param1, Expression.Constant(null));
+                            var ifelse = Expression.Condition(test, Expression.Constant(null, pp.dst.PropertyType), expr);
+                            exprs.Add(ifelse);
+                        }
+                        
+                        
                         hasreg = true;
                     }
                     else if (pp.src.PropertyType.IsGenericType == true && pp.src.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -536,7 +565,8 @@ namespace QSoft.Registry.Linq
                             Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                                 Expression.Block(
                                     Expression.Assign(new_p, objexpr),
-                                    new_p
+                                    new_p,
+                                    reg_p.DisposeExpr()
                                     ),
                                 Expression.Constant(null, pp.x.PropertyType)
                                 )
@@ -565,6 +595,7 @@ namespace QSoft.Registry.Linq
                             Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                                 Expression.Block(
                                     Expression.Assign(new_p, objexpr),
+                                    reg_p.DisposeExpr(),
                                     new_p
                                     ),
                                 Expression.Constant(null, pp.x.PropertyType)

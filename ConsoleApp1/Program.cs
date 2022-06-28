@@ -246,13 +246,14 @@ namespace ConsoleApp1
                 //    }
                 //});
 
-                var peopel_where = regt_people.Select(x => new
-                {
-                    name = x.Name,
-                    phone = x.phone,
-                    company = x.phone.company
-                });
-                //var peopel_where = regt_people.Where(x=>x.Weight != null && x.Name=="123" && x.phone.company=="A");
+                //var peopel_where = regt_people.Where(x => x.Height != 0).Select(x => new
+                //{
+                //    name = x.Name,
+                //    phone = x.phone,
+                //    company = x.phone.company
+                //});
+                var peopel_where = regt_people.Where(x=>x.Weight != null && x.Name=="123" && x.phone.company=="A");
+                //var peopel_where = regt_people;
                 //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
                 foreach (var oo in peopel_where)
                 {

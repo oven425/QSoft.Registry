@@ -565,8 +565,8 @@ namespace QSoft.Registry.Linq
                             Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                                 Expression.Block(
                                     Expression.Assign(new_p, objexpr),
-                                    new_p,
-                                    reg_p.DisposeExpr()
+                                    reg_p.DisposeExpr(),
+                                    new_p
                                     ),
                                 Expression.Constant(null, pp.x.PropertyType)
                                 )
@@ -970,16 +970,26 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        var isnullable_p = Expression.Parameter(typeof(bool), "isnullable_p");
-                        var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
-                        getvalue = Expression.Block(new[] { isnullable_p },
-                                Expression.Assign(isnullable_p, isnullableexpr),
-                                Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullable_p, Expression.Constant(true)),
-                                    Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        //var isnullable_p = Expression.Parameter(typeof(bool), "isnullable_p");
+                        //var isnullableexpr = Expression.Constant(item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>));
+                        //getvalue = Expression.Block(new[] { isnullable_p },
+                        //        Expression.Assign(isnullable_p, isnullableexpr),
+                        //        Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, isnullable_p, Expression.Constant(true)),
+                        //            Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        //                item.ElementAt(0).type_src.Type.DefaultExpr(),
+                        //                Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
+                        //            Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
+                        //    );
+                        if (item.ElementAt(0).type_src.Type.IsGenericType == true && item.ElementAt(0).type_src.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        {
+                            getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                                         item.ElementAt(0).type_src.Type.DefaultExpr(),
-                                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name))),
-                                    Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)))
-                            );
+                                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name)));
+                        }
+                        else
+                        {
+                            getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src.Type), reg_p, Expression.Constant(item.ElementAt(0).type_src.Member.Name));
+                        }
                     }
                 }
                 members.Clear();

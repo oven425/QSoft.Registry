@@ -119,13 +119,10 @@ namespace QSoft.Registry.Linq
                     var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
                         reg_p_assign,
                         hr_p_assign,
-                        Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                         Expression.Block(
                             Expression.Assign(hr_p, regss.Item2),
-                            reg_p.DisposeExpr()),
-                        Expression.Block(
-                            "123".WriteLineExpr()
-                            )),
+                            reg_p.DisposeExpr())),
                         hr_p
                         );
                     exprs[items.Key] = membgervalue;

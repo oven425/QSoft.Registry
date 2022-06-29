@@ -72,9 +72,8 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        Dictionary<Expression, Expression> ToNew(List<Tuple<Expression, MemberExpression>> members, Dictionary<Expression, Expression> exprs)
+        void ToNew(List<Tuple<Expression, MemberExpression>> members, Dictionary<Expression, Expression> exprs)
         {
-            Dictionary<Expression, Expression> dic = new Dictionary<Expression, Expression>();
             var eex = exprs.Where(x => x.Key.Type != x.Value.Type);
             var exprs1 = members.Select(x => new { member = x.Item2, expression = x.Item1 });
 
@@ -104,7 +103,7 @@ namespace QSoft.Registry.Linq
                 var regss = items.Value.BuildSubKey(reg_p);
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
-                    return null;
+                    return;
                 }
                 else if (items.Value.Count == 1)
                 {
@@ -128,11 +127,7 @@ namespace QSoft.Registry.Linq
                     exprs[items.Key] = membgervalue;
                 }
             }
-
-            return dic;
         }
-
-
 
         protected override Expression VisitNew(NewExpression node)
         {
@@ -142,7 +137,7 @@ namespace QSoft.Registry.Linq
 
 
             var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value);
-            var newexpr = this.ToNew(this.m_MembersExprs, exprs);
+            this.ToNew(this.m_MembersExprs, exprs);
 
             for (int i = 0; i < exprs.Count; i++)
             {
@@ -558,7 +553,8 @@ namespace QSoft.Registry.Linq
                         
                         else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
                         {
-                            this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                            //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                            bool add = false;
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                             var typecode = Type.GetTypeCode(expr.Type);
                             var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
@@ -573,6 +569,8 @@ namespace QSoft.Registry.Linq
                                 if(typecode == TypeCode.Object)
                                 {
                                     member = exprs.ElementAt(0).Value;
+                                    //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                                    add = true;
                                 }
                                 else
                                 {
@@ -596,6 +594,10 @@ namespace QSoft.Registry.Linq
                                     left_args_1 = Expression.Constant(expr.Member.Name);
                                     member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
                                 }
+                            }
+                            if (this.m_MembersExprs.Count > 0 || add==true)
+                            {
+                                this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
                             }
                             this.m_ExpressionSaves[expr] = member;
                         }

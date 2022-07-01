@@ -110,6 +110,22 @@ namespace QSoft.Registry.Linq
 
                     //binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
                 }
+                else if(regss.Item1 == regss.Item2)
+                {
+                    var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                    var hr_p = Expression.Parameter(items.Key.Type, "hr");
+                    var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                        reg_p_assign,
+                        hr_p_assign,
+                        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.Block(
+                            Expression.Assign(hr_p, items.Key.Type.ToData(reg_p)),
+                            reg_p.DisposeExpr())),
+                        hr_p
+                        );
+                    exprs[items.Key] = membgervalue;
+                }
                 else
                 {
                     var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
@@ -127,17 +143,38 @@ namespace QSoft.Registry.Linq
                     exprs[items.Key] = membgervalue;
                 }
             }
+            members.Clear();
         }
+
+        Stack<List<Tuple<Expression, MemberExpression>>> m_MembersExprGroup = new Stack<List<Tuple<Expression, MemberExpression>>>();
 
         protected override Expression VisitNew(NewExpression node)
         {
+            Stack<int> ss = new Stack<int>();
+            ss.Push(1);
+            ss.Push(2);
+            ss.Push(3);
             System.Diagnostics.Debug.WriteLine($"VisitNew");
             this.m_ExpressionSaves[node] = null;
+            if(this.m_MembersExprs.Count > 0)
+            {
+                this.m_MembersExprGroup.Push(this.m_MembersExprs);
+                this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
+            }
+            
             var expr = base.VisitNew(node) as NewExpression;
-
+            if (this.m_MembersExprs.Count > 0)
+            {
+                this.m_MembersExprGroup.Push(this.m_MembersExprs);
+                this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
+            }
 
             var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value);
-            this.ToNew(this.m_MembersExprs, exprs);
+            if(this.m_MembersExprGroup.Count > 0)
+            {
+                this.ToNew(this.m_MembersExprGroup.Pop(), exprs);
+            }
+           
 
             for (int i = 0; i < exprs.Count; i++)
             {
@@ -624,7 +661,6 @@ namespace QSoft.Registry.Linq
                 {
                     if(exprs.First().Value.Type == typeof(RegistryKey))
                     {
-                        this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
                         var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                         var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
                         var typecode = Type.GetTypeCode(expr.Type);
@@ -656,7 +692,12 @@ namespace QSoft.Registry.Linq
                                 member = exprs.ElementAt(0).Value;
                             }
                         }
+
                         member = exprs.ElementAt(0).Value;
+                        if(this.m_MembersExprs.Count > 0)
+                        {
+                            this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                        }
                         this.m_ExpressionSaves[expr] = member;
                     }
                     else if(exprs.First().Value.Type.HaseRegistryKey() == true)

@@ -138,12 +138,88 @@ namespace ConsoleApp1
 
     public class Device
     {
+        [RegPropertyName("LocalIP")]
         public Address Local { set; get; }
+        [RegPropertyName("RemoteIP")]
         public Address Remote { set; get; }
         public string Name { set; get; }
+        public Size Size { set; get; }
+        public Locationata Location { set; get; }
+        public CameraSetting CameraSetting { set; get; }
+    }
+
+    public class Locationata
+    {
+        public string Name { set; get; }
+        public FloorData Floor { set; get; }
+    }
+
+    public class FloorData
+    {
+        public string Name { set; get; }
+        public int Floor { set; get; }
+        public AreaData Area { set; get; }
+    }
+
+    public class AreaData
+    {
+        public string Name { set; get; }
+        public Rect Data { set; get; }
+    }
+
+    public class Point
+    {
+        public int X { set; get; }
+        public int Y { set; get; }
+    }
+
+    public class Size
+    {
         public int Width { set; get; }
         public int Height { set; get; }
     }
+
+    public class Rect
+    {
+        public Point Point { set; get; }
+        public Size Size { set; get; }
+    }
+
+    public class CameraSetting
+    {
+        public Brightness Brightness { set; get; }
+        public PIR PIR { set; get; }
+        public WDR WDR { set; get; }
+    }
+
+    public class PIR
+    {
+        public bool IsEnable { set; get; }
+        public bool IsAuto { set; get; }
+    }
+
+    public class WDR
+    {
+        public bool IsEnable { set; get; }
+        public int Level { set; get; }
+    }
+
+    public class Brightness
+    {
+        public int Current { set; get; }
+        public Range Range { set; get; }
+        public bool CanEdit { set; get; }
+    }
+
+    public class Range
+    {
+        public double Max { set; get; }
+        public double Min { set; get; }
+    }
+
+    
+
+
 
 
 
@@ -151,20 +227,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            //TypeCode cc = TypeCode.Boolean;
-            //cc.ToString();
-            //var mms = typeof(TypeCode).GetMethods().Where(x => x.Name == "ToString").Select(x => new
-            //{
-            //    x,
-            //    pps = x.GetParameters()
-            //});
-            //var mm = typeof(TypeCode).GetMethod("ToString", new Type[] { });
-            //mms = null;
-            //Test();
 
-            //TestDB();
-
-            //return;
 
 
             try
@@ -208,8 +271,91 @@ namespace ConsoleApp1
                     //var pro = lambda.Compile()(reg);
                     //reg.Close();
                 }
-                
-               
+
+                var regt_devices = new RegQuery<Device>()
+                    .useSetting(x =>
+                    {
+                        x.View = RegistryView.Registry64;
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.SubKey = "devices";
+                    });
+                var llo = regt_devices.Where(x=>x.Local.Port!=null).Select(x=>new { area_name=x.Location.Floor.Area.Name });
+                regt_devices.Insert(new List<Device>()
+                {
+                    new Device()
+                    {
+                        Name = "1F_AA",
+                        Size = new Size(){Width=100,Height=100 },
+                        Local = new Address()
+                        {
+                            IP = "127.0.0.1",
+                            Port=1000,
+                            Root = new Address.Auth()
+                            {
+                                Account = "root_local",
+                                Password="root_local"
+                            },
+                            Guest = new Address.Auth()
+                            {
+                                Account = "guest_local",
+                                Password="guest_local"
+                            }
+                        },
+                        Remote = new Address()
+                        {
+                            IP="192.168.10.1",
+                            Port = 1001,
+                            Root = new Address.Auth()
+                            {
+                                Account = "root_local",
+                                Password="root_local"
+                            },
+                            Guest = new Address.Auth()
+                            {
+                                Account = "guest_local",
+                                Password="guest_local"
+                            }
+                        },
+                        CameraSetting = new CameraSetting()
+                        {
+                            PIR = new PIR(){ IsEnable=true, IsAuto=true },
+                            WDR = new WDR(){IsEnable=true},
+                            Brightness = new Brightness()
+                            {
+                                Range = new Range(){Min=0, Max=1000},
+                                Current = 500,
+                                CanEdit=true
+                            }
+                        },
+                        Location = new Locationata()
+                        {
+                            Name = "DD",
+                            Floor = new FloorData()
+                            {
+                                Name = "1F",
+                                Area = new AreaData()
+                                {
+                                    Name = "aaa",
+                                    Data = new Rect()
+                                    {
+                                        Point = new Point()
+                                        {
+                                            X = 100,
+                                            Y=200
+                                        },
+                                        Size = new Size()
+                                        {
+                                            Width = 111,
+                                            Height=222
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+
                 var regt_people = new RegQuery<People>()
                     .useSetting(x=> 
                     {
@@ -252,15 +398,37 @@ namespace ConsoleApp1
                 //    phone = x.phone,
                 //    company = x.phone.company
                 //});
+                //var peopel_where = regt_people.Where(x => x.Height != 0).Select(x => new
+                //{
+                //    name = x.Name,
+                //    phone = new
+                //    {
+                //        company = x.phone.company,
+                //        number = x.phone.number,
+                //        first = x.phone.First
+                //    },
+                //    company = x.phone.company
+                //});
+
                 var peopel_where = regt_people.Where(x => x.Height != 0).Select(x => new
                 {
-                    //name = x.Name,
+                    name = x.Name,
                     phone = new
                     {
                         company = x.phone.company,
-                        number = x.phone.number
+                        number = x.phone.number,
+                        first = new
+                        {
+                            start = x.phone.First.Start,
+                            stop = x.phone.First.Stop
+                        },
+                        last = new
+                        {
+                            start = x.phone.Last.Start,
+                            stop = x.phone.Last.Stop
+                        }
                     },
-                    //company = x.phone.company
+                    company = x.phone.company
                 });
                 //var peopel_where = regt_people.Where(x=>x.Weight != null && x.Name=="123" && x.phone.company=="A");
                 //var peopel_where = regt_people;

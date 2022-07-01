@@ -16,6 +16,11 @@ namespace QSoft.Registry.Linq
     [AttributeUsage(AttributeTargets.Property)]
     public class RegPropertyName : Attribute
     {
+        public RegPropertyName() { }
+        public RegPropertyName(string name)
+        {
+            this.Name = name;
+        }
         public string Name { set; get; }
     }
 

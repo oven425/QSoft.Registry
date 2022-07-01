@@ -10,13 +10,13 @@ namespace LikeNoSQL
     [TestClass]
     public class LikeNoSQL
     {
-        RegQuery<Company> regt_company = new RegQuery<Company>()
-            .useSetting(x =>
-            {
-                x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\Company";
-                x.View = RegistryView.Registry64;
-            });
+        //RegQuery<Company> regt_company = new RegQuery<Company>()
+        //    .useSetting(x =>
+        //    {
+        //        x.Hive = RegistryHive.CurrentConfig;
+        //        x.SubKey = @"UnitTest\Company";
+        //        x.View = RegistryView.Registry64;
+        //    });
 
         [TestMethod]
         public void CreateDB()
@@ -83,41 +83,8 @@ namespace LikeNoSQL
 
     }
 
-    public class People
-    {
-        public string Name { set; get; }
-    }
 
-    public class App
-    {
-        public int ID { set; get; }
-        [RegPropertyName(Name = "Name")]
-        public string DisplayName { set; get; }
-        public Version Version { set; get; }
-        [RegIgnore]
-        public int Size { set; get; }
-    }
 
-    public class Company
-    {
-        [RegSubKeyName]
-        public int Key { set; get; }
-        [RegPropertyName(Name = "Name1")]
-        public string Name { set; get; }
-        public string Address { set; get; }
-        public Employee A { set; get; }
-        public Employee B { set; get; }
-        public Employee C { set; get; }
-    }
 
-    public class Employee
-    {
-        public string Name { set; get; }
-        public int Age { set; get; }
-        public App Word { set; get; }
-        public App Excel { set; get; }
-        public App PPt { set; get; }
-        public App VSCode { set; get; }
-    }
 
 }

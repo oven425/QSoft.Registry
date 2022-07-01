@@ -992,7 +992,7 @@ namespace QSoft.Registry.Linq
                         }
                     }
                 }
-                members.Clear();
+                //members.Clear();
                 Expression expr = getsubkeyexpr;
                 if(getvalue != null)
                 {

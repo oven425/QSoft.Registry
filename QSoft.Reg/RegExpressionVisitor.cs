@@ -150,10 +150,6 @@ namespace QSoft.Registry.Linq
 
         protected override Expression VisitNew(NewExpression node)
         {
-            Stack<int> ss = new Stack<int>();
-            ss.Push(1);
-            ss.Push(2);
-            ss.Push(3);
             System.Diagnostics.Debug.WriteLine($"VisitNew");
             this.m_ExpressionSaves[node] = null;
             if(this.m_MembersExprs.Count > 0)
@@ -415,7 +411,7 @@ namespace QSoft.Registry.Linq
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
 
-                if(lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
+                if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
                     Dictionary<Type, Type> changes = new Dictionary<Type, Type>();
                     //changes[typeof(TData)] = typeof(RegistryKey);
@@ -442,7 +438,13 @@ namespace QSoft.Registry.Linq
                     }
                     m_Lambda = Expression.Lambda(functype1, exprs.First().Value, parameters);
                 }
-
+                else if(this.m_MembersExprs.Count > 0)
+                {
+                    var exprs1 = exprs.ToDictionary(x => x.Key, x => x.Value);
+                    this.ToNew(this.m_MembersExprs, exprs1);
+                    m_Lambda = Expression.Lambda(exprs1.First().Value, parameters);
+                    this.m_MembersExprs.Clear();
+                }
                 if(m_Lambda == null)
                 {
                     m_Lambda = Expression.Lambda(exprs.First().Value, parameters);
@@ -606,7 +608,8 @@ namespace QSoft.Registry.Linq
                                 if(typecode == TypeCode.Object)
                                 {
                                     member = exprs.ElementAt(0).Value;
-                                    //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                                    left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                                    //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                                     add = true;
                                 }
                                 else
@@ -693,7 +696,7 @@ namespace QSoft.Registry.Linq
                             }
                         }
 
-                        member = exprs.ElementAt(0).Value;
+                        //member = exprs.ElementAt(0).Value;
                         if(this.m_MembersExprs.Count > 0)
                         {
                             this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));

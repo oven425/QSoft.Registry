@@ -356,6 +356,7 @@ namespace QSoft.Registry.Linq
 
         static public Expression ToSelectData(this Type dst, ParameterExpression pp = null, Type src=null)
         {
+            System.Diagnostics.Debug.WriteLine($"ToSelectData");
             if (pp == null)
             {
                 if(src == null)
@@ -395,6 +396,7 @@ namespace QSoft.Registry.Linq
 
         public static Func<RegistryKey, TData> ToDataFunc<TData>(this RegistryKey reg)
         {
+            System.Diagnostics.Debug.WriteLine($"ToDataFunc");
             var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
             var o1 = typeof(TData).ToData(o_pp);
             var o_func = Expression.Lambda<Func<RegistryKey, TData>>(o1, o_pp).Compile();
@@ -403,6 +405,7 @@ namespace QSoft.Registry.Linq
 
         public static LambdaExpression ToLambdaData(this Type datatype, ParameterExpression pp = null)
         {
+            System.Diagnostics.Debug.WriteLine($"ToLambdaData");
             if (pp == null)
             {
                 pp = Expression.Parameter(typeof(RegistryKey), "z");
@@ -414,6 +417,7 @@ namespace QSoft.Registry.Linq
 
         static public Expression CopyData(this Type dst, Type src, Expression param)
         {
+            System.Diagnostics.Debug.WriteLine($"CopyData");
             if(dst.IsGenericType==true&& src == typeof(IEnumerable<RegistryKey>))
             {
                 var sd = dst.GetGenericArguments()[0].ToLambdaData();
@@ -439,12 +443,13 @@ namespace QSoft.Registry.Linq
                         var typecode = Type.GetTypeCode(src);
                         if(typecode == TypeCode.Object)
                         {
+                            //var subkeyname = (pp.src.Attributes as RegPropertyName)?.Name;
                             var param1 = Expression.Property(param, pp.src.Name);
                             //var expr = pp.dst.PropertyType.ToData(param1);
                             //var test = Expression.Equal(param1, Expression.Constant(null));
                             //var ifelse = Expression.Condition(test, pp.dst.PropertyType.DefaultExpr(), expr);
                             var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                            var getsubkeyexpr = Expression.Call(param1, opensubkey, Expression.Constant("Phone1"));
+                            var getsubkeyexpr = Expression.Call(param1, opensubkey, Expression.Constant("Location"));
                             var objepxr = pp.dst.PropertyType.ToData(param1);
                             var obj_p = Expression.Parameter(pp.dst.PropertyType, "obj");
                             var aa = Expression.Block(new[] { obj_p },
@@ -468,7 +473,6 @@ namespace QSoft.Registry.Linq
                             var ifelse = Expression.Condition(test, Expression.Constant(null, pp.dst.PropertyType), expr);
                             exprs.Add(ifelse);
                         }
-                        
                         
                         hasreg = true;
                     }
@@ -521,6 +525,7 @@ namespace QSoft.Registry.Linq
 
         static public Expression ToData(this Type dst, Expression param)
         {
+            System.Diagnostics.Debug.WriteLine($"ToData");
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
             var getvaluenames = typeof(RegistryKey).GetMethod("GetValueNames");
 
@@ -1034,6 +1039,8 @@ namespace QSoft.Registry.Linq
             
             return binary;
         }
+
+
 
         public static Expression ToMethodCall(this List<Tuple<Expression, MemberExpression>> members, MethodInfo method, IEnumerable<Expression> args)
         {

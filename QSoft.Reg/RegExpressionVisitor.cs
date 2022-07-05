@@ -107,7 +107,7 @@ namespace QSoft.Registry.Linq
                 }
                 else if (items.Value.Count == 1)
                 {
-
+                    exprs[items.Key] = regss.Item2;
                     //binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
                 }
                 else if(regss.Item1 == regss.Item2)

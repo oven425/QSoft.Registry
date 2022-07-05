@@ -475,7 +475,8 @@ namespace QSoft.Registry.Linq
                         //var sd = typeof(TData).ToSelectData();
                         //var select = typeof(TData).SelectMethod();
                         //updatemethod1 = Expression.Call(select, updatemethod1, sd);
-                        this.m_ProcessExprs[expression] = this.BuildSelect(updatemethod1);
+                        
+                        this.m_ProcessExprs[expression] = this.BuildSelect(updatemethod1, expression.Type.GetGenericArguments()[0]);
                     }
                     else if (updatemethod1.Type.GetGenericTypeDefinition() == typeof(IQueryable<>) && updatemethod1.Type.GetGenericArguments()[0].IsGenericType == true && updatemethod1.Type.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(IGrouping<,>))
                     {
@@ -662,20 +663,39 @@ namespace QSoft.Registry.Linq
             return excpt;
         }
 
-        Expression m_SelectData;
-        MethodInfo m_SelectMethod; 
-        Expression BuildSelect(Expression src)
+        //Expression m_SelectData;
+        //MethodInfo m_SelectMethod; 
+        //Expression BuildSelect(Expression src)
+        //{
+        //    if(this.m_SelectData == null)
+        //    {
+        //        this.m_SelectData = typeof(TData).ToSelectData();
+        //    }
+        //    if(this.m_SelectMethod == null)
+        //    {
+        //        this.m_SelectMethod = typeof(TData).SelectMethod();
+        //    }
+        //    var dst = Expression.Call(this.m_SelectMethod, src, this.m_SelectData);
+        //    return dst;
+        //}
+
+        //Expression m_SelectData;
+        //MethodInfo m_SelectMethod;
+        Expression BuildSelect(Expression src, Type dst = null)
         {
-            if(this.m_SelectData == null)
-            {
-                this.m_SelectData = typeof(TData).ToSelectData();
-            }
-            if(this.m_SelectMethod == null)
-            {
-                this.m_SelectMethod = typeof(TData).SelectMethod();
-            }
-            var dst = Expression.Call(this.m_SelectMethod, src, this.m_SelectData);
-            return dst;
+            //if (this.m_SelectData == null)
+            //{
+            //    this.m_SelectData = typeof(TData).ToSelectData();
+            //}
+            //if (this.m_SelectMethod == null)
+            //{
+            //    this.m_SelectMethod = typeof(TData).SelectMethod();
+            //}
+            Type ttype = dst ?? typeof(TData);
+            var sd = ttype.ToSelectData();
+            var sd_method = ttype.SelectMethod();
+            var expr_dst = Expression.Call(sd_method, src, sd);
+            return expr_dst;
         }
 
         public IQueryable CreateQuery(Expression expression)

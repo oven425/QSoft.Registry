@@ -108,7 +108,19 @@ namespace QSoft.Registry.Linq
                 else if (items.Value.Count == 1)
                 {
                     exprs[items.Key] = regss.Item2;
-                    //binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
+                    var reg_p_assign = Expression.Assign(reg_p, regss.Item2);
+                    var hr_p = Expression.Parameter(items.Key.Type, "hr");
+                    var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                        reg_p_assign,
+                        hr_p_assign,
+                        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.Block(
+                            Expression.Assign(hr_p, items.Key.Type.ToData(reg_p)),
+                            reg_p.DisposeExpr())),
+                        hr_p
+                        );
+                    exprs[items.Key] = membgervalue;
                 }
                 else if(regss.Item1 == regss.Item2)
                 {
@@ -627,6 +639,7 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {
+                                    add = true;
                                     member = exprs.ElementAt(0).Value;
                                 }
                                 else

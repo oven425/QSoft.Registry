@@ -279,8 +279,9 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "devices";
                     });
-                var llo = regt_devices.Select(x => x.Remote);
-                foreach(var oo in llo)
+                //var llo = regt_devices.Select(x => x.Remote);
+                var llo = regt_devices.Where(x=>x.Location!=null).Select(x => new { remote = x.Remote.Root.Account });
+                foreach (var oo in llo)
                 {
 
                 }

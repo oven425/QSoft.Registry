@@ -1033,7 +1033,20 @@ namespace QSoft.Registry.Linq
             }
             else if(members.Count == 1)
             {
-                binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
+                if(regss.Item2.Type == typeof(RegistryKey))
+                {
+                    var binary_return = Expression.Parameter(typeof(bool), "hr");
+                    binary = Expression.Block(new ParameterExpression[] { binary_return },
+                        Expression.IfThen(Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value),
+                            Expression.Assign(binary_return, Expression.Constant(true))),
+                            regss.Item2.DisposeExpr(),
+                            binary_return
+                        );
+                }
+                else
+                {
+                    binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
+                }
             }
             else
             {

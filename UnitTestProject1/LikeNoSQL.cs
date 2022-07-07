@@ -4,11 +4,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32;
 using QSoft.Registry.Linq;
 using System.Linq;
+using System.IO;
+using System.Xml.Serialization;
+using System.Text;
+using LikeNoSQL;
+using UnitTest;
 
-namespace LikeNoSQL
+namespace General
 {
     [TestClass]
-    public class LikeNoSQL
+    public class LinqToRegistry_SubKey
     {
         //RegQuery<Company> regt_company = new RegQuery<Company>()
         //    .useSetting(x =>
@@ -18,69 +23,107 @@ namespace LikeNoSQL
         //        x.View = RegistryView.Registry64;
         //    });
 
+        RegQuery<Device> regt_devices = new RegQuery<Device>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"devices";
+                x.View = RegistryView.Registry64;
+            });
+
+        List<Device> m_Devices;
+        public LinqToRegistry_SubKey()
+        {
+            this.m_Devices = regt_devices.ToList();
+        }
         [TestMethod]
         public void CreateDB()
         {
-        }
-
-        bool Check<T>(T src, T dst)
-        {
-            bool result = true;
-            var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
-            foreach (var pp in pps)
+            var devices = Enumerable.Range(1, 10).Select(x => new Device()
             {
-                bool ch = false;
-                var typecode = Type.GetTypeCode(pp.PropertyType);
-                if (typecode == TypeCode.Object)
+                Key = $"{x}",
+                Name = $"{x}F_AA",
+                Size = new Size() { Width = x+100, Height = x+200 },
+                Local = new Address()
                 {
-                    if (pp.PropertyType == typeof(Version))
+                    IP = $"127.0.0.{x}",
+                    Port = 1000,
+                    Root = new Address.Auth()
                     {
-
+                        Account = "root_local",
+                        Password = "root_local"
+                    },
+                    Guest = new Address.Auth()
+                    {
+                        Account = "guest_local",
+                        Password = "guest_local"
                     }
-                    else
+                },
+                Remote = new Address()
+                {
+                    IP = $"192.168.10.{x}",
+                    Port = 1001,
+                    Root = new Address.Auth()
                     {
-                        ch = true;
-                        dynamic s = pp.GetValue(src);
-                        dynamic d = pp.GetValue(dst);
-                        if (s == null && d == null)
+                        Account = "root_local",
+                        Password = "root_local"
+                    },
+                    Guest = new Address.Auth()
+                    {
+                        Account = "guest_local",
+                        Password = "guest_local"
+                    }
+                },
+                CameraSetting = new CameraSetting()
+                {
+                    PIR = new PIR() { IsEnable = true, IsAuto = true },
+                    WDR = new WDR() { IsEnable = true },
+                    Brightness = new Brightness()
+                    {
+                        Range = new Range() { Min = x, Max = x+1000 },
+                        Current = x+500,
+                        CanEdit = true
+                    }
+                },
+                Location = new Locationata()
+                {
+                    Name = "DD",
+                    Floor = new FloorData()
+                    {
+                        Name = $"{x}F",
+                        Area = new AreaData()
                         {
-
-                        }
-                        else
-                        {
-                            Check(s, d);
+                            Name = "aaa",
+                            Data = new Rect()
+                            {
+                                Point = new Point()
+                                {
+                                    X = x,
+                                    Y = x*2
+                                },
+                                Size = new Size()
+                                {
+                                    Width = x+x,
+                                    Height = (x+x)*2
+                                }
+                            }
                         }
                     }
                 }
-                if (ch == false)
-                {
-                    dynamic s = pp.GetValue(src);
-                    dynamic d = pp.GetValue(dst);
-                    Assert.AreEqual(s, d, $"{s}!={d}");
-                }
+            });
+            this.m_Devices = new List<Device>(devices);
+            regt_devices.RemoveAll();
+            regt_devices.Insert(devices);
 
-            }
-
-            return result;
         }
 
-        bool Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
+        [TestMethod]
+        public void Select()
         {
-            bool result = true;
-            if (src.Count() != dst.Count())
-            {
-                Assert.Fail($"src:{src.Count()}!=dst:{dst.Count()}");
-                return false;
-            }
-            var zip = src.Zip(dst, (x, y) => new { src = x, dst = y });
-            foreach (var oo in zip)
-            {
-                Check(oo.src, oo.dst);
-            }
-
-            return result;
+            var reg = this.regt_devices.Select(x => x.Key);
+            var org = this.m_Devices.Select(x => x.Key);
+            CheckEx.Check(reg, org);
         }
-
     }
 
 

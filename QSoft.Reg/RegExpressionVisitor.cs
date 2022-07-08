@@ -140,19 +140,43 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
-                    var hr_p = Expression.Parameter(items.Key.Type, "hr");
-                    var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
-                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
-                        reg_p_assign,
-                        hr_p_assign,
-                        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        Expression.Block(
-                            Expression.Assign(hr_p, regss.Item2),
-                            reg_p.DisposeExpr())),
-                        hr_p
-                        );
-                    exprs[items.Key] = membgervalue;
+                    var typecode = Type.GetTypeCode(items.Key.Type);
+                    
+                    if(items.Key.Type.IsNullable() == true)
+                    {
+                        typecode = Type.GetTypeCode(items.Key.Type.GetGenericArguments()[0]);
+                    }
+                    if(typecode == TypeCode.Object)
+                    {
+                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                        var hr_p = Expression.Parameter(items.Key.Type, "hr");
+                        var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                            reg_p_assign,
+                            hr_p_assign,
+                            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                            Expression.Block(
+                                Expression.Assign(hr_p, regss.Item2),
+                                reg_p.DisposeExpr())),
+                            hr_p
+                            );
+                        exprs[items.Key] = membgervalue;
+                    }
+                    else
+                    {
+                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                        var hr_p = Expression.Parameter(items.Key.Type, "hr");
+                        var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                            reg_p_assign,
+                            hr_p_assign,
+                            Expression.Block(
+                                Expression.Assign(hr_p, regss.Item2),
+                                reg_p.DisposeExpr()),
+                            hr_p
+                            );
+                        exprs[items.Key] = membgervalue;
+                    }
                 }
             }
             members.Clear();

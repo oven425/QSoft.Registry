@@ -16,6 +16,7 @@ namespace ConsoleApp1
         public Size Size { set; get; }
         public Locationata Location { set; get; }
         public CameraSetting CameraSetting { set; get; }
+        public Version Version { set; get; }
     }
 
     public class Locationata

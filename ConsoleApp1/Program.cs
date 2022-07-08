@@ -189,168 +189,89 @@ namespace ConsoleApp1
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "devices";
                     });
-                //var llo = regt_devices.Select(x => x.Remote);
-                var llo = regt_devices.Where(x=>x.Location!=null).Select(x => new { remote = x.Remote.Root.Account });
-                foreach (var oo in llo)
-                {
-
-                }
-                regt_devices.Insert(new List<Device>()
-                {
-                    new Device()
-                    {
-                        Name = "1F_AA",
-                        Size = new Size(){Width=100,Height=100 },
-                        Local = new Address()
-                        {
-                            IP = "127.0.0.1",
-                            Port=1000,
-                            Root = new Address.Auth()
-                            {
-                                Account = "root_local",
-                                Password="root_local"
-                            },
-                            Guest = new Address.Auth()
-                            {
-                                Account = "guest_local",
-                                Password="guest_local"
-                            }
-                        },
-                        Remote = new Address()
-                        {
-                            IP="192.168.10.1",
-                            Port = 1001,
-                            Root = new Address.Auth()
-                            {
-                                Account = "root_local",
-                                Password="root_local"
-                            },
-                            Guest = new Address.Auth()
-                            {
-                                Account = "guest_local",
-                                Password="guest_local"
-                            }
-                        },
-                        CameraSetting = new CameraSetting()
-                        {
-                            PIR = new PIR(){ IsEnable=true, IsAuto=true },
-                            WDR = new WDR(){IsEnable=true},
-                            Brightness = new Brightness()
-                            {
-                                Range = new Range(){Min=0, Max=1000},
-                                Current = 500,
-                                CanEdit=true
-                            }
-                        },
-                        Location = new Locationata()
-                        {
-                            Name = "DD",
-                            Floor = new FloorData()
-                            {
-                                Name = "1F",
-                                Area = new AreaData()
-                                {
-                                    Name = "aaa",
-                                    Data = new Rect()
-                                    {
-                                        Point = new Point()
-                                        {
-                                            X = 100,
-                                            Y=200
-                                        },
-                                        Size = new Size()
-                                        {
-                                            Width = 111,
-                                            Height=222
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-
-                var regt_people = new RegQuery<People>()
-                    .useSetting(x=> 
-                    {
-                        x.View = RegistryView.Registry64;
-                        x.Hive = RegistryHive.CurrentConfig;
-                        x.SubKey = "people";
-                    });
-                //regt_people.Insert(new List<People>()
+                //var llo = regt_devices.GroupBy(x => x.Local.Port,x=>x.Size);
+                ////var llo = regt_devices.Where(x=>x.Location!=null).Select(x => new { remote = x.Remote.Root.Account });
+                //foreach (var oo in llo)
                 //{
-                //    new People() { Height=100, Weight=200, Name="123", Key="Key",
-                //        phone = new Phone()
-                //        {
-                //            company = "A",
-                //            number = "number_A",
-                //            First = new Record()
-                //            {
-                //                Start = DateTime.MinValue,
-                //                Stop = DateTime.MinValue+TimeSpan.FromDays(1)
-                //            }
 
-                //        },
-                //    }
+                //}
 
-                //});
-                //regt_people.Update(x => new People()
+                //regt_devices.Insert(new List<Device>()
                 //{
-                //    phone = new Phone()
+                //    new Device()
                 //    {
-                //        Last = new Record()
+                //        Name = "1F_AA",
+                //        Size = new Size(){Width=100,Height=100 },
+                //        Local = new Address()
                 //        {
-                //            Start = x.phone.First.Start.AddDays(1),
-                //            Stop = DateTime.Now.AddDays(1)
+                //            IP = "127.0.0.1",
+                //            Port=1000,
+                //            Root = new Address.Auth()
+                //            {
+                //                Account = "root_local",
+                //                Password="root_local"
+                //            },
+                //            Guest = new Address.Auth()
+                //            {
+                //                Account = "guest_local",
+                //                Password="guest_local"
+                //            }
+                //        },
+                //        Remote = new Address()
+                //        {
+                //            IP="192.168.10.1",
+                //            Port = 1001,
+                //            Root = new Address.Auth()
+                //            {
+                //                Account = "root_local",
+                //                Password="root_local"
+                //            },
+                //            Guest = new Address.Auth()
+                //            {
+                //                Account = "guest_local",
+                //                Password="guest_local"
+                //            }
+                //        },
+                //        CameraSetting = new CameraSetting()
+                //        {
+                //            PIR = new PIR(){ IsEnable=true, IsAuto=true },
+                //            WDR = new WDR(){IsEnable=true},
+                //            Brightness = new Brightness()
+                //            {
+                //                Range = new Range(){Min=0, Max=1000},
+                //                Current = 500,
+                //                CanEdit=true
+                //            }
+                //        },
+                //        Location = new Locationata()
+                //        {
+                //            Name = "DD",
+                //            Floor = new FloorData()
+                //            {
+                //                Name = "1F",
+                //                Area = new AreaData()
+                //                {
+                //                    Name = "aaa",
+                //                    Data = new Rect()
+                //                    {
+                //                        Point = new Point()
+                //                        {
+                //                            X = 100,
+                //                            Y=200
+                //                        },
+                //                        Size = new Size()
+                //                        {
+                //                            Width = 111,
+                //                            Height=222
+                //                        }
+                //                    }
+                //                }
+                //            }
                 //        }
                 //    }
                 //});
 
-                //var peopel_where = regt_people.Where(x => x.Height != 0).Select(x => new
-                //{
-                //    name = x.Name,
-                //    phone = x.phone,
-                //    company = x.phone.company
-                //});
-                //var peopel_where = regt_people.Where(x => x.Height != 0).Select(x => new
-                //{
-                //    name = x.Name,
-                //    phone = new
-                //    {
-                //        company = x.phone.company,
-                //        number = x.phone.number,
-                //        first = x.phone.First
-                //    },
-                //    company = x.phone.company
-                //});
 
-                var peopel_where = regt_people.Where(x => x.Height != 0).Select(x => new
-                {
-                    name = x.Name,
-                    phone = new
-                    {
-                        company = x.phone.company,
-                        number = x.phone.number,
-                        first = new
-                        {
-                            start = x.phone.First.Start,
-                            stop = x.phone.First.Stop
-                        },
-                        last = new
-                        {
-                            start = x.phone.Last.Start,
-                            stop = x.phone.Last.Stop
-                        }
-                    },
-                    company = x.phone.company
-                });
-                //var peopel_where = regt_people.Where(x=>x.Weight != null && x.Name=="123" && x.phone.company=="A");
-                //var peopel_where = regt_people;
-                //var peopel_where = regt_people.Where(x => x.phone.home.name .Contains("")== true&& string.IsNullOrEmpty(x.phone.home.name) == false);
-                foreach (var oo in peopel_where)
-                {
-
-                }
             }
             catch (Exception ee)
             {
@@ -470,12 +391,13 @@ namespace ConsoleApp1
                     DisplayName = "A"
                 })
                 .useSetting(x =>
-                { 
+                {
                     x.Hive = RegistryHive.LocalMachine;
                     x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
                     x.View = RegistryView.Registry64;
+                    //x.Hive = RegistryHive.CurrentConfig;
+                    //x.SubKey = @"UnitTest\Apps";
                 });
-
             var sytnax = from oo in regt
                          where oo.DisplayName != null
                          let kk1 =oo.DisplayName.ToUpper()

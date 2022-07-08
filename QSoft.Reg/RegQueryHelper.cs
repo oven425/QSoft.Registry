@@ -556,7 +556,7 @@ namespace QSoft.Registry.Linq
                 }
                 else if (pp.attr != null && pp.attr is RegPropertyName)
                 {
-                    if (typecode == TypeCode.Object)
+                    if (typecode == TypeCode.Object && property != typeof(Version))
                     {
                         var subkeyname = (pp.attr as RegPropertyName)?.Name;
                         var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });

@@ -47,7 +47,7 @@ namespace General
                 Local = new Address()
                 {
                     IP = $"127.0.0.{x}",
-                    Port = 1000,
+                    Port = 1000+(x>5?1:0),
                     Root = new Address.Auth()
                     {
                         Account = "root_local",
@@ -123,7 +123,23 @@ namespace General
             var reg = this.regt_devices.Select(x => x.Key);
             var org = this.m_Devices.Select(x => x.Key);
             CheckEx.Check(reg, org);
+            var reg1 = this.regt_devices.Select(x => new { Key = x.Key });
+            var org1 = this.m_Devices.Select(x => new { Key = x.Key });
+            CheckEx.Check(reg1, org1);
+
         }
+
+        [TestMethod]
+        public void Select1()
+        {
+            var reg = this.regt_devices.Select((x,i) => x.Key);
+            var org = this.m_Devices.Select((x, i) => x.Key);
+            CheckEx.Check(reg, org);
+            var reg1 = this.regt_devices.Select((x, i) => new {index = i, Key = x.Key });
+            var org1 = this.m_Devices.Select((x, i) => new {index=i, Key = x.Key });
+            CheckEx.Check(reg1, org1);
+        }
+
     }
 
 

@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
+using UnitTest;
 
 namespace General
 {
@@ -205,136 +206,136 @@ namespace General
         [TestMethod]
         public void GroupBy1_Select()
         {
-            this.Check(this.m_Tests.GroupBy(x => x).Select(x=>x.Key), regt.GroupBy(x => x).Select(x => x.Key));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x).Select(x=>x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }
 
         [TestMethod]
         public void GroupBy1()
         {
-            this.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
-            this.Check(this.m_Tests.GroupBy(x => x.EstimatedSize), regt.GroupBy(x => x.EstimatedSize));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x), regt.GroupBy(x => x));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName), regt.GroupBy(x => x.DisplayName));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.EstimatedSize), regt.GroupBy(x => x.EstimatedSize));
         }
 
         [TestMethod]
         public void GroupBy2()
         {
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => new { x.DisplayName, x.EstimatedSize }), regt.GroupBy(x => x.DisplayName, x => new { x.DisplayName, x.EstimatedSize }));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.DisplayName), regt.GroupBy(x => x.DisplayName, x => x.DisplayName));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => new { x.DisplayName, x.EstimatedSize }), regt.GroupBy(x => x.DisplayName, x => new { x.DisplayName, x.EstimatedSize }));
         }
 
         [TestMethod]
         public void GroupBy3()
         {
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => key), regt.GroupBy(x => x.DisplayName, (key, reg) => key));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => reg), regt.GroupBy(x => x.DisplayName, (key, reg) => reg));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { key }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { key }));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { reg }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { key.Length }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { key.Length }));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => key), regt.GroupBy(x => x.DisplayName, (key, reg) => key));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => reg), regt.GroupBy(x => x.DisplayName, (key, reg) => reg));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { key }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { key }));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { reg }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg }));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, (key, reg) => new { key.Length }), regt.GroupBy(x => x.DisplayName, (key, reg) => new { key.Length }));
         }
 
         [TestMethod]
         public void GroupBy4()
         {
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.EstimatedSize, (key, data) => data), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count()), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count()));
-            this.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key=key.ToString(), Count=data.Count() }), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key = key.ToString(), Count = data.Count() }));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x=>x.EstimatedSize, (key, data) => data), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count()), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => data.Count()));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key=key.ToString(), Count=data.Count() }), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key = key.ToString(), Count = data.Count() }));
         }      
 
-        void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
-        {
-            if (src.Count() != dst.Count())
-            {
-                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-            }
+        //void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
+        //{
+        //    if (src.Count() != dst.Count())
+        //    {
+        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+        //    }
 
-            for (int i = 0; i < src.Count(); i++)
-            {
-                dynamic key_src = src.ElementAt(i).Key;
-                dynamic key_dst = dst.ElementAt(i).Key;
-                Check(key_src, key_dst);
+        //    for (int i = 0; i < src.Count(); i++)
+        //    {
+        //        dynamic key_src = src.ElementAt(i).Key;
+        //        dynamic key_dst = dst.ElementAt(i).Key;
+        //        Check(key_src, key_dst);
                 
-                int count_src = src.ElementAt(i).Count();
-                int count_dst = dst.ElementAt(i).Count();
-                Assert.IsTrue(count_src == count_dst, $"Count fail src:{count_src} dst:{count_dst}");
-                for (int j = 0; j < count_src; j++)
-                {
-                    this.Check(src.ElementAt(i).ElementAt(j), dst.ElementAt(i).ElementAt(j));
-                }
-            }
-        }
+        //        int count_src = src.ElementAt(i).Count();
+        //        int count_dst = dst.ElementAt(i).Count();
+        //        Assert.IsTrue(count_src == count_dst, $"Count fail src:{count_src} dst:{count_dst}");
+        //        for (int j = 0; j < count_src; j++)
+        //        {
+        //            this.Check(src.ElementAt(i).ElementAt(j), dst.ElementAt(i).ElementAt(j));
+        //        }
+        //    }
+        //}
 
         [TestMethod]
         public void Take()
         {
-            this.Check(this.m_Tests.Take(3), regt.Take(3));
-            this.Check(this.m_Tests.Take(100), regt.Take(100));
+            CheckEx.Check(this.m_Tests.Take(3), regt.Take(3));
+            CheckEx.Check(this.m_Tests.Take(100), regt.Take(100));
         }
 
         [TestMethod]
         public void TakeWhile()
         {
-            this.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.TakeWhile(x => x.EstimatedSize.ToString() == "10"), regt.TakeWhile(x => x.EstimatedSize.ToString() == "10"));
-            this.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA".ToString()), regt.TakeWhile(x => x.DisplayName == "AA".ToString()));
-            this.Check(this.m_Tests.TakeWhile(x => x.Key.Contains("AA".ToString())), regt.TakeWhile(x => x.Key.Contains("AA".ToString())));
+            CheckEx.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.TakeWhile(x => x.EstimatedSize.ToString() == "10"), regt.TakeWhile(x => x.EstimatedSize.ToString() == "10"));
+            CheckEx.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA".ToString()), regt.TakeWhile(x => x.DisplayName == "AA".ToString()));
+            CheckEx.Check(this.m_Tests.TakeWhile(x => x.Key.Contains("AA".ToString())), regt.TakeWhile(x => x.Key.Contains("AA".ToString())));
         }
 
         [TestMethod]
         public void TakeWhile_Index()
         {
-            this.Check(this.m_Tests.TakeWhile((x,index) => x.DisplayName == "AA"), regt.TakeWhile((x,index) => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.TakeWhile((x, index) => index == 0), regt.TakeWhile((x, index) => index == 0));
+            CheckEx.Check(this.m_Tests.TakeWhile((x,index) => x.DisplayName == "AA"), regt.TakeWhile((x,index) => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.TakeWhile((x, index) => index == 0), regt.TakeWhile((x, index) => index == 0));
         }
 
         [TestMethod]
         public void Skip()
         {
-            this.Check(this.m_Tests.Skip(3), regt.Skip(3));
+            CheckEx.Check(this.m_Tests.Skip(3), regt.Skip(3));
         }
 
         [TestMethod]
         public void SkipWhile()
         {
-            this.Check(this.m_Tests.SkipWhile(x=>x.EstimatedSize>20), regt.SkipWhile(x => x.EstimatedSize > 20));
+            CheckEx.Check(this.m_Tests.SkipWhile(x=>x.EstimatedSize>20), regt.SkipWhile(x => x.EstimatedSize > 20));
         }
 
         [TestMethod]
         public void SkipWhile_Index()
         {
-            this.Check(this.m_Tests.SkipWhile((x,index) => x.EstimatedSize > 20), regt.SkipWhile((x,index) => x.EstimatedSize > 20));
+            CheckEx.Check(this.m_Tests.SkipWhile((x,index) => x.EstimatedSize > 20), regt.SkipWhile((x,index) => x.EstimatedSize > 20));
         }
 
         [TestMethod]
         public void Where()
         {
-            this.Check(this.m_Tests.Where(x => x.DisplayName.ToString() == "AA".ToString()), regt.Where(x => x.DisplayName.ToString() == "AA".ToString()));
-            this.Check(this.m_Tests.Where(x => x.DisplayName == "AA"), regt.Where(x => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.Where(x => x.DisplayName == $"{x.DisplayName}"), regt.Where(x => x.DisplayName == $"{x.DisplayName}"));
-            this.Check(this.m_Tests.Where(x => x.DisplayName == $"{x.DisplayName}{x.DisplayName}"), regt.Where(x => x.DisplayName == $"{x.DisplayName}{x.DisplayName}"));
-            this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")), regt.Where(x => x.DisplayName.Contains("AA")));
-            this.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA") == true), regt.Where(x => x.DisplayName.Contains("AA") == true));
-            this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)));
-            this.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where(x => string.IsNullOrEmpty(x.DisplayName) == true));
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName.ToString() == "AA".ToString()), regt.Where(x => x.DisplayName.ToString() == "AA".ToString()));
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName == "AA"), regt.Where(x => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName == $"{x.DisplayName}"), regt.Where(x => x.DisplayName == $"{x.DisplayName}"));
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName == $"{x.DisplayName}{x.DisplayName}"), regt.Where(x => x.DisplayName == $"{x.DisplayName}{x.DisplayName}"));
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA")), regt.Where(x => x.DisplayName.Contains("AA")));
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName.Contains("AA") == true), regt.Where(x => x.DisplayName.Contains("AA") == true));
+            CheckEx.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName)), regt.Where(x => string.IsNullOrEmpty(x.DisplayName)));
+            CheckEx.Check(this.m_Tests.Where(x => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where(x => string.IsNullOrEmpty(x.DisplayName) == true));
 
-            this.Check(this.m_Tests.Where(x => x.EstimatedSize > 0), regt.Where(x => x.EstimatedSize > 0));
-            this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == "10"), regt.Where(x => x.EstimatedSize.ToString() == "10"));
-            this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
-            this.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
+            CheckEx.Check(this.m_Tests.Where(x => x.EstimatedSize > 0), regt.Where(x => x.EstimatedSize > 0));
+            CheckEx.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == "10"), regt.Where(x => x.EstimatedSize.ToString() == "10"));
+            CheckEx.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
+            CheckEx.Check(this.m_Tests.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"), regt.Where(x => x.EstimatedSize.ToString() == $"{x.EstimatedSize}"));
         }
 
         [TestMethod]
         public void Where_Index()
         {
-            this.Check(this.m_Tests.Where((x, index) => index%2==0), regt.Where((x, index) => index % 2 == 0));
-            this.Check(this.m_Tests.Where((x, index) => x.DisplayName == "AA"), regt.Where((x, index) => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.Where((x, index) => x.DisplayName == $"{x.DisplayName}"), regt.Where((x, index) => x.DisplayName == $"{x.DisplayName}"));
-            this.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA")), regt.Where((x, index) => x.DisplayName.Contains("AA")));
-            this.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA") == true), regt.Where((x, index) => x.DisplayName.Contains("AA") == true));
-            this.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)));
-            this.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true));
+            CheckEx.Check(this.m_Tests.Where((x, index) => index%2==0), regt.Where((x, index) => index % 2 == 0));
+            CheckEx.Check(this.m_Tests.Where((x, index) => x.DisplayName == "AA"), regt.Where((x, index) => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.Where((x, index) => x.DisplayName == $"{x.DisplayName}"), regt.Where((x, index) => x.DisplayName == $"{x.DisplayName}"));
+            CheckEx.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA")), regt.Where((x, index) => x.DisplayName.Contains("AA")));
+            CheckEx.Check(this.m_Tests.Where((x, index) => x.DisplayName.Contains("AA") == true), regt.Where((x, index) => x.DisplayName.Contains("AA") == true));
+            CheckEx.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName)));
+            CheckEx.Check(this.m_Tests.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true), regt.Where((x, index) => string.IsNullOrEmpty(x.DisplayName) == true));
         }
 
         [TestMethod]
@@ -344,23 +345,23 @@ namespace General
             //this.Check(this.m_Tests.Except(tests), regt.Except(tests));
             //this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
             var tests = this.m_Tests.Take(2);
-            this.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
+            CheckEx.Check(this.m_Tests.Except(tests, new InstallAppCompare()), regt.Except(tests, new InstallAppCompare()));
         }
 
         [TestMethod]
         public void Intersect()
         {
             var tests = this.m_Tests.Take(2).Select(x => new InstalledApp(x));
-            this.Check(this.m_Tests.Intersect(tests), regt.Intersect(tests));
-            this.Check(this.m_Tests.Intersect(tests, new InstallAppCompare()), regt.Intersect(tests, new InstallAppCompare()));
+            CheckEx.Check(this.m_Tests.Intersect(tests), regt.Intersect(tests));
+            CheckEx.Check(this.m_Tests.Intersect(tests, new InstallAppCompare()), regt.Intersect(tests, new InstallAppCompare()));
         }
 
         [TestMethod]
         public void Union()
         {
             var tests = this.m_Tests.Take(2).Select(x => new InstalledApp(x));
-            this.Check(this.m_Tests.Union(tests), regt.Union(tests));
-            this.Check(this.m_Tests.Union(tests, new InstallAppCompare()), regt.Union(tests, new InstallAppCompare()));
+            CheckEx.Check(this.m_Tests.Union(tests), regt.Union(tests));
+            CheckEx.Check(this.m_Tests.Union(tests, new InstallAppCompare()), regt.Union(tests, new InstallAppCompare()));
         }
 
         [TestMethod]
@@ -368,7 +369,7 @@ namespace General
         {
             //var j1 = regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install);
             //var j2 = this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install);
-            this.Check(this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install), regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install));
+            CheckEx.Check(this.m_Apps.Join(regt, x => x.Name, y => y.DisplayName, (test, install) => install), regt.Join(this.m_Apps, x => x.DisplayName, y => y.Name, (install, app) => install));
         }
 
         [TestMethod]
@@ -380,14 +381,14 @@ namespace General
         [TestMethod]
         public void Select()
         {
-            this.Check(this.m_Tests.Select(x => x), regt.Select(x => x));
-            this.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
-            this.Check(this.m_Tests.Select(x => x.Version), regt.Select(x => x.Version));
-            this.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
+            CheckEx.Check(this.m_Tests.Select(x => x), regt.Select(x => x));
+            CheckEx.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
+            CheckEx.Check(this.m_Tests.Select(x => x.Version), regt.Select(x => x.Version));
+            CheckEx.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
             //this.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
-            this.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
-            this.Check(this.m_Tests.Select(x => new { Version = x.Version }), regt.Select(x => new { Version = x.Version }));
-            this.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
+            CheckEx.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
+            CheckEx.Check(this.m_Tests.Select(x => new { Version = x.Version }), regt.Select(x => new { Version = x.Version }));
+            CheckEx.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
             //this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
             //this.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
             //this.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.Version.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.Version.ToString() }));
@@ -396,22 +397,23 @@ namespace General
         [TestMethod]
         public void Select_Tuple()
         {
-            this.Check(this.m_Tests.Select(x => Tuple.Create(x.DisplayName)), regt.Select(x => Tuple.Create(x.DisplayName)));
+            CheckEx.Check(this.m_Tests.Select(x => Tuple.Create(x.DisplayName)), regt.Select(x => Tuple.Create(x.DisplayName)));
             //this.Check(this.m_Tests.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize)), regt.Select(x => Tuple.Create(x.DisplayName, x.EstimatedSize)));
         }
 
         [TestMethod]
         public void Select_Index()
         {
-            this.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
-            this.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
+            //CheckEx.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
+            var aa = regt.Select((x, index) => new { x, index });
+            CheckEx.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }
 
         [TestMethod]
         public void Select_Index_Tuple()
         {
-            this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName)), regt.Select((x, index) => Tuple.Create(x.DisplayName)));
-            this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize)), regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize)));
+            CheckEx.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName)), regt.Select((x, index) => Tuple.Create(x.DisplayName)));
+            CheckEx.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize)), regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize)));
             //this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName,index)), regt.Select((x, index) => Tuple.Create(x.DisplayName, index)));
             //this.Check(this.m_Tests.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize, index)), regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize, index)));
         }
@@ -421,34 +423,34 @@ namespace General
         {
             List<InstalledApp> reverse = new List<InstalledApp>(this.m_Tests);
             reverse.Reverse();
-            this.Check(reverse, regt.Reverse());
+            CheckEx.Check(reverse, regt.Reverse());
         }
 
         [TestMethod]
         public void OrderBy()
         {
             var orderby = regt.OrderBy(x => x.EstimatedSize);
-            this.Check(this.m_Tests.OrderBy(x=>x.EstimatedSize), orderby);
-            this.Check(this.m_Tests.OrderBy(x => x.DisplayName.Length), regt.OrderBy(x => x.DisplayName.Length));
+            CheckEx.Check(this.m_Tests.OrderBy(x=>x.EstimatedSize), orderby);
+            CheckEx.Check(this.m_Tests.OrderBy(x => x.DisplayName.Length), regt.OrderBy(x => x.DisplayName.Length));
         }
 
         [TestMethod]
         public void OrderBy_ThenBy()
         {
             var orderby = regt.OrderBy(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length);
-            this.Check(this.m_Tests.OrderBy(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length), orderby);
+            CheckEx.Check(this.m_Tests.OrderBy(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length), orderby);
         }
 
         [TestMethod]
         public void OrderByDescending()
         {
-            this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize), regt.OrderByDescending(x => x.EstimatedSize));
+            CheckEx.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize), regt.OrderByDescending(x => x.EstimatedSize));
         }
 
         [TestMethod]
         public void OrderByDescending_ThenBy()
         {
-            this.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length)
+            CheckEx.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length)
                         , regt.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length));
         }
 
@@ -462,26 +464,26 @@ namespace General
             //var zip = regt.Zip(this.m_Tests, (reg, app) => new { Name = app.DisplayName, reg.DisplayName });
             //var dd1 = regt.Zip(this.m_Apps, (reg, app) => reg);
             //var dd2 = this.m_Tests.Zip(regt, (app, reg) => reg);
-            this.Check(regt.Zip(this.m_Tests, (reg, app) => reg), this.m_Tests.Zip(regt, (app, reg) => reg));
-            this.Check(regt.Zip(this.m_Tests, (reg, app) => app), this.m_Tests.Zip(regt, (app, reg) => app));
-            this.Check(regt.Zip(this.m_Tests, (reg, app) => app.DisplayName), this.m_Tests.Zip(regt, (app, reg) => app.DisplayName));
-            this.Check(regt.Zip(this.m_Tests, (reg, app) => new { reg, app }), this.m_Tests.Zip(regt, (app, reg) => new { reg, app }));
-            this.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
+            CheckEx.Check(regt.Zip(this.m_Tests, (reg, app) => reg), this.m_Tests.Zip(regt, (app, reg) => reg));
+            CheckEx.Check(regt.Zip(this.m_Tests, (reg, app) => app), this.m_Tests.Zip(regt, (app, reg) => app));
+            CheckEx.Check(regt.Zip(this.m_Tests, (reg, app) => app.DisplayName), this.m_Tests.Zip(regt, (app, reg) => app.DisplayName));
+            CheckEx.Check(regt.Zip(this.m_Tests, (reg, app) => new { reg, app }), this.m_Tests.Zip(regt, (app, reg) => new { reg, app }));
+            CheckEx.Check(regt.Zip(this.m_Apps, (reg, app) => reg), this.m_Apps.Zip(regt, (app, reg) => reg));
         }
 
         [TestMethod]
         public void ToList()
         {
-            this.Check(this.m_Tests, regt.ToList());
-            this.Check(this.m_Tests.Where(x=>x.DisplayName=="AA"), regt.Where(x => x.DisplayName == "AA").ToList());
+            CheckEx.Check(this.m_Tests, regt.ToList());
+            CheckEx.Check(this.m_Tests.Where(x=>x.DisplayName=="AA"), regt.Where(x => x.DisplayName == "AA").ToList());
             regt.ToArray();
         }
 
         [TestMethod]
         public void ToArray()
         {
-            this.Check(this.m_Tests.ToArray(), regt.ToArray());
-            this.Check(this.m_Tests.Where(x => x.DisplayName == "AA").ToArray(), regt.Where(x => x.DisplayName == "AA").ToArray());
+            CheckEx.Check(this.m_Tests.ToArray(), regt.ToArray());
+            CheckEx.Check(this.m_Tests.Where(x => x.DisplayName == "AA").ToArray(), regt.Where(x => x.DisplayName == "AA").ToArray());
         }
 
         [TestMethod]
@@ -489,32 +491,32 @@ namespace General
         {
             var first1 = this.m_Tests.First();
             var first2 = regt.First();
-            this.Check(this.m_Tests.First(), regt.First());
-            this.Check(this.m_Tests.First(x=>x.DisplayName=="AA"), regt.First(x=>x.DisplayName=="AA"));
+            CheckEx.Check(this.m_Tests.First(), regt.First());
+            CheckEx.Check(this.m_Tests.First(x=>x.DisplayName=="AA"), regt.First(x=>x.DisplayName=="AA"));
         }
 
         [TestMethod]
         public void Last()
         {
-            this.Check(this.m_Tests.Last(), regt.Last());
-            this.Check(this.m_Tests.Last(x => x.DisplayName == "AA"), regt.Last(x => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.Last(), regt.Last());
+            CheckEx.Check(this.m_Tests.Last(x => x.DisplayName == "AA"), regt.Last(x => x.DisplayName == "AA"));
         }
 
         [TestMethod]
         public void FirstOrDefault()
         {
-            this.Check(this.m_Tests.FirstOrDefault(), regt.FirstOrDefault());
-            this.Check(this.m_Tests.FirstOrDefault(x => x.DisplayName == "AA"), regt.FirstOrDefault(x => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.FirstOrDefault(x => x.DisplayName.Contains("AA")), regt.FirstOrDefault(x => x.DisplayName.Contains("AA")));
+            CheckEx.Check(this.m_Tests.FirstOrDefault(), regt.FirstOrDefault());
+            CheckEx.Check(this.m_Tests.FirstOrDefault(x => x.DisplayName == "AA"), regt.FirstOrDefault(x => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.FirstOrDefault(x => x.DisplayName.Contains("AA")), regt.FirstOrDefault(x => x.DisplayName.Contains("AA")));
         }
 
         [TestMethod]
         public void LastOrDefault()
         {
-            this.Check(this.m_Tests.LastOrDefault(), regt.LastOrDefault());
-            this.Check(this.m_Tests.LastOrDefault(x => x.DisplayName == "AA"), regt.LastOrDefault(x => x.DisplayName == "AA"));
-            this.Check(this.m_Tests.LastOrDefault(x => x.DisplayName.Contains("AA")), regt.LastOrDefault(x => x.DisplayName.Contains("AA")));
-            this.Check(this.m_Tests.LastOrDefault(x => x.DisplayName.Contains("AA") == true), regt.LastOrDefault(x => x.DisplayName.Contains("AA") == true));
+            CheckEx.Check(this.m_Tests.LastOrDefault(), regt.LastOrDefault());
+            CheckEx.Check(this.m_Tests.LastOrDefault(x => x.DisplayName == "AA"), regt.LastOrDefault(x => x.DisplayName == "AA"));
+            CheckEx.Check(this.m_Tests.LastOrDefault(x => x.DisplayName.Contains("AA")), regt.LastOrDefault(x => x.DisplayName.Contains("AA")));
+            CheckEx.Check(this.m_Tests.LastOrDefault(x => x.DisplayName.Contains("AA") == true), regt.LastOrDefault(x => x.DisplayName.Contains("AA") == true));
         }
 
         [TestMethod]
@@ -551,19 +553,19 @@ namespace General
         [TestMethod]
         public void ElementAt()
         {
-            this.Check(this.m_Tests.ElementAt(0), regt.ElementAt(0));
-            this.Check(this.m_Tests.ElementAt(1), regt.ElementAt(1));
-            this.Check(this.m_Tests.ElementAt(2), regt.ElementAt(2));
+            CheckEx.Check(this.m_Tests.ElementAt(0), regt.ElementAt(0));
+            CheckEx.Check(this.m_Tests.ElementAt(1), regt.ElementAt(1));
+            CheckEx.Check(this.m_Tests.ElementAt(2), regt.ElementAt(2));
         }
 
         [TestMethod]
         public void ElementAtOrDefault()
         {
-            this.Check(this.m_Tests.ElementAtOrDefault(0), regt.ElementAtOrDefault(0));
-            this.Check(this.m_Tests.ElementAtOrDefault(1), regt.ElementAtOrDefault(1));
-            this.Check(this.m_Tests.ElementAtOrDefault(2), regt.ElementAtOrDefault(2));
-            this.Check(this.m_Tests.ElementAtOrDefault(200), regt.ElementAtOrDefault(200));
-            this.Check(this.m_Tests.ElementAtOrDefault(-1), regt.ElementAtOrDefault(-1));
+            CheckEx.Check(this.m_Tests.ElementAtOrDefault(0), regt.ElementAtOrDefault(0));
+            CheckEx.Check(this.m_Tests.ElementAtOrDefault(1), regt.ElementAtOrDefault(1));
+            CheckEx.Check(this.m_Tests.ElementAtOrDefault(2), regt.ElementAtOrDefault(2));
+            CheckEx.Check(this.m_Tests.ElementAtOrDefault(200), regt.ElementAtOrDefault(200));
+            CheckEx.Check(this.m_Tests.ElementAtOrDefault(-1), regt.ElementAtOrDefault(-1));
         }
 
         [TestMethod]
@@ -591,7 +593,11 @@ namespace General
         {
             //Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
             //Assert.IsTrue(this.m_Tests.Average(x => x.DisplayName.Length) == regt.Average(x => x.DisplayName.Length), "Average fail");
-            var aaaa = regt.Select(x => x.Version.ToString());
+            var aaaa = regt.Select(x => x.Version);
+            foreach(var oo in aaaa)
+            {
+
+            }
             Assert.IsTrue(this.m_Tests.Average(x => x.Version.ToString().Length) == regt.Average(x => x.Version.ToString().Length), "Average fail");
         }
 
@@ -602,11 +608,11 @@ namespace General
             int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
             var count1 = regt;
             var count2 = this.m_Tests.Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize + 100 });
-            this.Check(count1, count2);
+            CheckEx.Check(count1, count2);
             regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
             var count3 = regt.Where(x => x.EstimatedSize > 130);
             count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize - 100 });
-            this.Check(count3, count2);
+            CheckEx.Check(count3, count2);
 
             //update_count = regt.Update(x => new InstallApp() { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
             //count2 = this.m_Tests.Select(x => new InstallApp(x) { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
@@ -614,86 +620,86 @@ namespace General
         }
 
 
-        void Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
-        {
-            if(src.Count() != dst.Count())
-            {
-                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-            }
-            for(int i=0; i<src.Count(); i++)
-            {
-                this.Check(src.ElementAt(i), dst.ElementAt(i));
-            }
-        }
+        //void Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
+        //{
+        //    if(src.Count() != dst.Count())
+        //    {
+        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+        //    }
+        //    for(int i=0; i<src.Count(); i++)
+        //    {
+        //        this.Check(src.ElementAt(i), dst.ElementAt(i));
+        //    }
+        //}
 
-        void Check<T>(T[] src, T[] dst)
-        {
-            if (src.Count() != dst.Count())
-            {
-                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-            }
-            for (int i = 0; i < src.Count(); i++)
-            {
-                this.Check(src.ElementAt(i), dst.ElementAt(i));
-            }
-        }
+        //void Check<T>(T[] src, T[] dst)
+        //{
+        //    if (src.Count() != dst.Count())
+        //    {
+        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+        //    }
+        //    for (int i = 0; i < src.Count(); i++)
+        //    {
+        //        this.Check(src.ElementAt(i), dst.ElementAt(i));
+        //    }
+        //}
 
-        void Check<T>(List<T> src, List<T> dst)
-        {
-            if (src.Count() != dst.Count())
-            {
-                Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-            }
-            for (int i = 0; i < src.Count(); i++)
-            {
-                this.Check(src.ElementAt(i), dst.ElementAt(i));
-            }
-        }
+        //void Check<T>(List<T> src, List<T> dst)
+        //{
+        //    if (src.Count() != dst.Count())
+        //    {
+        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
+        //    }
+        //    for (int i = 0; i < src.Count(); i++)
+        //    {
+        //        this.Check(src.ElementAt(i), dst.ElementAt(i));
+        //    }
+        //}
 
-        void Check<T>(T src, T dst)
-        {
-            var typecode = Type.GetTypeCode(typeof(T));
-            if(src==null && dst==null)
-            {
+        //void Check<T>(T src, T dst)
+        //{
+        //    var typecode = Type.GetTypeCode(typeof(T));
+        //    if(src==null && dst==null)
+        //    {
 
-            }
-            else if(typecode == TypeCode.String)
-            {
-                string str_src = src as string;
-                string str_dst = dst as string;
-                if (str_src != str_dst)
-                {
-                    Assert.Fail($"fail src:{str_src} dst:{str_dst}");
-                }
-            }
-            else
-            {
-                var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
-                foreach(var pp in pps)
-                {
+        //    }
+        //    else if(typecode == TypeCode.String)
+        //    {
+        //        string str_src = src as string;
+        //        string str_dst = dst as string;
+        //        if (str_src != str_dst)
+        //        {
+        //            Assert.Fail($"fail src:{str_src} dst:{str_dst}");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
+        //        foreach(var pp in pps)
+        //        {
 
-                    dynamic s = pp.GetValue(src);
-                    dynamic d = pp.GetValue(dst);
-                    if (pp.PropertyType == typeof(InstalledApp))
-                    {
-                        this.Check(s, d);
-                    }
-                    else if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                    {
-                        this.Check(s, d);
-                    }
-                    else
-                    {
-                        if (s != d)
-                        {
-                            Assert.Fail($"{pp.Name} fail src:{s} dst:{d}");
-                        }
-                    }
+        //            dynamic s = pp.GetValue(src);
+        //            dynamic d = pp.GetValue(dst);
+        //            if (pp.PropertyType == typeof(InstalledApp))
+        //            {
+        //                this.Check(s, d);
+        //            }
+        //            else if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        //            {
+        //                this.Check(s, d);
+        //            }
+        //            else
+        //            {
+        //                if (s != d)
+        //                {
+        //                    Assert.Fail($"{pp.Name} fail src:{s} dst:{d}");
+        //                }
+        //            }
                     
                     
-                }
-            }
-        }
+        //        }
+        //    }
+        //}
     }
 
     public class AppData

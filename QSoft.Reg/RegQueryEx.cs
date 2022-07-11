@@ -54,28 +54,43 @@ namespace QSoft.Registry.Linq
                 {
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
-                switch (typecode)
+                if(typecode == TypeCode.Object && pp.Key.PropertyType!= typeof(Version))
                 {
-                    case TypeCode.Object:
-                        {
-                            var obj = pp.Key.GetValue(data, null);
-                            if(obj != null)
-                            {
-                                var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                                cc.Insert(pp.Key.GetValue(data, null), null, isinsert);
-                            }
-                        }
-                        break;
-                    default:
-                        {
-                            var vv = pp.Key.GetValue(data, null);
-                            if (vv != null)
-                            {
-                                child.SetValue(dicpps[pp.Key], vv);
-                            }
-                        }
-                        break;
+                    var obj = pp.Key.GetValue(data, null);
+                    if (obj != null)
+                    {
+                        var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                        cc.Insert(pp.Key.GetValue(data, null), null, isinsert);
+                    }
                 }
+                else
+                {
+                    var vv = pp.Key.GetValue(data, null);
+                    if (vv != null)
+                    {
+                        child.SetValue(dicpps[pp.Key], vv);
+                    }
+                }
+                //switch (typecode)
+                //{
+                //    case TypeCode.Object:
+                //        {
+                //            if(pp.Key.PropertyType == typeof(Version))
+                //            {
+
+                //            }
+                //            else
+                //            {
+                                
+                //            }
+                //        }
+                //        break;
+                //    default:
+                //        {
+                            
+                //        }
+                //        break;
+                //}
             }
             child.Close();
         }

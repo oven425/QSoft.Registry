@@ -457,10 +457,9 @@ namespace QSoft.Registry.Linq
                                 Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, param1, Expression.Constant(null, typeof(RegistryKey))),
                                 Expression.Block(
                                     Expression.Assign(obj_p, objepxr),
-                                param1.DisposeExpr(),
-                                obj_p
-                                    ),
-                                pp.dst.PropertyType.DefaultExpr())
+                                    param1.DisposeExpr(),
+                                    obj_p),
+                                    pp.dst.PropertyType.DefaultExpr())
                                 );
                             exprs.Add(aa);
 
@@ -944,7 +943,7 @@ namespace QSoft.Registry.Linq
             {
                 PropertyInfo ppo = members[0].Item2.Member as PropertyInfo;
                 var typecode = Type.GetTypeCode(ppo.PropertyType);
-                if(typecode == TypeCode.Object)
+                if(typecode == TypeCode.Object && ppo.PropertyType!=typeof(Version))
                 {
                     var ppos = members[0].Item2.Member.GetCustomAttributes(true).FirstOrDefault(x => x is RegPropertyName) as RegPropertyName;
                     var subkeyname = ppos?.Name?? members.First().Item2.Member.Name;
@@ -955,6 +954,8 @@ namespace QSoft.Registry.Linq
                 else
                 {
                     var yy = members.First().Item2.Member.Name;
+                    var attr = members.First().Item2.Member.GetCustomAttributes(true).FirstOrDefault(x=> x is RegPropertyName) as RegPropertyName;
+                    yy = attr?.Name;
                     var getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(members.First().Item2.Type), members.First().Item1, Expression.Constant(yy));
                     return Tuple.Create<Expression, Expression>(members.First().Item1, getvalue);
                 }

@@ -123,28 +123,40 @@ namespace ConsoleApp1
         //public List<Phone> phones { set; get; }
     }
 
-    
+    //https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/src/System/Text/Json/Serialization/Converters/CastingConverter.cs
+    public class Version2String : RegistryKeyConvert<Version>
+    {
+        public override bool CanConvert(Type src)
+        {
+            if (this.Src == src)
+            {
+                return true;
+            }
 
-    
+            return false;
+        }
 
-    
+        public override string ConvertTo(Version src)
+        {
+            return src.ToString();
+        }
 
-
-
+        public override Version CovertBack(string dst)
+        {
+            return Version.Parse(dst);
+        }
+    }
 
 
     class Program
     {
         static void Main(string[] args)
         {
-
-
-
             try
             {
 
-
-
+                //Version2String vv = new Version2String();
+                //vv.CanConvert(typeof(Version), typeof(string));
                 //var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
                 //var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
                 //var syntax = from oo in query
@@ -181,95 +193,105 @@ namespace ConsoleApp1
                     //var pro = lambda.Compile()(reg);
                     //reg.Close();
                 }
+                Dictionary<Tuple<Type, Type>, object> dics = new Dictionary<Tuple<Type, Type>, object>();
+                dics.Add(Tuple.Create(typeof(Version), typeof(string) ), new Version2String());
 
+
+
+                var ccs = typeof(Device).GetConstructors();
                 var regt_devices = new RegQuery<Device>()
                     .useSetting(x =>
                     {
                         x.View = RegistryView.Registry64;
                         x.Hive = RegistryHive.CurrentConfig;
                         x.SubKey = "devices";
+                    })
+                    .useConverts(new List<RegistryKeyConvert>()
+                    {
+                        new Version2String()
                     });
-                //var llo = regt_devices.GroupBy(x => x.Local.Port,x=>x.Size);
+                //var llo = regt_devices;
                 ////var llo = regt_devices.Where(x=>x.Location!=null).Select(x => new { remote = x.Remote.Root.Account });
                 //foreach (var oo in llo)
                 //{
 
                 //}
 
-                //regt_devices.Insert(new List<Device>()
-                //{
-                //    new Device()
-                //    {
-                //        Name = "1F_AA",
-                //        Size = new Size(){Width=100,Height=100 },
-                //        Local = new Address()
-                //        {
-                //            IP = "127.0.0.1",
-                //            Port=1000,
-                //            Root = new Address.Auth()
-                //            {
-                //                Account = "root_local",
-                //                Password="root_local"
-                //            },
-                //            Guest = new Address.Auth()
-                //            {
-                //                Account = "guest_local",
-                //                Password="guest_local"
-                //            }
-                //        },
-                //        Remote = new Address()
-                //        {
-                //            IP="192.168.10.1",
-                //            Port = 1001,
-                //            Root = new Address.Auth()
-                //            {
-                //                Account = "root_local",
-                //                Password="root_local"
-                //            },
-                //            Guest = new Address.Auth()
-                //            {
-                //                Account = "guest_local",
-                //                Password="guest_local"
-                //            }
-                //        },
-                //        CameraSetting = new CameraSetting()
-                //        {
-                //            PIR = new PIR(){ IsEnable=true, IsAuto=true },
-                //            WDR = new WDR(){IsEnable=true},
-                //            Brightness = new Brightness()
-                //            {
-                //                Range = new Range(){Min=0, Max=1000},
-                //                Current = 500,
-                //                CanEdit=true
-                //            }
-                //        },
-                //        Location = new Locationata()
-                //        {
-                //            Name = "DD",
-                //            Floor = new FloorData()
-                //            {
-                //                Name = "1F",
-                //                Area = new AreaData()
-                //                {
-                //                    Name = "aaa",
-                //                    Data = new Rect()
-                //                    {
-                //                        Point = new Point()
-                //                        {
-                //                            X = 100,
-                //                            Y=200
-                //                        },
-                //                        Size = new Size()
-                //                        {
-                //                            Width = 111,
-                //                            Height=222
-                //                        }
-                //                    }
-                //                }
-                //            }
-                //        }
-                //    }
-                //});
+                regt_devices.Insert(new List<Device>()
+                {
+                    new Device()
+                    {
+                        Version = new Version("1.1.1.1"),
+                        Name = "1F_AA",
+                        Size = new Size(){Width=100,Height=100 },
+                        Local = new Address()
+                        {
+                            IP = "127.0.0.1",
+                            Port=1000,
+                            Root = new Address.Auth()
+                            {
+                                Account = "root_local",
+                                Password="root_local"
+                            },
+                            Guest = new Address.Auth()
+                            {
+                                Account = "guest_local",
+                                Password="guest_local"
+                            }
+                        },
+                        Remote = new Address()
+                        {
+                            IP="192.168.10.1",
+                            Port = 1001,
+                            Root = new Address.Auth()
+                            {
+                                Account = "root_local",
+                                Password="root_local"
+                            },
+                            Guest = new Address.Auth()
+                            {
+                                Account = "guest_local",
+                                Password="guest_local"
+                            }
+                        },
+                        CameraSetting = new CameraSetting()
+                        {
+                            PIR = new PIR(){ IsEnable=true, IsAuto=true },
+                            WDR = new WDR(){IsEnable=true},
+                            Brightness = new Brightness()
+                            {
+                                Range = new Range(){Min=0, Max=1000},
+                                Current = 500,
+                                CanEdit=true
+                            }
+                        },
+                        Location = new Locationata()
+                        {
+                            Name = "DD",
+                            Floor = new FloorData()
+                            {
+                                Name = "1F",
+                                Area = new AreaData()
+                                {
+                                    Name = "aaa",
+                                    Data = new Rect()
+                                    {
+                                        Point = new Point()
+                                        {
+                                            X = 100,
+                                            Y=200
+                                        },
+                                        Size = new Size()
+                                        {
+                                            Width = 111,
+                                            Height=222
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
 
 
             }

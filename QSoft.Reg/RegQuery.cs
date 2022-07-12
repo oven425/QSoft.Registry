@@ -12,6 +12,18 @@ using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
+    public abstract class RegistryKeyConvert
+    {
+        abstract public bool CanConvert(Type src);
+    }
+
+    public abstract class RegistryKeyConvert<TSrc> : RegistryKeyConvert
+    {
+        protected Type Src { get; } = typeof(TSrc);
+        abstract public string ConvertTo(TSrc src);
+        abstract public TSrc CovertBack(string dst);
+    }
+
     public class RegQuery<T> : IOrderedQueryable<T>
     {
         public RegQuery()
@@ -23,13 +35,31 @@ namespace QSoft.Registry.Linq
         RegProvider<T> m_Provider = new RegProvider<T>();
         public RegQuery<T> useSetting(Action<RegSetting> data)
         {
-            
             data(this.m_Provider.Setting);
             data(this.m_Setting);
             //m_Setting = provider.Setting;
             this.Provider = this.m_Provider;
             return this;
         }
+
+        //public RegQuery<T> useConvert<TSrc, TDst>(IRegistryKeyConvert<TSrc, TDst> func)
+        //{
+
+        //    return this;
+        //}
+        List<RegistryKeyConvert> ccs = new List<RegistryKeyConvert>();
+
+        public RegQuery<T> useConverts(List<RegistryKeyConvert> converts)
+        {
+            if(converts!=null)
+            {
+                ccs.AddRange(converts);
+            }
+            this.m_Provider.Converts = ccs;
+            return this;
+        }
+
+
 
 
         public RegQuery<T> HasDefault1(Action<T> data)
@@ -43,10 +73,7 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        private Expression<Action<T>> FuncToExpression(Action<T> f)
-        {
-            return x => f(x);
-        }
+
 
         public RegQuery<T> HasDefault(Expression<Func<T>> data)
         {

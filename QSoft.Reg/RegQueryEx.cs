@@ -15,14 +15,14 @@ namespace QSoft.Registry.Linq
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");
             var reg = source.ToRegistryKey();
             var provide = source.Provider as RegProvider<TSource>;
-            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)));
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)), Expression.Constant(provide.Converts));
             
             int hr = source.Provider.Execute<int>(methdodcall);
             reg.Close();
             return hr;
         }
 
-        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert)
+        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert, IEnumerable<RegistryKeyConvert> converts)
         {
             if (data == null) { return; }
 
@@ -54,13 +54,22 @@ namespace QSoft.Registry.Linq
                 {
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
-                if(typecode == TypeCode.Object && pp.Key.PropertyType!= typeof(Version))
+                //if(typecode == TypeCode.Object && pp.Key.PropertyType!= typeof(Version))
+                if (typecode == TypeCode.Object)
                 {
+                    if(pp.Key.PropertyType == typeof(Version))
+                    {
+                        System.Diagnostics.Debug.WriteLine("");
+                        var con = converts.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
+                        var con1 = con as RegistryKeyConvert<Version>;
+                        var vv = pp.Key.GetValue(data, null);
+                        //con1.ConvertTo(vv);
+                    }
                     var obj = pp.Key.GetValue(data, null);
                     if (obj != null)
                     {
                         var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        cc.Insert(pp.Key.GetValue(data, null), null, isinsert);
+                        cc.Insert(pp.Key.GetValue(data, null), null, isinsert, converts);
                     }
                 }
                 else
@@ -95,7 +104,7 @@ namespace QSoft.Registry.Linq
             child.Close();
         }
 
-        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction)
+        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction, IEnumerable<RegistryKeyConvert> converts)
         {
             TData hasdefault = default(TData);
             if(defaultaction != null)
@@ -107,7 +116,7 @@ namespace QSoft.Registry.Linq
             int count = 0;
             foreach (var data in datas)
             {
-                source.Insert(data, null, true);
+                source.Insert(data, null, true, converts);
                 count = count + 1;
             }
             return count;
@@ -146,7 +155,7 @@ namespace QSoft.Registry.Linq
             {
                 RegistryKey reg = oo as RegistryKey;
                 var obj = data_func(oo);
-                reg.Insert(obj, null, false);
+                reg.Insert(obj, null, false, null);
                 //foreach (var pp in pps)
                 //{
                 //    var vv = pp.GetValue(obj, null);

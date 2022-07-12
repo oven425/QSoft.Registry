@@ -8,6 +8,8 @@ namespace ConsoleApp1
 {
     public class Device
     {
+        public Device() { }
+        public Device(string name) { }
         [RegPropertyName("LocalIP")]
         public Address Local { set; get; }
         [RegPropertyName("RemoteIP")]

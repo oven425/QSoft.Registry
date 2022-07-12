@@ -525,6 +525,10 @@ namespace QSoft.Registry.Linq
         static public Expression ToData(this Type dst, Expression param)
         {
             System.Diagnostics.Debug.WriteLine($"ToData");
+            if(dst == typeof(Version))
+            {
+                System.Diagnostics.Debug.WriteLine("");
+            }
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
 
             var pps = dst.GetProperties().Where(x => x.CanWrite == true)

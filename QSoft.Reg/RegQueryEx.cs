@@ -54,17 +54,20 @@ namespace QSoft.Registry.Linq
                 {
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
-                //if(typecode == TypeCode.Object && pp.Key.PropertyType!= typeof(Version))
-                if (typecode == TypeCode.Object)
+                if (pp.Key.PropertyType == typeof(Version))
                 {
-                    if(pp.Key.PropertyType == typeof(Version))
-                    {
-                        System.Diagnostics.Debug.WriteLine("");
-                        var con = converts.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
-                        var con1 = con as RegistryKeyConvert<Version>;
-                        var vv = pp.Key.GetValue(data, null);
-                        //con1.ConvertTo(vv);
-                    }
+                    System.Diagnostics.Debug.WriteLine("");
+                    var con = converts.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
+                    var methods = con.GetType().GetMethod("ConvertTo");
+                    var vv = pp.Key.GetValue(data, null);
+                    var dst = methods.Invoke(con, new[] { vv });
+                    child.SetValue(dicpps[pp.Key], dst);
+
+                }
+                //if(typecode == TypeCode.Object && pp.Key.PropertyType!= typeof(Version))
+                else if (typecode == TypeCode.Object)
+                {
+                    
                     var obj = pp.Key.GetValue(data, null);
                     if (obj != null)
                     {

@@ -124,18 +124,8 @@ namespace ConsoleApp1
     }
 
     //https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/src/System/Text/Json/Serialization/Converters/CastingConverter.cs
-    public class Version2String : RegistryKeyConvert<Version>
+    public class Version2String : RegistryKeyConvert<Version, string>
     {
-        public override bool CanConvert(Type src)
-        {
-            if (this.Src == src)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public override string ConvertTo(Version src)
         {
             return src.ToString();
@@ -147,6 +137,18 @@ namespace ConsoleApp1
         }
     }
 
+    public class TimeSpan2Int64 : RegistryKeyConvert<TimeSpan, long>
+    {
+        public override long ConvertTo(TimeSpan src)
+        {
+            return src.Ticks;
+        }
+
+        public override TimeSpan CovertBack(long dst)
+        {
+            return TimeSpan.FromTicks(dst);
+        }
+    }
 
     class Program
     {
@@ -154,7 +156,6 @@ namespace ConsoleApp1
         {
             try
             {
-
                 //Version2String vv = new Version2String();
                 //vv.CanConvert(typeof(Version), typeof(string));
                 //var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
@@ -183,19 +184,9 @@ namespace ConsoleApp1
 
 
 
-                var peoplekey = Registry.CurrentConfig.OpenSubKey(@"people");
-                foreach (var name in peoplekey.GetSubKeyNames())
-                {
-                    //var reg = peoplekey.OpenSubKey(name);
-                    //var pp = Expression.Parameter(typeof(RegistryKey), "x");
-                    //var todata = typeof(People).ToData(pp);
-                    //var lambda = Expression.Lambda<Func<RegistryKey, People>>(todata, pp);
-                    //var pro = lambda.Compile()(reg);
-                    //reg.Close();
-                }
+
                 Dictionary<Tuple<Type, Type>, object> dics = new Dictionary<Tuple<Type, Type>, object>();
                 dics.Add(Tuple.Create(typeof(Version), typeof(string) ), new Version2String());
-
 
 
                 var ccs = typeof(Device).GetConstructors();
@@ -208,7 +199,8 @@ namespace ConsoleApp1
                     })
                     .useConverts(new List<RegistryKeyConvert>()
                     {
-                        new Version2String()
+                        new Version2String(),
+                        new TimeSpan2Int64()
                     });
                 //var llo = regt_devices;
                 ////var llo = regt_devices.Where(x=>x.Location!=null).Select(x => new { remote = x.Remote.Root.Account });

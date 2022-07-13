@@ -12,16 +12,30 @@ using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
+    //public abstract partial class RegistryKeyConvert
+    //{
+    //    internal RegistryKeyConvert() { }
+    //    public object ConvertTo(object obj)
+    //    {
+    //        return 1;
+    //    }
+    //}
+
     public abstract class RegistryKeyConvert
     {
+        internal RegistryKeyConvert() { }
         abstract public bool CanConvert(Type src);
     }
 
-    public abstract class RegistryKeyConvert<TSrc> : RegistryKeyConvert
+    public abstract class RegistryKeyConvert<TSrc,TDst> : RegistryKeyConvert
     {
+        public override bool CanConvert(Type src)
+        {
+            return src == typeof(TSrc);
+        }
         protected Type Src { get; } = typeof(TSrc);
-        abstract public string ConvertTo(TSrc src);
-        abstract public TSrc CovertBack(string dst);
+        abstract public TDst ConvertTo(TSrc src);
+        abstract public TSrc CovertBack(TDst dst);
     }
 
     public class RegQuery<T> : IOrderedQueryable<T>
@@ -42,25 +56,17 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        //public RegQuery<T> useConvert<TSrc, TDst>(IRegistryKeyConvert<TSrc, TDst> func)
-        //{
-
-        //    return this;
-        //}
-        List<RegistryKeyConvert> ccs = new List<RegistryKeyConvert>();
+        List<RegistryKeyConvert> m_Converts = new List<RegistryKeyConvert>();
 
         public RegQuery<T> useConverts(List<RegistryKeyConvert> converts)
         {
             if(converts!=null)
             {
-                ccs.AddRange(converts);
+                this.m_Converts.AddRange(converts);
             }
-            this.m_Provider.Converts = ccs;
+            this.m_Provider.Converts = this.m_Converts;
             return this;
         }
-
-
-
 
         public RegQuery<T> HasDefault1(Action<T> data)
         {

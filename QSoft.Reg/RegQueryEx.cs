@@ -22,7 +22,7 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
-        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert, IEnumerable<RegistryKeyConvert> converts)
+        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert, IEnumerable<RegQueryConvert> converts)
         {
             if (data == null) { return; }
 
@@ -107,7 +107,7 @@ namespace QSoft.Registry.Linq
             child.Close();
         }
 
-        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction, IEnumerable<RegistryKeyConvert> converts)
+        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction, IEnumerable<RegQueryConvert> converts)
         {
             TData hasdefault = default(TData);
             if(defaultaction != null)

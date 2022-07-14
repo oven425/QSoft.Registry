@@ -11,6 +11,7 @@ namespace QSoft.Registry.Linq
     class RegExpressionVisitor<TData>: ExpressionVisitor
     {
         Expression m_RegSource;
+        public IEnumerable<RegQueryConvert> Converts { set; get; }
         public string Fail { private set; get; }
         public Expression Visit(Expression node, Expression regfunc)
         {
@@ -123,7 +124,7 @@ namespace QSoft.Registry.Linq
                             hr_p_assign,
                             Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                             Expression.Block(
-                                Expression.Assign(hr_p, items.Key.Type.ToData(reg_p)),
+                                Expression.Assign(hr_p, items.Key.Type.ToData(reg_p, this.Converts)),
                                 reg_p.DisposeExpr())),
                             hr_p
                             );
@@ -144,7 +145,7 @@ namespace QSoft.Registry.Linq
                         hr_p_assign,
                         Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                         Expression.Block(
-                            Expression.Assign(hr_p, items.Key.Type.ToData(reg_p)),
+                            Expression.Assign(hr_p, items.Key.Type.ToData(reg_p, this.Converts)),
                             reg_p.DisposeExpr())),
                         hr_p
                         );
@@ -245,7 +246,7 @@ namespace QSoft.Registry.Linq
                             var temptype = exprs.ElementAt(i).Key.Type.GetGenericArguments()[0];
                             var param = this.m_Parameters[parameter.Name];
                             var select_method = temptype.SelectMethod_Enumerable();
-                            var sd = temptype.ToLambdaData();
+                            var sd = temptype.ToLambdaData(this.Converts);
                             var aaaaa = Expression.Call(select_method, param, sd);
                             exprs[exprs.ElementAt(i).Key] = aaaaa;
                         }
@@ -254,7 +255,7 @@ namespace QSoft.Registry.Linq
                             var param = this.m_Parameters[parameter.Name];
                             if (param.Type == typeof(TData))
                             {
-                                var todata = typeof(TData).ToData(param);
+                                var todata = typeof(TData).ToData(param, this.Converts);
                                 exprs[exprs.ElementAt(i).Key] = todata;
                             }
                         }
@@ -268,7 +269,7 @@ namespace QSoft.Registry.Linq
                     Expression p = x.Value;
                     if(x.Key.Type == typeof(TData))
                     {
-                        p = typeof(TData).ToData(x.Value as ParameterExpression);
+                        p = typeof(TData).ToData(x.Value as ParameterExpression, this.Converts);
                     }
                     return p;
                 });
@@ -1081,7 +1082,7 @@ namespace QSoft.Registry.Linq
                     case "Union":
                     case "Distinct":
                         {
-                            var sd = typeof(TData).ToSelectData();
+                            var sd = typeof(TData).ToSelectData(this.Converts);
                             var select = typeof(TData).SelectMethod();
                             var selectexpr = Expression.Call(select, this.m_RegSource, sd);
 

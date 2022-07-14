@@ -16,7 +16,7 @@ namespace QSoft.Registry.Linq
 {
     public class RegProvider<TData> : IQueryProvider
     {
-        public List<RegistryKeyConvert> Converts { set; get; }
+        public List<RegQueryConvert> Converts { set; get; }
         public Action<TData> DefaultValue {internal set; get; }
         public RegSetting Setting { internal set; get; } = new RegSetting();
         //int CountName;
@@ -500,9 +500,9 @@ namespace QSoft.Registry.Linq
                             Expression arg2 = updatemethod1.Arguments[1];
                             if (type3[1] == typeof(TData))
                             {
-                                arg2 = typeof(TData).ToSelectData();
+                                arg2 = typeof(TData).ToSelectData(this.Converts);
                             }
-                            updatemethod1 = Expression.Call(oo, updatemethod1.Arguments[0], arg2, typeof(TData).ToSelectData());
+                            updatemethod1 = Expression.Call(oo, updatemethod1.Arguments[0], arg2, typeof(TData).ToSelectData(this.Converts));
                             
                         }
                         this.m_ProcessExprs[expression] = updatemethod1;
@@ -514,7 +514,7 @@ namespace QSoft.Registry.Linq
                         {
                             var ty = ttype1.GetGenericArguments()[0].GetProperties();
                         }
-                        var sd = type.GetGenericArguments()[0].ToSelectData(null, updatemethod1.Type.GetGenericArguments()[0]);
+                        var sd = type.GetGenericArguments()[0].ToSelectData(this.Converts, null, updatemethod1.Type.GetGenericArguments()[0]);
                         if (sd != null)
                         {
                             var select = typeof(TResult).GetGenericArguments()[0].SelectMethod(updatemethod1.Type.GetGenericArguments()[0]);
@@ -693,7 +693,7 @@ namespace QSoft.Registry.Linq
             //    this.m_SelectMethod = typeof(TData).SelectMethod();
             //}
             Type ttype = dst ?? typeof(TData);
-            var sd = ttype.ToSelectData();
+            var sd = ttype.ToSelectData(this.Converts);
             var sd_method = ttype.SelectMethod();
             var expr_dst = Expression.Call(sd_method, src, sd);
             return expr_dst;

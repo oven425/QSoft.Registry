@@ -21,13 +21,13 @@ namespace QSoft.Registry.Linq
     //    }
     //}
 
-    public abstract class RegistryKeyConvert
+    public abstract class RegQueryConvert
     {
-        internal RegistryKeyConvert() { }
+        internal RegQueryConvert() { }
         abstract public bool CanConvert(Type src);
     }
 
-    public abstract class RegistryKeyConvert<TSrc,TDst> : RegistryKeyConvert
+    public abstract class RegQueryConvert<TSrc,TDst> : RegQueryConvert where TDst:struct
     {
         public override bool CanConvert(Type src)
         {
@@ -36,6 +36,17 @@ namespace QSoft.Registry.Linq
         protected Type Src { get; } = typeof(TSrc);
         abstract public TDst ConvertTo(TSrc src);
         abstract public TSrc CovertBack(TDst dst);
+    }
+
+    public abstract class RegQueryConvert<TSrc> : RegQueryConvert
+    {
+        public override bool CanConvert(Type src)
+        {
+            return src == typeof(TSrc);
+        }
+        protected Type Src { get; } = typeof(TSrc);
+        abstract public string ConvertTo(TSrc src);
+        abstract public TSrc CovertBack(string dst);
     }
 
     public class RegQuery<T> : IOrderedQueryable<T>
@@ -56,9 +67,9 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        List<RegistryKeyConvert> m_Converts = new List<RegistryKeyConvert>();
+        List<RegQueryConvert> m_Converts = new List<RegQueryConvert>();
 
-        public RegQuery<T> useConverts(List<RegistryKeyConvert> converts)
+        public RegQuery<T> useConverts(List<RegQueryConvert> converts)
         {
             if(converts!=null)
             {

@@ -394,11 +394,11 @@ namespace QSoft.Registry.Linq
             return unary;
         }
 
-        public static Func<RegistryKey, TData> ToDataFunc<TData>(this RegistryKey reg, IEnumerable<RegQueryConvert> converts)
+        public static Func<RegistryKey, TData> ToDataFunc<TData>(this RegistryKey reg)
         {
             System.Diagnostics.Debug.WriteLine($"ToDataFunc");
             var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
-            var o1 = typeof(TData).ToData(o_pp, converts);
+            var o1 = typeof(TData).ToData(o_pp, null);
             var o_func = Expression.Lambda<Func<RegistryKey, TData>>(o1, o_pp).Compile();
             return o_func;
         }
@@ -522,6 +522,11 @@ namespace QSoft.Registry.Linq
             }
         }
 
+        static public Expression ConvertExpr(this RegQueryConvert src)
+        {
+            return null;
+        }
+
         static public Expression ToData(this Type dst, Expression param, IEnumerable<RegQueryConvert> converts)
         {
             System.Diagnostics.Debug.WriteLine($"ToData");
@@ -529,6 +534,7 @@ namespace QSoft.Registry.Linq
             {
                 System.Diagnostics.Debug.WriteLine("");
             }
+
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
 
             var pps = dst.GetProperties().Where(x => x.CanWrite == true)
@@ -543,6 +549,10 @@ namespace QSoft.Registry.Linq
             foreach (var pp in pps)
             {
                 var typecode = Type.GetTypeCode(pp.x.PropertyType);
+                if (pp.x.PropertyType == typeof(Version))
+                {
+                    System.Diagnostics.Debug.WriteLine("");
+                }
                 var property = pp.x.PropertyType;
                 if (pp.x.PropertyType.IsGenericType == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
@@ -591,25 +601,50 @@ namespace QSoft.Registry.Linq
                 {
                     if (typecode == TypeCode.Object)
                     {
-                        var subkeyname = pp.x.Name;
-                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                        var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
-                        var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
-                        var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
-                        var objexpr = pp.x.PropertyType.ToData(reg_p, converts);
-                        var block = Expression.Block(new[] { reg_p, new_p },
-                            Expression.Assign(reg_p, getsubkeyexpr),
-                            Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                                Expression.Block(
-                                    Expression.Assign(new_p, objexpr),
-                                    reg_p.DisposeExpr(),
-                                    new_p
-                                    ),
-                                Expression.Constant(null, pp.x.PropertyType)
-                                )
-                            );
-                        var binding = Expression.Bind(pp.x, block);
-                        bindings.Add(binding);
+                        var convert = converts.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
+                        if (convert != null)
+                        {
+                            convert.ConvertExpr();
+                            name = Expression.Constant(pp.x.Name, typeof(string));
+                            if (pp.x.PropertyType.IsGenericTypeDefinition == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                            {
+                                var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.x.PropertyType), param, name);
+                                UnaryExpression unary1 = Expression.Convert(method, pp.x.PropertyType);
+                                var binding = Expression.Bind(pp.x, unary1);
+                            }
+                            else
+                            {
+                                var methods = convert.GetType().GetMethod("ConvertBack");
+                                var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(methods.GetParameters()[0].ParameterType), param, name);
+                                
+                                var convertbackexpr = Expression.Call(Expression.Constant(convert), methods, method);
+                                var binding = Expression.Bind(pp.x, convertbackexpr);
+                                bindings.Add(binding);
+                            }
+                        }
+                        else
+                        {
+                            var subkeyname = pp.x.Name;
+                            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                            var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
+                            var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
+                            var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
+                            var objexpr = pp.x.PropertyType.ToData(reg_p, converts);
+                            var block = Expression.Block(new[] { reg_p, new_p },
+                                Expression.Assign(reg_p, getsubkeyexpr),
+                                Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                    Expression.Block(
+                                        Expression.Assign(new_p, objexpr),
+                                        reg_p.DisposeExpr(),
+                                        new_p
+                                        ),
+                                    Expression.Constant(null, pp.x.PropertyType)
+                                    )
+                                );
+                            var binding = Expression.Bind(pp.x, block);
+                            bindings.Add(binding);
+                        }
+                        
                     }
                     else
                     {
@@ -638,7 +673,6 @@ namespace QSoft.Registry.Linq
 
             return memberinit;
         }
-
 
 
         public static Type Find(this Type src, MethodInfo method, string target)

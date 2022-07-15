@@ -158,6 +158,7 @@ namespace QSoft.Registry.Linq
             foreach (var expression in exprs)
             {
                 RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
+                reg.Converts = this.Converts;
                 MethodCallExpression method1 = expression as MethodCallExpression;
 
 
@@ -565,6 +566,7 @@ namespace QSoft.Registry.Linq
                     else if (expr_org.Arguments[0].Type.IsGenericType == true && expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                     {
                         RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
+                        regvisitor.Converts = this.Converts;
                         expr = regvisitor.VisitA(expr_org, this.m_RegSource, this.m_Exprs);
                         this.m_ProcessExprs[expression] = expr;
                         if (regvisitor.Fail != null)
@@ -591,6 +593,7 @@ namespace QSoft.Registry.Linq
                         else
                         {
                             RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
+                            regvisitor.Converts = this.Converts;
                             Dictionary<Expression, Expression> saves = new Dictionary<Expression, Expression>();
                             saves[updatemethod2.Arguments[0]] = updatemethod1;
                             expr = regvisitor.VisitA(updatemethod2, this.m_RegSource, saves);

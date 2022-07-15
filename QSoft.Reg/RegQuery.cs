@@ -35,7 +35,7 @@ namespace QSoft.Registry.Linq
         }
         protected Type Src { get; } = typeof(TSrc);
         abstract public TDst ConvertTo(TSrc src);
-        abstract public TSrc CovertBack(TDst dst);
+        abstract public TSrc ConvertBack(TDst dst);
     }
 
     public abstract class RegQueryConvert<TSrc> : RegQueryConvert
@@ -46,7 +46,7 @@ namespace QSoft.Registry.Linq
         }
         protected Type Src { get; } = typeof(TSrc);
         abstract public string ConvertTo(TSrc src);
-        abstract public TSrc CovertBack(string dst);
+        abstract public TSrc ConvertBack(string dst);
     }
 
     public class RegQuery<T> : IOrderedQueryable<T>

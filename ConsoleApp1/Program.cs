@@ -205,87 +205,87 @@ namespace ConsoleApp1
                         new TimeSpan2Int64()
                     });
                 //var llo = regt_devices;
-                //////var llo = regt_devices.Where(x=>x.Location!=null).Select(x => new { remote = x.Remote.Root.Account });
-                //foreach (var oo in llo)
-                //{
-
-                //}
-
-                regt_devices.Insert(new List<Device>()
+                var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
+                foreach (var oo in llo)
                 {
-                    new Device()
-                    {
-                        Version = new Version("1.1.1.1"),
-                        Name = "1F_AA",
-                        Size = new Size(){Width=100,Height=100 },
-                        Local = new Address()
-                        {
-                            IP = "127.0.0.1",
-                            Port=1000,
-                            Root = new Address.Auth()
-                            {
-                                Account = "root_local",
-                                Password="root_local"
-                            },
-                            Guest = new Address.Auth()
-                            {
-                                Account = "guest_local",
-                                Password="guest_local"
-                            }
-                        },
-                        Remote = new Address()
-                        {
-                            IP="192.168.10.1",
-                            Port = 1001,
-                            Root = new Address.Auth()
-                            {
-                                Account = "root_local",
-                                Password="root_local"
-                            },
-                            Guest = new Address.Auth()
-                            {
-                                Account = "guest_local",
-                                Password="guest_local"
-                            }
-                        },
-                        CameraSetting = new CameraSetting()
-                        {
-                            PIR = new PIR(){ IsEnable=true, IsAuto=true },
-                            WDR = new WDR(){IsEnable=true},
-                            Brightness = new Brightness()
-                            {
-                                Range = new Range(){Min=0, Max=1000},
-                                Current = 500,
-                                CanEdit=true
-                            }
-                        },
-                        Location = new Locationata()
-                        {
-                            Name = "DD",
-                            Floor = new FloorData()
-                            {
-                                Name = "1F",
-                                Area = new AreaData()
-                                {
-                                    Name = "aaa",
-                                    Data = new Rect()
-                                    {
-                                        Point = new Point()
-                                        {
-                                            X = 100,
-                                            Y=200
-                                        },
-                                        Size = new Size()
-                                        {
-                                            Width = 111,
-                                            Height=222
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
+
+                }
+
+                //regt_devices.Insert(new List<Device>()
+                //{
+                //    new Device()
+                //    {
+                //        Version = new Version("1.1.1.1"),
+                //        Name = "1F_AA",
+                //        Size = new Size(){Width=100,Height=100 },
+                //        Local = new Address()
+                //        {
+                //            IP = "127.0.0.1",
+                //            Port=1000,
+                //            Root = new Address.Auth()
+                //            {
+                //                Account = "root_local",
+                //                Password="root_local"
+                //            },
+                //            Guest = new Address.Auth()
+                //            {
+                //                Account = "guest_local",
+                //                Password="guest_local"
+                //            }
+                //        },
+                //        Remote = new Address()
+                //        {
+                //            IP="192.168.10.1",
+                //            Port = 1001,
+                //            Root = new Address.Auth()
+                //            {
+                //                Account = "root_local",
+                //                Password="root_local"
+                //            },
+                //            Guest = new Address.Auth()
+                //            {
+                //                Account = "guest_local",
+                //                Password="guest_local"
+                //            }
+                //        },
+                //        CameraSetting = new CameraSetting()
+                //        {
+                //            PIR = new PIR(){ IsEnable=true, IsAuto=true },
+                //            WDR = new WDR(){IsEnable=true},
+                //            Brightness = new Brightness()
+                //            {
+                //                Range = new Range(){Min=0, Max=1000},
+                //                Current = 500,
+                //                CanEdit=true
+                //            }
+                //        },
+                //        Location = new Locationata()
+                //        {
+                //            Name = "DD",
+                //            Floor = new FloorData()
+                //            {
+                //                Name = "1F",
+                //                Area = new AreaData()
+                //                {
+                //                    Name = "aaa",
+                //                    Data = new Rect()
+                //                    {
+                //                        Point = new Point()
+                //                        {
+                //                            X = 100,
+                //                            Y=200
+                //                        },
+                //                        Size = new Size()
+                //                        {
+                //                            Width = 111,
+                //                            Height=222
+                //                        }
+                //                    }
+                //                }
+                //            }
+                //        }
+                //    }
+                //});
 
 
             }

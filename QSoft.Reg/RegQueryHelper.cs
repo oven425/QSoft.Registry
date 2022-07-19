@@ -1060,7 +1060,7 @@ namespace QSoft.Registry.Linq
             return Tuple.Create<Expression, Expression>(null, null);
         }
 
-        public static Expression ToBinary(this List<Tuple<Expression, MemberExpression>> members, BinaryExpression node, DictionaryList<Expression, Expression> exprs)
+        public static Expression ToBinary(this List<Tuple<Expression, MemberExpression>> members, BinaryExpression node, DictionaryList<Expression, Ex> exprs)
         {
             Expression binary = null;
             var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
@@ -1076,7 +1076,7 @@ namespace QSoft.Registry.Linq
                 {
                     var binary_return = Expression.Parameter(typeof(bool), "hr");
                     binary = Expression.Block(new ParameterExpression[] { binary_return },
-                        Expression.IfThen(Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value),
+                        Expression.IfThen(Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value.Expr),
                             Expression.Assign(binary_return, Expression.Constant(true))),
                             regss.Item2.DisposeExpr(),
                             binary_return
@@ -1084,7 +1084,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value);
+                    binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value.Expr);
                 }
             }
             else
@@ -1094,7 +1094,7 @@ namespace QSoft.Registry.Linq
                 binary = Expression.Block(new[] { binary_return, reg_p },
                     reg_p_assign,
                     Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(regss.Item2 != null), Expression.Constant(true)),
-                        Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value)),
+                        Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value.Expr)),
                         Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
                     Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                         reg_p.DisposeExpr()),

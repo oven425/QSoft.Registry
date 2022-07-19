@@ -15,12 +15,12 @@ namespace QSoft.Registry.Linq
         public string Fail { private set; get; }
         public Expression Visit(Expression node, Expression regfunc)
         {
-            this.m_ExpressionSaves[node] = null;
+            this.m_ExpressionSaves[node] = new Ex();
             this.m_RegSource = regfunc;
             Expression expr = this.Visit(node);
 
             var exprs = this.m_ExpressionSaves.Clone(expr);
-            expr = exprs.First().Value;
+            expr = exprs.First().Value.Expr;
             return expr;
         }
 
@@ -28,12 +28,12 @@ namespace QSoft.Registry.Linq
         public Expression VisitA(Expression node, Expression regfunc, Dictionary<Expression, Expression> saves, bool lastquery=false)
         {
             this.m_Saves = saves;
-            this.m_ExpressionSaves[node] = null;
+            this.m_ExpressionSaves[node] = new Ex();
             this.m_RegSource = regfunc;
             Expression expr = this.Visit(node);
 
             var exprs = this.m_ExpressionSaves.Clone(expr);
-            expr = exprs.First().Value;
+            expr = exprs.First().Value.Expr;
             return expr;
         }
 
@@ -46,13 +46,13 @@ namespace QSoft.Registry.Linq
             Expression expr = this.Visit(nodes[1]);
 
             var exprs = this.m_ExpressionSaves.Clone(expr);
-            expr = exprs.First().Value;
+            expr = exprs.First().Value.Expr;
             return expr;
         }
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
-            this.m_ExpressionSaves[node] = null;
+            this.m_ExpressionSaves[node] = new Ex();
             System.Diagnostics.Debug.WriteLine($"VisitBinary");
 
             var expr = base.VisitBinary(node) as BinaryExpression;
@@ -62,10 +62,10 @@ namespace QSoft.Registry.Linq
                 var binary = this.m_MembersExprs.ToBinary(node, exprs);
                 if(binary == null)
                 {
-                    binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value, exprs.ElementAt(1).Value);
+                    binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value.Expr, exprs.ElementAt(1).Value.Expr);
                 }
                 
-                this.m_ExpressionSaves[expr] = binary;
+                this.m_ExpressionSaves[expr].Expr = binary;
 
                 this.m_MembersExprs.Clear();
                 this.m_Lastnode = expr;
@@ -73,30 +73,39 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        void ToNew(List<Tuple<Expression, MemberExpression>> members, Dictionary<Expression, Expression> exprs)
+        
+        void GetAllName(Expression src, Stack<MemberInfo> members)
         {
-            var eex = exprs.Where(x => x.Key.Type != x.Value.Type);
-            var exprs1 = members.Select(x => new { member = x.Item2, expression = x.Item1 });
+            var member = src as MemberExpression;
+            if (member != null)
+            {
+                members.Push(member.Member);
+                if (member.Expression is MemberExpression)
+                {
+                    GetAllName(member.Expression, members);
+                }
+            }
+        }
+
+        IEnumerable<MemberInfo> GetMembers(Expression src)
+        {
+            Stack<MemberInfo> members1 = new Stack<MemberInfo>();
+            GetAllName(src, members1);
+
+            return members1;
+        }
+
+        void ToNew(DictionaryList<Expression, Ex> exprs)
+        {
+            var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type).Where(x=>x.Value.SourceExpr is MemberExpression);
+            var tt = eex.ElementAt(0).Value.SourceExpr.GetType();
+            var liu = GetMembers(eex.ElementAt(0).Value.SourceExpr);
+
+
 
             Dictionary<Expression, List<Tuple<Expression, MemberExpression>>> ddics = new Dictionary<Expression, List<Tuple<Expression, MemberExpression>>>();
             List<Tuple<Expression, MemberExpression>> membs_temp = new List<Tuple<Expression, MemberExpression>>();
-            foreach(var member in members)
-            {
-                if(exprs.ContainsKey(member.Item2) == true)
-                {
-                    var aa = exprs[member.Item2];
-                    if (aa.Type != member.Item2.Type)
-                    {
-                        ddics.Add(member.Item2, new List<Tuple<Expression, MemberExpression>>() {member });
-                        ddics[member.Item2].InsertRange(0, membs_temp);
-                        membs_temp.Clear();
-                    }
-                }
-                else
-                {
-                    membs_temp.Add(member);
-                }
-            }
+
 
             foreach (var items in ddics)
             {
@@ -128,14 +137,14 @@ namespace QSoft.Registry.Linq
                                 reg_p.DisposeExpr())),
                             hr_p
                             );
-                        exprs[items.Key] = membgervalue;
+                        exprs[items.Key].Expr = membgervalue;
                     }
                     else
                     {
-                        exprs[items.Key] = regss.Item2;
+                        exprs[items.Key].Expr = regss.Item2;
                     }
                 }
-                else if(regss.Item1 == regss.Item2)
+                else if (regss.Item1 == regss.Item2)
                 {
                     var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
                     var hr_p = Expression.Parameter(items.Key.Type, "hr");
@@ -149,17 +158,17 @@ namespace QSoft.Registry.Linq
                             reg_p.DisposeExpr())),
                         hr_p
                         );
-                    exprs[items.Key] = membgervalue;
+                    exprs[items.Key].Expr = membgervalue;
                 }
                 else
                 {
                     var typecode = Type.GetTypeCode(items.Key.Type);
-                    
-                    if(items.Key.Type.IsNullable() == true)
+
+                    if (items.Key.Type.IsNullable() == true)
                     {
                         typecode = Type.GetTypeCode(items.Key.Type.GetGenericArguments()[0]);
                     }
-                    if(typecode == TypeCode.Object)
+                    if (typecode == TypeCode.Object)
                     {
                         var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
                         var hr_p = Expression.Parameter(items.Key.Type, "hr");
@@ -173,7 +182,7 @@ namespace QSoft.Registry.Linq
                                 reg_p.DisposeExpr())),
                             hr_p
                             );
-                        exprs[items.Key] = membgervalue;
+                        exprs[items.Key].Expr = membgervalue;
                     }
                     else
                     {
@@ -188,20 +197,142 @@ namespace QSoft.Registry.Linq
                                 reg_p.DisposeExpr()),
                             hr_p
                             );
-                        exprs[items.Key] = membgervalue;
+                        exprs[items.Key].Expr = membgervalue;
                     }
                 }
             }
-            members.Clear();
         }
+
+
+        //void ToNew(List<Tuple<Expression, MemberExpression>> members, Dictionary<Expression, Expression> exprs)
+        //{
+        //    var eex = exprs.Where(x => x.Key.Type != x.Value.Type);
+        //    var exprs1 = members.Select(x => new { member = x.Item2, expression = x.Item1 });
+
+        //    Dictionary<Expression, List<Tuple<Expression, MemberExpression>>> ddics = new Dictionary<Expression, List<Tuple<Expression, MemberExpression>>>();
+        //    List<Tuple<Expression, MemberExpression>> membs_temp = new List<Tuple<Expression, MemberExpression>>();
+        //    foreach(var member in members)
+        //    {
+        //        if(exprs.ContainsKey(member.Item2) == true)
+        //        {
+        //            var aa = exprs[member.Item2];
+        //            if (aa.Type != member.Item2.Type)
+        //            {
+        //                ddics.Add(member.Item2, new List<Tuple<Expression, MemberExpression>>() {member });
+        //                ddics[member.Item2].InsertRange(0, membs_temp);
+        //                membs_temp.Clear();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            membs_temp.Add(member);
+        //        }
+        //    }
+
+        //    foreach (var items in ddics)
+        //    {
+        //        var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+        //        var regss = items.Value.BuildSubKey(reg_p);
+        //        if (regss.Item1 == null && regss.Item2 == null)
+        //        {
+        //            return;
+        //        }
+        //        else if (items.Value.Count == 1)
+        //        {
+        //            var typecode = Type.GetTypeCode(items.Key.Type);
+
+        //            if (items.Key.Type.IsNullable() == true)
+        //            {
+        //                typecode = Type.GetTypeCode(items.Key.Type.GetGenericArguments()[0]);
+        //            }
+        //            if (typecode == TypeCode.Object && items.Key.Type != typeof(Version))
+        //            {
+        //                var reg_p_assign = Expression.Assign(reg_p, regss.Item2);
+        //                var hr_p = Expression.Parameter(items.Key.Type, "hr");
+        //                var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+        //                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+        //                    reg_p_assign,
+        //                    hr_p_assign,
+        //                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                    Expression.Block(
+        //                        Expression.Assign(hr_p, items.Key.Type.ToData(reg_p, this.Converts)),
+        //                        reg_p.DisposeExpr())),
+        //                    hr_p
+        //                    );
+        //                exprs[items.Key] = membgervalue;
+        //            }
+        //            else
+        //            {
+        //                exprs[items.Key] = regss.Item2;
+        //            }
+        //        }
+        //        else if(regss.Item1 == regss.Item2)
+        //        {
+        //            var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+        //            var hr_p = Expression.Parameter(items.Key.Type, "hr");
+        //            var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+        //            var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+        //                reg_p_assign,
+        //                hr_p_assign,
+        //                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                Expression.Block(
+        //                    Expression.Assign(hr_p, items.Key.Type.ToData(reg_p, this.Converts)),
+        //                    reg_p.DisposeExpr())),
+        //                hr_p
+        //                );
+        //            exprs[items.Key] = membgervalue;
+        //        }
+        //        else
+        //        {
+        //            var typecode = Type.GetTypeCode(items.Key.Type);
+
+        //            if(items.Key.Type.IsNullable() == true)
+        //            {
+        //                typecode = Type.GetTypeCode(items.Key.Type.GetGenericArguments()[0]);
+        //            }
+        //            if(typecode == TypeCode.Object)
+        //            {
+        //                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+        //                var hr_p = Expression.Parameter(items.Key.Type, "hr");
+        //                var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+        //                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+        //                    reg_p_assign,
+        //                    hr_p_assign,
+        //                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                    Expression.Block(
+        //                        Expression.Assign(hr_p, regss.Item2),
+        //                        reg_p.DisposeExpr())),
+        //                    hr_p
+        //                    );
+        //                exprs[items.Key] = membgervalue;
+        //            }
+        //            else
+        //            {
+        //                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+        //                var hr_p = Expression.Parameter(items.Key.Type, "hr");
+        //                var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
+        //                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+        //                    reg_p_assign,
+        //                    hr_p_assign,
+        //                    Expression.Block(
+        //                        Expression.Assign(hr_p, regss.Item2),
+        //                        reg_p.DisposeExpr()),
+        //                    hr_p
+        //                    );
+        //                exprs[items.Key] = membgervalue;
+        //            }
+        //        }
+        //    }
+        //    members.Clear();
+        //}
 
         Stack<List<Tuple<Expression, MemberExpression>>> m_MembersExprGroup = new Stack<List<Tuple<Expression, MemberExpression>>>();
 
         protected override Expression VisitNew(NewExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitNew");
-            this.m_ExpressionSaves[node] = null;
-            if(this.m_MembersExprs.Count > 0)
+            this.m_ExpressionSaves[node] = new Ex();
+            if (this.m_MembersExprs.Count > 0)
             {
                 this.m_MembersExprGroup.Push(this.m_MembersExprs);
                 this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
@@ -214,28 +345,30 @@ namespace QSoft.Registry.Linq
                 this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
             }
 
-            var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value);
-            if(this.m_MembersExprGroup.Count > 0)
+            //var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value.Expr);
+            var exprs = this.m_ExpressionSaves.Clone(expr);
+            //if (this.m_MembersExprGroup.Count > 0)
             {
-                this.ToNew(this.m_MembersExprGroup.Pop(), exprs);
+                //this.ToNew(this.m_MembersExprGroup.Pop(), exprs);
+                this.ToNew(exprs);
             }
            
 
             for (int i = 0; i < exprs.Count; i++)
             {
                 this.m_MembersExprs.Clear();
-                ParameterExpression parameter = exprs.ElementAt(i).Value as ParameterExpression;
+                ParameterExpression parameter = exprs.ElementAt(i).Value.Expr as ParameterExpression;
                 if (parameter != null)
                 {
                     if(this.m_DataTypeNames.Any(x=>x==parameter.Name))
                     {
                         if (parameter.Type.IsGenericType == true)
                         {
-                            exprs[exprs.ElementAt(i).Key] = this.m_Parameters[parameter.Name];
+                            exprs[exprs.ElementAt(i).Key].Expr = this.m_Parameters[parameter.Name];
                         }
                         else
                         {
-                            exprs[exprs.ElementAt(i).Key] = this.m_Parameters[parameter.Name];
+                            exprs[exprs.ElementAt(i).Key].Expr = this.m_Parameters[parameter.Name];
 
                         }
                     }
@@ -248,7 +381,7 @@ namespace QSoft.Registry.Linq
                             var select_method = temptype.SelectMethod_Enumerable();
                             var sd = temptype.ToLambdaData(this.Converts);
                             var aaaaa = Expression.Call(select_method, param, sd);
-                            exprs[exprs.ElementAt(i).Key] = aaaaa;
+                            exprs[exprs.ElementAt(i).Key].Expr = aaaaa;
                         }
                         else
                         {
@@ -256,7 +389,7 @@ namespace QSoft.Registry.Linq
                             if (param.Type == typeof(TData))
                             {
                                 var todata = typeof(TData).ToData(param, this.Converts);
-                                exprs[exprs.ElementAt(i).Key] = todata;
+                                exprs[exprs.ElementAt(i).Key].Expr = todata;
                             }
                         }
                     }
@@ -266,39 +399,39 @@ namespace QSoft.Registry.Linq
             {
                 var pps = exprs.Select(x =>
                 {
-                    Expression p = x.Value;
+                    Expression p = x.Value.Expr;
                     if(x.Key.Type == typeof(TData))
                     {
-                        p = typeof(TData).ToData(x.Value as ParameterExpression, this.Converts);
+                        p = typeof(TData).ToData(x.Value.Expr as ParameterExpression, this.Converts);
                     }
                     return p;
                 });
                 var expr_new = Expression.New(expr.Constructor, pps);
-                this.m_ExpressionSaves[expr] = expr_new;
+                this.m_ExpressionSaves[expr].Expr = expr_new;
             }
             else
             {
                 var con_pps = expr.Constructor.GetParameters();
                 Expression expr_new = null;
-                if (exprs.Select(x => x.Value.Type).Any(x => x.HaseRegistryKey()))
+                if (exprs.Select(x => x.Value.Expr.Type).Any(x => x.HaseRegistryKey()))
                 {
                     var pps1 = con_pps.Replace(typeof(TData), typeof(RegistryKey));
                     var pps2 = con_pps.Zip(exprs.Select(x => x.Value), (pp, values) => new { pp, values })
-                        .Select(x => Tuple.Create(x.values.Type, x.pp.Name));
+                        .Select(x => Tuple.Create(x.values.Expr.Type, x.pp.Name));
                     //var exists = exprs.Where(x => Type.GetTypeCode(x.Value.Type) == TypeCode.Object && x.Value.Type != typeof(RegistryKey)).Select(x => x.Value.Type);
                     //var anyt = pps2.BuildType(exists);
                     var anyt = pps2.BuildType();
                     var po = anyt.GetConstructors()[0].GetParameters();
                     var pps = anyt.GetProperties();
-                    expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value), anyt.GetProperties());
+                    expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Select(x => x.Value.Expr), anyt.GetProperties());
                     //expr_new = expr;
                 }
                 else
                 {
-                    expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value), expr.Members);
+                    expr_new = Expression.New(expr.Constructor, exprs.Select(x => x.Value.Expr), expr.Members);
                 }
 
-                this.m_ExpressionSaves[expr] = expr_new;
+                this.m_ExpressionSaves[expr].Expr = expr_new;
             }
 
 
@@ -309,7 +442,7 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitMemberInit(MemberInitExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitMemberInit");
-            this.m_ExpressionSaves[node] = null;
+            this.m_ExpressionSaves[node] = new Ex();
             var expr = base.VisitMemberInit(node) as MemberInitExpression;
 
             if(this.m_Lastnode != null)
@@ -319,7 +452,7 @@ namespace QSoft.Registry.Linq
                 
                 var bindings = exprs.Skip(1).Select((x,i) =>
                 {
-                    var binding = Expression.Bind(expr.Bindings[i].Member, x.Value);
+                    var binding = Expression.Bind(expr.Bindings[i].Member, x.Value.Expr);
                     return binding;
                 });
                 switch(this.LastMethodName)
@@ -328,7 +461,7 @@ namespace QSoft.Registry.Linq
                     case "InsertOrUpdate":
                         {
                             var aaaa = exprs.Skip(1);
-                            var typecode = Type.GetTypeCode(aaaa.First().Value.Type);
+                            var typecode = Type.GetTypeCode(aaaa.First().Value.Expr.Type);
 
                             var ll = expr.Bindings.Select(x => x.Member as PropertyInfo).ToList();
                             var p = exprs.First().Key.Type.PropertyName();
@@ -339,7 +472,7 @@ namespace QSoft.Registry.Linq
                                 {
                                     var ooii = exprs.FirstOrDefault(x => x.Key.Type == ll[i].PropertyType);
                                     var iuy = p.Item2[ll[i]];
-                                    typedefines.Add(Tuple.Create(ooii.Value.Type, iuy??ll[i].Name));
+                                    typedefines.Add(Tuple.Create(ooii.Value.Expr.Type, iuy??ll[i].Name));
                                 }
                                 else
                                 {
@@ -350,14 +483,14 @@ namespace QSoft.Registry.Linq
                             //var anyt = expr.Bindings.Select(x => x.Member as PropertyInfo).BuildType();
 
                             var pps = anyt.GetProperties();
-                            var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value), anyt.GetProperties());
-                            this.m_ExpressionSaves[expr] = expr_new;
+                            var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value.Expr), anyt.GetProperties());
+                            this.m_ExpressionSaves[expr].Expr = expr_new;
                         }
                         break;
                     default:
                         {
-                            var expr_memberinit = Expression.MemberInit(exprs.First().Value as NewExpression, bindings);
-                            this.m_ExpressionSaves[expr] = expr_memberinit;
+                            var expr_memberinit = Expression.MemberInit(exprs.First().Value.Expr as NewExpression, bindings);
+                            this.m_ExpressionSaves[expr].Expr = expr_memberinit;
                         }
                         break;
                 }
@@ -386,8 +519,8 @@ namespace QSoft.Registry.Linq
         List<string> m_DataTypeNames = new List<string>();
         protected override Expression VisitLambda<T>(Expression<T> node)
         {
-            this.m_ExpressionSaves[node] = null;
-            if(this.m_ExpressionSaves1.Count == 0)
+            this.m_ExpressionSaves[node] = new Ex();
+            if (this.m_ExpressionSaves1.Count == 0)
             {
                 //var pps1 = pp1.GetGenericArguments();
                 //for (int i = 0; i < node.Parameters.Count; i++)
@@ -466,7 +599,7 @@ namespace QSoft.Registry.Linq
                     //changes[typeof(TData)] = typeof(RegistryKey);
                     foreach(var oo in exprs)
                     {
-                        changes[oo.Key.Type] = oo.Value.Type;
+                        changes[oo.Key.Type] = oo.Value.Expr.Type;
                     }
                     var functype = lambda.Type.ChangeType(changes);
                     //var ggs = lambda.Type.GetGenericTypeDefinition().GetGenericArguments();
@@ -475,7 +608,7 @@ namespace QSoft.Registry.Linq
                     //ggs[2] = exprs.First().Value.Type;
                     List<Type> ggs = new List<Type>();
                     ggs.AddRange(parameters.Select(x => x.Type));
-                    ggs.Add(exprs.First().Value.Type);
+                    ggs.Add(exprs.First().Value.Expr.Type);
                     var functype1 = lambda.Type.GetGenericTypeDefinition().MakeGenericType(ggs.ToArray());
                     var zz = functype.GetGenericArguments().Zip(functype1.GetGenericArguments(), (x, y) => new { x, y });
                     foreach(var oo in zz)
@@ -485,18 +618,18 @@ namespace QSoft.Registry.Linq
 
                         }
                     }
-                    m_Lambda = Expression.Lambda(functype1, exprs.First().Value, parameters);
+                    m_Lambda = Expression.Lambda(functype1, exprs.First().Value.Expr, parameters);
                 }
                 else if(this.m_MembersExprs.Count > 0)
                 {
-                    var exprs1 = exprs.ToDictionary(x => x.Key, x => x.Value);
-                    this.ToNew(this.m_MembersExprs, exprs1);
+                    var exprs1 = exprs.ToDictionary(x => x.Key, x => x.Value.Expr);
+                    //this.ToNew(this.m_MembersExprs, exprs1);
                     m_Lambda = Expression.Lambda(exprs1.First().Value, parameters);
                     this.m_MembersExprs.Clear();
                 }
                 if(m_Lambda == null)
                 {
-                    m_Lambda = Expression.Lambda(exprs.First().Value, parameters);
+                    m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
                 }
                 
                 //if(m_Lambda.ReturnType == typeof(IEnumerable<RegistryKey>))
@@ -508,7 +641,7 @@ namespace QSoft.Registry.Linq
                 //    var select_expr = Expression.Call(select_method, param, sd);
                 //    m_Lambda = Expression.Lambda(select_expr, parameters);
                 //}
-                this.m_ExpressionSaves[expr] = this.m_Lambda;
+                this.m_ExpressionSaves[expr].Expr = this.m_Lambda;
             }
             else
             {
@@ -526,7 +659,7 @@ namespace QSoft.Registry.Linq
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            m_ExpressionSaves[node] = null;
+            m_ExpressionSaves[node] = new Ex();
             System.Diagnostics.Debug.WriteLine($"VisitParameter {node.Type.Name}");
 
             var expr = base.VisitParameter(node) as ParameterExpression;
@@ -593,7 +726,7 @@ namespace QSoft.Registry.Linq
                     }
                     
                 }
-                this.m_ExpressionSaves[expr] = this.m_Parameters[expr.Name];
+                this.m_ExpressionSaves[expr].Expr = this.m_Parameters[expr.Name];
             }
             this.m_Lastnode = expr;
             return expr;
@@ -603,7 +736,11 @@ namespace QSoft.Registry.Linq
         public List<string> m_SubKeyNames = new List<string>();
         protected override Expression VisitMember(MemberExpression node)
         {
-            this.m_ExpressionSaves[node] = node.Expression == null?node:null;
+            if(this.m_ExpressionSaves.ContainsKey(node) == false)
+            {
+                this.m_ExpressionSaves[node] = new Ex();
+            }
+            this.m_ExpressionSaves[node].Expr = node.Expression == null?node:null;
             var ttyp = node.Type;
             System.Diagnostics.Debug.WriteLine($"VisitMember {node.Member.Name}");
 
@@ -617,29 +754,29 @@ namespace QSoft.Registry.Linq
                 var exprs = this.m_ExpressionSaves.Clone(expr);
                 if (this.m_DataTypeNames.Any(x => x == (expr.Expression as ParameterExpression)?.Name)  || this.m_DataTypeNames.Count == 0)
                 {
-                    if (exprs.Last().Value is ParameterExpression)
+                    if (exprs.Last().Value.Expr is ParameterExpression)
                     {
-                        if (exprs.Last().Value.Type.IsGenericType == true && exprs.Last().Value.Type.GetGenericTypeDefinition() == typeof(IGrouping<,>))
+                        if (exprs.Last().Value.Expr.Type.IsGenericType == true && exprs.Last().Value.Expr.Type.GetGenericTypeDefinition() == typeof(IGrouping<,>))
                         {
-                            var mes1 = exprs.Last().Value.Type.GetMember(expr.Member.Name);
-                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mes1.ElementAt(0));
-                            this.m_ExpressionSaves[expr] = expr_member;
+                            var mes1 = exprs.Last().Value.Expr.Type.GetMember(expr.Member.Name);
+                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, mes1.ElementAt(0));
+                            this.m_ExpressionSaves[expr].Expr = expr_member;
                         }
                         else if(expr.Type.IsGenericType == true && expr.Type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                         {
-                            var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
+                            var mem = exprs.First().Value.Expr.Type.GetMember(expr.Member.Name);
                             if(mem.Length == 0)
                             {
-                                this.m_ExpressionSaves[expr] = expr;
+                                this.m_ExpressionSaves[expr].Expr = expr;
                             }
                             else
                             {
-                                var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
-                                this.m_ExpressionSaves[expr] = expr_member;
+                                var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, mem[0]);
+                                this.m_ExpressionSaves[expr].Expr = expr_member;
                             }
                         }
                         
-                        else if(exprs.ElementAt(0).Value.Type == typeof(RegistryKey))
+                        else if(exprs.ElementAt(0).Value.Expr.Type == typeof(RegistryKey))
                         {
                             //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
                             bool add = false;
@@ -656,7 +793,7 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object)
                                 {
-                                    member = exprs.ElementAt(0).Value;
+                                    member = exprs.ElementAt(0).Value.Expr;
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
                                     //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                                     add = true;
@@ -664,55 +801,56 @@ namespace QSoft.Registry.Linq
                                 else
                                 {
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
                             else if (attr is RegSubKeyName)
                             {
                                 var subkeyname = attr as RegSubKeyName;
-                                member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
+                                member = subkeyname.ToExpression(expr.Type, exprs.First().Value.Expr);
                             }
                             if(member ==null&&left_args_1 == null)
                             {
                                 if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {
                                     add = true;
-                                    member = exprs.ElementAt(0).Value;
+                                    member = exprs.ElementAt(0).Value.Expr;
                                 }
                                 else
                                 {
                                     left_args_1 = Expression.Constant(expr.Member.Name);
-                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
                             if (this.m_MembersExprs.Count > 0 || add==true)
                             {
-                                this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                                this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
                             }
-                            this.m_ExpressionSaves[expr] = member;
+                            this.m_ExpressionSaves[expr].Expr = member;
+                            this.m_ExpressionSaves[expr].SourceExpr = expr;
                         }
                         else if (Type.GetTypeCode(expr.Type) == TypeCode.Object && expr.Type.IsNullable()==false)
                         {
-                            var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
-                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
-                            this.m_ExpressionSaves[expr] = expr_member;
+                            var mem = exprs.First().Value.Expr.Type.GetMember(expr.Member.Name);
+                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, mem[0]);
+                            this.m_ExpressionSaves[expr].Expr = expr_member;
                         }
                         else
                         {
-                            var mem = exprs.First().Value.Type.GetMember(expr.Member.Name);
-                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mem[0]);
-                            this.m_ExpressionSaves[expr] = expr_member;
+                            var mem = exprs.First().Value.Expr.Type.GetMember(expr.Member.Name);
+                            var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, mem[0]);
+                            this.m_ExpressionSaves[expr].Expr = expr_member;
                         }
                     }
                     else
                     {
-                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value, expr.Member);
-                        this.m_ExpressionSaves[expr] = expr_member;
+                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, expr.Member);
+                        this.m_ExpressionSaves[expr].Expr = expr_member;
                     }
                 }
                 else
                 {
-                    if(exprs.First().Value.Type == typeof(RegistryKey))
+                    if(exprs.First().Value.Expr.Type == typeof(RegistryKey))
                     {
                         var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                         var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
@@ -726,43 +864,44 @@ namespace QSoft.Registry.Linq
                         else if (attr is RegPropertyName)
                         {
                             left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value, left_args_1);
+                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                         }
                         else if (attr is RegSubKeyName)
                         {
                             var subkeyname = attr as RegSubKeyName;
-                            member = subkeyname.ToExpression(expr.Type, exprs.First().Value);
+                            member = subkeyname.ToExpression(expr.Type, exprs.First().Value.Expr);
                         }
                         if (member == null && left_args_1 == null)
                         {
                             left_args_1 = Expression.Constant(expr.Member.Name);
                             if(typecode == TypeCode.Object)
                             {
-                                member = exprs.ElementAt(0).Value;
+                                member = exprs.ElementAt(0).Value.Expr;
                             }
                             else
                             {
-                                member = exprs.ElementAt(0).Value;
+                                member = exprs.ElementAt(0).Value.Expr;
                             }
                         }
 
                         //member = exprs.ElementAt(0).Value;
                         if(this.m_MembersExprs.Count > 0)
                         {
-                            this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+                            this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
                         }
-                        this.m_ExpressionSaves[expr] = member;
+                        this.m_ExpressionSaves[expr].Expr = member;
+                        this.m_ExpressionSaves[expr].SourceExpr = expr;
                     }
-                    else if(exprs.First().Value.Type.HaseRegistryKey() == true)
+                    else if(exprs.First().Value.Expr.Type.HaseRegistryKey() == true)
                     {
-                        var mes1 = exprs.Last().Value.Type.GetMember(expr.Member.Name);
-                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value, mes1.ElementAt(0));
-                        this.m_ExpressionSaves[expr] = expr_member;
+                        var mes1 = exprs.Last().Value.Expr.Type.GetMember(expr.Member.Name);
+                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, mes1.ElementAt(0));
+                        this.m_ExpressionSaves[expr].Expr = expr_member;
                     }
                     else
                     {
-                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value, expr.Member);
-                        this.m_ExpressionSaves[expr] = expr_member;
+                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, expr.Member);
+                        this.m_ExpressionSaves[expr].Expr = expr_member;
                     }
                     
                 }
@@ -783,8 +922,8 @@ namespace QSoft.Registry.Linq
             {
                 m_PP = m_PPs[node];
             }
-            this.m_ExpressionSaves[node] = null;
-            if(this.m_ExpressionSaves1.ContainsKey(node) == true)
+            this.m_ExpressionSaves[node] = new Ex();
+            if (this.m_ExpressionSaves1.ContainsKey(node) == true)
             {
                 var pp1 = this.m_ExpressionSaves1[node];
                 if (pp1 != null)
@@ -813,7 +952,7 @@ namespace QSoft.Registry.Linq
 
                         return name;
                     }).Last();
-                    var lambda = exprs.First().Value as LambdaExpression;
+                    var lambda = exprs.First().Value.Expr as LambdaExpression;
                     if (lambda != null)
                     {
                         this.m_GenericTypes.First()[kkey] = lambda.ReturnType;
@@ -833,8 +972,8 @@ namespace QSoft.Registry.Linq
                 }
             }
 
-            UnaryExpression unary = Expression.MakeUnary(node.NodeType, exprs.First().Value, result_type);
-            this.m_ExpressionSaves[expr] = unary;
+            UnaryExpression unary = Expression.MakeUnary(node.NodeType, exprs.First().Value.Expr, result_type);
+            this.m_ExpressionSaves[expr].Expr = unary;
             
             this.m_Lastnode = expr;
             m_Lambda = null;
@@ -849,7 +988,7 @@ namespace QSoft.Registry.Linq
                 return new { bb, idx };
             }).Where(x => x.bb == true);
 
-            m_ExpressionSaves[node] = null;
+            m_ExpressionSaves[node] = new Ex();
             System.Diagnostics.Debug.WriteLine($"PreparMethod1 {method?.Name}");
 
             if (method.IsGenericMethod == true)
@@ -1027,10 +1166,10 @@ namespace QSoft.Registry.Linq
             }
         }
 
-
         Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, List<string>>> m_PPs = new Dictionary<Expression, Tuple<ParameterInfo, MethodInfo, List<string>>>();
 
-        DictionaryList<Expression, Expression> m_ExpressionSaves = new DictionaryList<Expression, Expression>();
+        DictionaryList<Expression, Ex> m_ExpressionSaves = new DictionaryList<Expression, Ex>();
+
         Dictionary<Expression, Type> m_ExpressionSaves1 = new Dictionary<Expression, Type>();
         Expression m_Lastnode = null;
         string LastMethodName = "";
@@ -1040,7 +1179,7 @@ namespace QSoft.Registry.Linq
             if (this.m_Saves!=null&&this.m_Saves.ContainsKey(node) == true)
             {
                 var aaa = this.m_Saves[node];
-                this.m_ExpressionSaves[node] = aaa;
+                this.m_ExpressionSaves[node].Expr = aaa;
                 return node;
             }
             LastMethodName = node.Method.Name;
@@ -1054,7 +1193,7 @@ namespace QSoft.Registry.Linq
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
             
-            var ttypes1 = exprs1.Select(x => x.Value).GetTypes(expr.Method);
+            var ttypes1 = exprs1.Select(x => x.Value.Expr).GetTypes(expr.Method);
             Expression methodcall = null;
             if (expr.Method.IsStatic == true)
             {
@@ -1087,8 +1226,8 @@ namespace QSoft.Registry.Linq
                             var selectexpr = Expression.Call(select, this.m_RegSource, sd);
 
                             var args = exprs1.Select(x => x.Value).ToList();
-                            args[0] = selectexpr;
-                            methodcall = Expression.Call(expr.Method, args);
+                            args[0].Expr = selectexpr;
+                            methodcall = Expression.Call(expr.Method, args.Select(x=>x.Expr));
                         }
                         break;
                     default:
@@ -1099,19 +1238,19 @@ namespace QSoft.Registry.Linq
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
                                 }
-                                methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value));
+                                methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value.Expr));
                             }
                             else
                             {
                                 var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
-                                var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value));
+                                var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
                                 if(bubkey != null)
                                 {
                                     methodcall = bubkey;
                                 }
                                 else
                                 {
-                                    methodcall = Expression.Call(expr.Method, exprs1.Select(x => x.Value));
+                                    methodcall = Expression.Call(expr.Method, exprs1.Select(x => x.Value.Expr));
                                 }
                                 
                             }
@@ -1129,14 +1268,14 @@ namespace QSoft.Registry.Linq
                 else
                 {
                     var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
-                    var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value));
+                    var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
                     if (bubkey != null)
                     {
                         methodcall = bubkey;
                     }
                     else
                     {
-                        methodcall = Expression.Call(exprs1.First().Value, expr.Method, exprs1.Skip(1).Select(x => x.Value));
+                        methodcall = Expression.Call(exprs1.First().Value.Expr, expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
                     }
                     
                 }
@@ -1148,7 +1287,7 @@ namespace QSoft.Registry.Linq
             }
             
 
-            this.m_ExpressionSaves[expr] = methodcall;
+            this.m_ExpressionSaves[expr].Expr = methodcall;
             this.m_Lastnode = expr;
             return expr;
 
@@ -1156,7 +1295,7 @@ namespace QSoft.Registry.Linq
 
         protected override Expression VisitConstant(ConstantExpression node)
         {
-            this.m_ExpressionSaves[node] = null;
+            this.m_ExpressionSaves[node] = new Ex();
             System.Diagnostics.Debug.WriteLine($"VisitConstant {node.Type.Name}");
 
             var expr = base.VisitConstant(node) as ConstantExpression;
@@ -1190,10 +1329,12 @@ namespace QSoft.Registry.Linq
                 expr1 = regsource;
             }
 
-            this.m_ExpressionSaves[expr] = expr1??expr;
+            this.m_ExpressionSaves[expr].Expr = expr1??expr;
             this.m_Lastnode = expr;
             return expr;
         }
 
     }
+
+    
 }

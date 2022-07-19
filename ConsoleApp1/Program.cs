@@ -204,8 +204,21 @@ namespace ConsoleApp1
                         new Version2String(),
                         new TimeSpan2Int64()
                     });
-                //var llo = regt_devices;
-                var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
+                var llo = regt_devices.Select(x => new
+                {
+                    //name = x.Name,
+                    pir_auto = x.CameraSetting.PIR.IsAuto,
+                    //setting = new
+                    //{
+                    //    aa = x.CameraSetting.Brightness,
+                    //    pir = new
+                    //    {
+                    //        auto = x.CameraSetting.PIR.IsAuto,
+                    //        enable = x.CameraSetting.PIR.IsEnable
+                    //    }
+                    //}
+                });
+                //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
                 foreach (var oo in llo)
                 {
 

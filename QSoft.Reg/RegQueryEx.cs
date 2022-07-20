@@ -54,13 +54,14 @@ namespace QSoft.Registry.Linq
                 {
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
-                if (pp.Key.PropertyType == typeof(Version))
+                var convert = converts.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
+                if(convert != null)
                 {
                     System.Diagnostics.Debug.WriteLine("");
-                    var con = converts.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
-                    var methods = con.GetType().GetMethod("ConvertTo");
+                    
+                    var methods = convert.GetType().GetMethod("ConvertTo");
                     var vv = pp.Key.GetValue(data, null);
-                    var dst = methods.Invoke(con, new[] { vv });
+                    var dst = methods.Invoke(convert, new[] { vv });
                     child.SetValue(dicpps[pp.Key], dst);
 
                 }

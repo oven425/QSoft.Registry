@@ -15,9 +15,11 @@ namespace ConsoleApp1
         [RegPropertyName("RemoteIP")]
         public Address Remote { set; get; }
         public string Name { set; get; }
+        public int? ID { set; get; }
         public Size Size { set; get; }
         public Locationata Location { set; get; }
         public CameraSetting CameraSetting { set; get; }
+        [RegPropertyName("Ver")]
         public Version Version { set; get; }
     }
 

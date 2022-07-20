@@ -139,16 +139,19 @@ namespace ConsoleApp1
         }
     }
 
-    public class TimeSpan2Int64 : RegQueryConvert<TimeSpan, long>
+    public class Size2String : RegQueryConvert<Size>
     {
-        public override long ConvertTo(TimeSpan src)
+        public override Size ConvertBack(string dst)
         {
-            return src.Ticks;
+            var sl = dst.Split(',');
+            int w = int.Parse(sl[0]);
+            int h = int.Parse(sl[1]);
+            return new Size() { Width = w, Height = h };
         }
 
-        public override TimeSpan ConvertBack(long dst)
+        public override string ConvertTo(Size src)
         {
-            return TimeSpan.FromTicks(dst);
+            return $"{src.Width},{src.Height}";
         }
     }
 
@@ -202,12 +205,15 @@ namespace ConsoleApp1
                     .useConverts(new List<RegQueryConvert>()
                     {
                         new Version2String(),
-                        new TimeSpan2Int64()
+                        new Size2String()
                     });
                 var llo = regt_devices.Select(x => new
                 {
-                    //name = x.Name,
-                    pir_auto = x.CameraSetting.PIR.IsAuto,
+                    sz = x.Location.Floor.Area.Data.Size
+                    //id=x.ID,
+                    //localport = x.Local.Port,
+                    //pir_auto = x.CameraSetting.PIR.IsAuto,
+                    //pir_enable = x.CameraSetting.PIR.IsEnable,
                     //setting = new
                     //{
                     //    aa = x.CameraSetting.Brightness,
@@ -221,7 +227,6 @@ namespace ConsoleApp1
                 //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
                 foreach (var oo in llo)
                 {
-
                 }
 
                 //regt_devices.Insert(new List<Device>()

@@ -1000,63 +1000,57 @@ namespace QSoft.Registry.Linq
             return reg;
         }
 
-        public static Tuple<Expression, Expression> BuildSubKey(this IEnumerable<PropertyInfo> members, Expression reg_src, ParameterExpression reg_p)
+        public static Tuple<Expression, Expression> BuildSubKey(this IEnumerable<PropertyInfo> members, Ex ex_src, ParameterExpression reg_p)
         {
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-            ////if (members.Count == 1)
-            //{
-            //    var ppo = members as PropertyInfo[];
-            //    var typecode = Type.GetTypeCode(ppo.PropertyType);
-            //    if (typecode == TypeCode.Object)
-            //    {
-            //        //var ppos = members[0].GetCustomAttributes(true).FirstOrDefault(x => x is RegPropertyName) as RegPropertyName;
-            //        //var subkeyname = ppos?.Name ?? members.First().Name;
-            //        //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-            //        //var getsubkeyexpr = Expression.Call(members.First().Item1, opensubkey, Expression.Constant(subkeyname));
-            //        //return Tuple.Create<Expression, Expression>(members.First().Item1, getsubkeyexpr);
-            //    }
-            //    else
-            //    {
-            //        var yy = members.First().Name;
-            //        var attr = members.First().GetCustomAttributes(true).FirstOrDefault(x => x is RegPropertyName) as RegPropertyName;
-            //        yy = attr?.Name;
-            //        //var getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(members.First().Type), members.First().Item1, Expression.Constant(yy));
-            //        //return Tuple.Create<Expression, Expression>(members.First().Item1, getvalue);
-            //    }
-            //}
-            //if (members.Count > 0)
-            {
-                Func<MemberInfo, string> funcValue = delegate (MemberInfo member_expr)
-                {
-                    var attr = member_expr.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;
-                    return attr?.Name ?? member_expr.Name;
-                };
-                var ss = members.Select(x => new
-                {
-                    name = funcValue(x),
-                    //expr = x.Item1,
-                    type = x.PropertyType.IsNullable() ? x.PropertyType.GetGenericArguments()[0] : x.PropertyType,
-                    type_src = x.PropertyType
-                });
-                var group = ss.GroupBy(x => Type.GetTypeCode(x.type) == TypeCode.Object);
-                Expression getsubkeyexpr = null;
-                Expression getvalue = null;
 
-                foreach (var item in group)
+
+            Func<MemberInfo, string> funcValue = delegate (MemberInfo member_expr)
+            {
+                var attr = member_expr.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;
+                return attr?.Name ?? member_expr.Name;
+            };
+
+            var ss = members.Select(x => new
+            {
+                name = funcValue(x),
+                type = x.PropertyType.IsNullable() ? x.PropertyType.GetGenericArguments()[0] : x.PropertyType,
+                type_src = x.PropertyType
+            });
+
+
+            var group = ss.GroupBy(x =>
+            {
+                bool hr = Type.GetTypeCode(x.type) == TypeCode.Object;
+                hr = !ex_src.Convert.CanConvert(x.type_src);
+                return hr;
+            });
+            Expression getsubkeyexpr = null;
+            Expression getvalue = null;
+
+            foreach (var item in group)
+            {
+                if (item.Key == true)
                 {
-                    if (item.Key == true)
+                    var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                    getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
+                }
+                else
+                {
+                    if (item.ElementAt(0).type_src.IsNullable())
                     {
-                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                        getsubkeyexpr = Expression.Call(reg_src, opensubkey, Expression.Constant(subkeyname));
+                        getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                    item.ElementAt(0).type_src.DefaultExpr(),
+                                    Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name)));
                     }
                     else
                     {
-                        if (item.ElementAt(0).type_src.IsNullable())
+                        if(ex_src.Convert != null)
                         {
-                            getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                                        item.ElementAt(0).type_src.DefaultExpr(),
-                                        Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name)));
+                            var ooi = ex_src.Convert.GetType().BaseType.GetGenericArguments();
+                            var mmethod = ex_src.Convert.GetType().GetMethod("ConvertBack").GetParameters();
+                            getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
                         }
                         else
                         {
@@ -1064,15 +1058,15 @@ namespace QSoft.Registry.Linq
                         }
                     }
                 }
-                Expression expr = getsubkeyexpr;
-                if (getvalue != null)
-                {
-                    expr = getvalue;
-                }
-                return Tuple.Create<Expression, Expression>(getsubkeyexpr, expr);
             }
+            Expression expr = getsubkeyexpr;
+            if (getvalue != null)
+            {
+                expr = getvalue;
+            }
+            return Tuple.Create<Expression, Expression>(getsubkeyexpr, expr);
 
-            return Tuple.Create<Expression, Expression>(null, null);
+
         }
 
         public static Tuple<Expression, Expression> BuildSubKey(this List<Tuple<Expression, MemberExpression>> members, ParameterExpression reg_p)

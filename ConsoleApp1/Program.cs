@@ -189,7 +189,6 @@ namespace ConsoleApp1
 
 
 
-
                 Dictionary<Tuple<Type, Type>, object> dics = new Dictionary<Tuple<Type, Type>, object>();
                 dics.Add(Tuple.Create(typeof(Version), typeof(string) ), new Version2String());
 
@@ -209,6 +208,7 @@ namespace ConsoleApp1
                     });
                 var llo = regt_devices.Select(x => new
                 {
+                    version = x.Version,
                     sz = x.Location.Floor.Area.Data.Size
                     //id=x.ID,
                     //localport = x.Local.Port,

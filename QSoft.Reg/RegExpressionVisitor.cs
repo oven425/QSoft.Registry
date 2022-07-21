@@ -104,7 +104,7 @@ namespace QSoft.Registry.Linq
                 var liu = GetMembers(oo.Value.SourceExpr);
                 var pps = liu.Select(x => x as PropertyInfo);
                 var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                var regss = pps.BuildSubKey(oo.Value.Expr, reg_p);
+                var regss = pps.BuildSubKey(oo.Value, reg_p);
 
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
@@ -166,6 +166,43 @@ namespace QSoft.Registry.Linq
                     }
                     if (typecode == TypeCode.Object)
                     {
+                        if(oo.Value.Convert != null)
+                        {
+                            var methods = oo.Value.Convert.GetType().GetMethod("ConvertBack");
+                            if(regss.Item1 == null)
+                            {
+                                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Value.Expr);
+                                var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
+                                var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
+                                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                                    reg_p_assign,
+                                    hr_p_assign,
+                                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                        Expression.Assign(hr_p, Expression.Call(Expression.Constant(oo.Value.Convert), methods, regss.Item2))),
+                                    hr_p
+                                    );
+                                oo.Value.Expr = membgervalue;
+                            }
+                            else
+                            {
+                                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                                var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
+                                var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
+                                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                                    reg_p_assign,
+                                    hr_p_assign,
+                                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                    Expression.Block(
+                                        Expression.Assign(hr_p, Expression.Call(Expression.Constant(oo.Value.Convert), methods, regss.Item2)),
+                                        reg_p.DisposeExpr())),
+                                    hr_p
+                                    );
+                                oo.Value.Expr = membgervalue;
+                            }
+                            
+
+                            //var convertbackexpr = Expression.Call(Expression.Constant(oo.Value.Convert), methods, regss.Item1);
+                        }
                         //    var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
                         //    var hr_p = Expression.Parameter(items.Key.Type, "hr");
                         //    var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());

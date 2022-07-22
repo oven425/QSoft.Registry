@@ -676,10 +676,7 @@ namespace QSoft.Registry.Linq
 
             }
             Expression memberinit = null;
-            if (ccs[0].GetParameters().Length == bindings.Count)
-            {
-                memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
-            }
+            memberinit = Expression.MemberInit(Expression.New(ccs[0]), bindings);
             var aas = dst.GetCustomAttributes(true);
             return memberinit;
         }
@@ -1021,8 +1018,11 @@ namespace QSoft.Registry.Linq
 
             var group = ss.GroupBy(x =>
             {
-                bool hr = Type.GetTypeCode(x.type) == TypeCode.Object;
-                hr = !ex_src.Convert.CanConvert(x.type_src);
+                var hr = Type.GetTypeCode(x.type) == TypeCode.Object;
+                if(ex_src.Convert != null)
+                {
+                    hr = !ex_src.Convert.CanConvert(x.type_src);
+                }
                 return hr;
             });
             Expression getsubkeyexpr = null;

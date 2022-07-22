@@ -209,20 +209,20 @@ namespace ConsoleApp1
                 var llo = regt_devices.Select(x => new
                 {
                     version = x.Version,
-                    sz = x.Location.Floor.Area.Data.Size
-                    //id=x.ID,
-                    //localport = x.Local.Port,
-                    //pir_auto = x.CameraSetting.PIR.IsAuto,
-                    //pir_enable = x.CameraSetting.PIR.IsEnable,
-                    //setting = new
-                    //{
-                    //    aa = x.CameraSetting.Brightness,
-                    //    pir = new
-                    //    {
-                    //        auto = x.CameraSetting.PIR.IsAuto,
-                    //        enable = x.CameraSetting.PIR.IsEnable
-                    //    }
-                    //}
+                    sz = x.Location.Floor.Area.Data.Size,
+                    id = x.ID,
+                    localport = x.Local.Port,
+                    pir_auto = x.CameraSetting.PIR.IsAuto,
+                    pir_enable = x.CameraSetting.PIR.IsEnable,
+                    setting = new
+                    {
+                        aa = x.CameraSetting.Brightness,
+                        pir = new
+                        {
+                            auto = x.CameraSetting.PIR.IsAuto,
+                            enable = x.CameraSetting.PIR.IsEnable
+                        }
+                    }
                 });
                 //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
                 foreach (var oo in llo)
@@ -345,7 +345,7 @@ namespace ConsoleApp1
                          let kk1 =oo.DisplayName.ToUpper()
                          let kk2 = oo.DisplayName.ToLower()
                          select oo;
-            foreach(var oo in sytnax)
+            ////foreach(var oo in sytnax)
             {
 
             }

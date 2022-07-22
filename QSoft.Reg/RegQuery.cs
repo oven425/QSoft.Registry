@@ -69,6 +69,7 @@ namespace QSoft.Registry.Linq
 
         List<RegQueryConvert> m_Converts = new List<RegQueryConvert>();
 
+        
         public RegQuery<T> useConverts(List<RegQueryConvert> converts)
         {
             if(converts!=null)

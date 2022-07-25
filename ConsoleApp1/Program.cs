@@ -206,25 +206,26 @@ namespace ConsoleApp1
                         new Version2String(),
                         new Size2String()
                     });
-                var llo = regt_devices.Select(x => new
-                {
-                    version = x.Version,
-                    sz = x.Location.Floor.Area.Data.Size,
-                    id = x.ID,
-                    localport = x.Local.Port,
-                    pir_auto = x.CameraSetting.PIR.IsAuto,
-                    pir_enable = x.CameraSetting.PIR.IsEnable,
-                    setting = new
-                    {
-                        aa = x.CameraSetting.Brightness,
-                        pir = new
-                        {
-                            auto = x.CameraSetting.PIR.IsAuto,
-                            enable = x.CameraSetting.PIR.IsEnable
-                        }
-                    }
-                });
-                //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
+                //var llo = regt_devices.Select(x => new
+                //{
+                //    version = x.Version,
+                //    sz = x.Location.Floor.Area.Data.Size,
+                //    id = x.ID,
+                //    localport = x.Local.Port,
+                //    pir_auto = x.CameraSetting.PIR.IsAuto,
+                //    pir_enable = x.CameraSetting.PIR.IsEnable,
+                //    setting = new
+                //    {
+                //        aa = x.CameraSetting.Brightness,
+                //        pir = new
+                //        {
+                //            auto = x.CameraSetting.PIR.IsAuto,
+                //            enable = x.CameraSetting.PIR.IsEnable
+                //        }
+                //    }
+                //});
+                var iiu = Expression.Constant(null);
+                var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
                 foreach (var oo in llo)
                 {
                 }

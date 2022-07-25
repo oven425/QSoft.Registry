@@ -59,8 +59,10 @@ namespace QSoft.Registry.Linq
             if (this.m_Lastnode != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-                var binary = this.m_MembersExprs.ToBinary(node, exprs);
-                if(binary == null)
+                //var binary = this.m_MembersExprs.ToBinary(node, exprs);
+                var binary = exprs.ToBinary(node, this.Converts);
+
+                if (binary == null)
                 {
                     binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value.Expr, exprs.ElementAt(1).Value.Expr);
                 }

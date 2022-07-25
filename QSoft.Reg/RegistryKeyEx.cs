@@ -65,7 +65,7 @@ namespace QSoft.Registry
                 {
                     if(typecode == TypeCode.Object)
                     {
-                        if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        if (type.IsGenericType==true && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                         {
                             var typecode_null = Type.GetTypeCode(type.GetGenericArguments().FirstOrDefault());
                             object obj_null = null;

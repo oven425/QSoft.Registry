@@ -15,7 +15,7 @@ namespace QSoft.Registry.Linq
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");
             var reg = source.ToRegistryKey();
             var provide = source.Provider as RegProvider<TSource>;
-            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)), Expression.Constant(provide.Converts));
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)), Expression.Constant(provide.Converts, typeof(IEnumerable<RegQueryConvert>)));
             
             int hr = source.Provider.Execute<int>(methdodcall);
             reg.Close();
@@ -54,7 +54,7 @@ namespace QSoft.Registry.Linq
                 {
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
-                var convert = converts.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
+                var convert = converts?.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
                 if(convert != null)
                 {
                     System.Diagnostics.Debug.WriteLine("");
@@ -84,26 +84,6 @@ namespace QSoft.Registry.Linq
                         child.SetValue(dicpps[pp.Key], vv);
                     }
                 }
-                //switch (typecode)
-                //{
-                //    case TypeCode.Object:
-                //        {
-                //            if(pp.Key.PropertyType == typeof(Version))
-                //            {
-
-                //            }
-                //            else
-                //            {
-                                
-                //            }
-                //        }
-                //        break;
-                //    default:
-                //        {
-                            
-                //        }
-                //        break;
-                //}
             }
             child.Close();
         }

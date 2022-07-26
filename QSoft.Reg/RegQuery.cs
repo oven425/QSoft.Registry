@@ -80,6 +80,13 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
+        public RegQuery<T> useConverts(Action<List<RegQueryConvert>> converts)
+        {
+            converts(this.m_Converts);
+            this.m_Provider.Converts = this.m_Converts;
+            return this;
+        }
+
         public RegQuery<T> HasDefault1(Action<T> data)
         {
             //var obj = Activator.CreateInstance<T>();

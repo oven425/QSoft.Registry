@@ -527,7 +527,10 @@ namespace QSoft.Registry.Linq
         static public Expression ToData(this Type dst, Expression param, IEnumerable<RegQueryConvert> converts)
         {
             System.Diagnostics.Debug.WriteLine($"ToData");
-            if(dst == typeof(Version))
+            //var convert = converts.FirstOrDefault(x => x.CanConvert(dst));
+            //var methods = convert.GetType().GetMethod("ConvertBack");
+
+            if (dst == typeof(Version))
             {
                 System.Diagnostics.Debug.WriteLine("");
             }

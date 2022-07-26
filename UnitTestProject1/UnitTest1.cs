@@ -57,6 +57,20 @@ namespace General
         }
     }
 
+    public class Version2String : RegQueryConvert<Version>
+    {
+
+        public override Version ConvertBack(string dst)
+        {
+            return Version.Parse(dst);
+        }
+
+        public override string ConvertTo(Version src)
+        {
+            return src.ToString();
+        }
+    }
+
     public class AppMapping
     {
         public int CompanyID { set; get; }
@@ -114,6 +128,10 @@ namespace General
             {
                 x.Hive = RegistryHive.CurrentConfig;
                 x.SubKey = @"UnitTest\Apps";
+            })
+            .useConverts(new List<RegQueryConvert>()
+            {
+                new Version2String()
             });
         [TestCategory("Init")]
         [TestMethod]

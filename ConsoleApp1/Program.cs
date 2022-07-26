@@ -224,8 +224,9 @@ namespace ConsoleApp1
                 //        }
                 //    }
                 //});
-                var iiu = Expression.Constant(null);
-                var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
+                //var iiu = Expression.Constant(null);
+                //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
+                var llo = regt_devices.Select(x => x.Location.Floor.Area.Data.Size);
                 foreach (var oo in llo)
                 {
                 }
@@ -323,7 +324,7 @@ namespace ConsoleApp1
 
 
             var regt = new RegQuery<InstalledApp>()
-                .HasDefault1(x=>
+                .HasDefault1(x =>
                 {
                     x.Now = DateTime.Now;
                     x.DisplayName = "AA";
@@ -340,7 +341,16 @@ namespace ConsoleApp1
                     x.View = RegistryView.Registry64;
                     //x.Hive = RegistryHive.CurrentConfig;
                     //x.SubKey = @"UnitTest\Apps";
+                })
+                .useConverts(x => 
+                {
+                    x.Add(new Version2String());
                 });
+            var aaaa = regt.Select(x => x.Version);
+            foreach(var oo in aaaa)
+            {
+
+            }
             var sytnax = from oo in regt
                          where oo.DisplayName != null
                          let kk1 =oo.DisplayName.ToUpper()

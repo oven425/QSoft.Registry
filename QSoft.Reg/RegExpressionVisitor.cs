@@ -657,9 +657,8 @@ namespace QSoft.Registry.Linq
                 }
                 else if(this.m_MembersExprs.Count > 0)
                 {
-                    var exprs1 = exprs.ToDictionary(x => x.Key, x => x.Value.Expr);
-                    //this.ToNew(this.m_MembersExprs, exprs1);
-                    m_Lambda = Expression.Lambda(exprs1.First().Value, parameters);
+                    ToNew(exprs);
+                    //m_Lambda = Expression.Lambda(exprs1.First().Value, parameters);
                     this.m_MembersExprs.Clear();
                 }
                 if(m_Lambda == null)

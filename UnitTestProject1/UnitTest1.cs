@@ -468,6 +468,8 @@ namespace General
         [TestMethod]
         public void OrderByDescending_ThenBy()
         {
+            var aa = regt.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length);
+            
             CheckEx.Check(this.m_Tests.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length)
                         , regt.OrderByDescending(x => x.EstimatedSize).ThenBy(x=>x.DisplayName.Length));
         }

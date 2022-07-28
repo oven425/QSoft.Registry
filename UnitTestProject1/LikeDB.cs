@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Win32;
 using QSoft.Registry.Linq;
 using System.Linq;
+using General;
 
 namespace LikeDB
 {
@@ -32,7 +33,7 @@ namespace LikeDB
             {
                 x.Hive = RegistryHive.CurrentConfig;
                 x.SubKey = @"UnitTest\Apps";
-            });
+            }).useConverts(x=>x.Add(new Version2String()));
 
 
         [TestMethod]

@@ -227,9 +227,9 @@ namespace ConsoleApp1
                 //var iiu = Expression.Constant(null);
                 //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
                 var llo = regt_devices.Select(x => x.Location.Floor.Area.Data.Size);
-                foreach (var oo in llo)
-                {
-                }
+                //foreach (var oo in llo)
+                //{
+                //}
 
                 //regt_devices.Insert(new List<Device>()
                 //{
@@ -336,16 +336,18 @@ namespace ConsoleApp1
                 })
                 .useSetting(x =>
                 {
-                    x.Hive = RegistryHive.LocalMachine;
-                    x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
-                    x.View = RegistryView.Registry64;
-                    //x.Hive = RegistryHive.CurrentConfig;
-                    //x.SubKey = @"UnitTest\Apps";
+                    //x.Hive = RegistryHive.LocalMachine;
+                    //x.SubKey = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
+                    //x.View = RegistryView.Registry64;
+                    x.Hive = RegistryHive.CurrentConfig;
+                    x.SubKey = @"UnitTest\Apps";
                 })
                 .useConverts(x => 
                 {
                     x.Add(new Version2String());
                 });
+            var aa = regt.OrderByDescending(x => x.EstimatedSize).ThenBy(x => x.DisplayName.Length);
+            aa.ToList();
             var aaaa = regt.Select(x => x.Version);
             foreach(var oo in aaaa)
             {

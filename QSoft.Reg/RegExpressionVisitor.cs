@@ -1216,6 +1216,7 @@ namespace QSoft.Registry.Linq
             if (this.m_Saves!=null&&this.m_Saves.ContainsKey(node) == true)
             {
                 var aaa = this.m_Saves[node];
+                this.m_ExpressionSaves[node] = new Ex();
                 this.m_ExpressionSaves[node].Expr = aaa;
                 return node;
             }

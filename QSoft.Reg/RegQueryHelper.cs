@@ -422,7 +422,6 @@ namespace QSoft.Registry.Linq
             {
                 var sd = dst.GetGenericArguments()[0].ToLambdaData(converts);
                 var select_method = dst.GetGenericArguments()[0].SelectMethod_Enumerable();
-
                 return Expression.Call(select_method, param, sd);
             }
             else
@@ -530,10 +529,6 @@ namespace QSoft.Registry.Linq
             //var convert = converts.FirstOrDefault(x => x.CanConvert(dst));
             //var methods = convert.GetType().GetMethod("ConvertBack");
 
-            if (dst == typeof(Version))
-            {
-                System.Diagnostics.Debug.WriteLine("");
-            }
 
             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
 

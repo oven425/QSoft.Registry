@@ -346,8 +346,8 @@ namespace ConsoleApp1
                 {
                     x.Add(new Version2String());
                 });
-            var aa = regt.OrderByDescending(x => x.EstimatedSize).ThenBy(x => x.DisplayName.Length);
-            aa.ToList();
+            var aa = regt.Select((x, index) => new { x, index });
+            var aal = aa.ToList();
             var aaaa = regt.Select(x => x.Version);
             foreach(var oo in aaaa)
             {

@@ -100,10 +100,10 @@ namespace QSoft.Registry.Linq
         void ToNew(DictionaryList<Expression, Ex> exprs)
         {
             //var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type).Where(x=>x.Value.SourceExpr is MemberExpression);
-            var eex = exprs;
-            foreach(var oo in eex)
+            var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type);
+            //var eex = exprs;
+            foreach (var oo in eex)
             {
-                var tt = oo.Value.SourceExpr.GetType();
                 var liu = GetMembers(oo.Value.SourceExpr);
                 var pps = liu.Select(x => x as PropertyInfo);
                 var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
@@ -111,7 +111,8 @@ namespace QSoft.Registry.Linq
 
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
-                    return;
+                    oo.Value.Expr = oo.Value.SourceExpr.Type.ToData(oo.Value.Expr, this.Converts);
+                    //return;
                 }
                 else if (regss.Item1 == regss.Item2)
                 {
@@ -527,7 +528,7 @@ namespace QSoft.Registry.Linq
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            m_ExpressionSaves[node] = new Ex();
+            m_ExpressionSaves[node] = new Ex() { SourceExpr = node};
             System.Diagnostics.Debug.WriteLine($"VisitParameter {node.Type.Name}");
 
             var expr = base.VisitParameter(node) as ParameterExpression;

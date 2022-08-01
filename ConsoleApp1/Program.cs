@@ -190,7 +190,7 @@ namespace ConsoleApp1
 
 
                 Dictionary<Tuple<Type, Type>, object> dics = new Dictionary<Tuple<Type, Type>, object>();
-                dics.Add(Tuple.Create(typeof(Version), typeof(string) ), new Version2String());
+                dics.Add(Tuple.Create(typeof(Version), typeof(string)), new Version2String());
 
 
                 var ccs = typeof(Device).GetConstructors();
@@ -313,11 +313,11 @@ namespace ConsoleApp1
             {
                 System.Diagnostics.Trace.WriteLine(ee.Message);
             }
-      
+
 
             InstalledApp installedapp = new InstalledApp();
-            var pps = typeof(InstalledApp).GetProperties().Where(x=>x.CanRead==true&&x.CanWrite == true);
-            foreach(var pp in pps)
+            var pps = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true && x.CanWrite == true);
+            foreach (var pp in pps)
             {
                 var pv = pp.GetValue(installedapp, null);
             }
@@ -342,12 +342,21 @@ namespace ConsoleApp1
                     x.Hive = RegistryHive.CurrentConfig;
                     x.SubKey = @"UnitTest\Apps";
                 })
-                .useConverts(x => 
+                .useConverts(x =>
                 {
                     x.Add(new Version2String());
                 });
-            var aa = regt.Select((x, index) => new { x, index });
-            var aal = aa.ToList();
+            //var aa = regt.Select((x, index) => new { index = index+1, x });
+            //foreach (var oo in aa)
+            //{
+
+            //}
+
+            var groupaa = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg });
+            foreach (var oo in groupaa)
+            {
+
+            }
             var aaaa = regt.Select(x => x.Version);
             foreach(var oo in aaaa)
             {

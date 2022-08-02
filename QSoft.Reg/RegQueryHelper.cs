@@ -1413,6 +1413,19 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
+        public static bool IsIEnumerable(this Type src)
+        {
+            bool hr = false;
+            if (src.IsGenericType == true)
+            {
+                if (src.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    hr = true;
+                }
+            }
+            return hr;
+        }
+
         public static string SubKeyName(this MemberExpression src)
         {
             var attr = src.Member.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;

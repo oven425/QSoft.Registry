@@ -470,7 +470,7 @@ namespace QSoft.Registry.Linq
             if (this.m_ProcessExprs.ContainsKey(expression) == false)
             {
                 var updatemethod1 = ProcessExpr(expression) as MethodCallExpression;
-                if (type.IsGenericType == true && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                if (type.IsIEnumerable())
                 {
                     if (updatemethod1.Type == typeof(IQueryable<RegistryKey>) || updatemethod1.Type == typeof(IOrderedQueryable<RegistryKey>))
                     {

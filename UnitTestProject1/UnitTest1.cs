@@ -611,13 +611,8 @@ namespace General
         [TestCategory("Excute")]
         public void Average()
         {
-            //Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
-            //Assert.IsTrue(this.m_Tests.Average(x => x.DisplayName.Length) == regt.Average(x => x.DisplayName.Length), "Average fail");
-            var aaaa = regt.Select(x => x.Version);
-            foreach(var oo in aaaa)
-            {
-
-            }
+            Assert.IsTrue(this.m_Tests.Average(x => x.EstimatedSize) == regt.Average(x => x.EstimatedSize), "Average fail");
+            Assert.IsTrue(this.m_Tests.Average(x => x.DisplayName.Length) == regt.Average(x => x.DisplayName.Length), "Average fail");
             Assert.IsTrue(this.m_Tests.Average(x => x.Version.ToString().Length) == regt.Average(x => x.Version.ToString().Length), "Average fail");
         }
 
@@ -638,88 +633,6 @@ namespace General
             //count2 = this.m_Tests.Select(x => new InstallApp(x) { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
             //this.Check(count1, count2);
         }
-
-
-        //void Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
-        //{
-        //    if(src.Count() != dst.Count())
-        //    {
-        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-        //    }
-        //    for(int i=0; i<src.Count(); i++)
-        //    {
-        //        this.Check(src.ElementAt(i), dst.ElementAt(i));
-        //    }
-        //}
-
-        //void Check<T>(T[] src, T[] dst)
-        //{
-        //    if (src.Count() != dst.Count())
-        //    {
-        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-        //    }
-        //    for (int i = 0; i < src.Count(); i++)
-        //    {
-        //        this.Check(src.ElementAt(i), dst.ElementAt(i));
-        //    }
-        //}
-
-        //void Check<T>(List<T> src, List<T> dst)
-        //{
-        //    if (src.Count() != dst.Count())
-        //    {
-        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-        //    }
-        //    for (int i = 0; i < src.Count(); i++)
-        //    {
-        //        this.Check(src.ElementAt(i), dst.ElementAt(i));
-        //    }
-        //}
-
-        //void Check<T>(T src, T dst)
-        //{
-        //    var typecode = Type.GetTypeCode(typeof(T));
-        //    if(src==null && dst==null)
-        //    {
-
-        //    }
-        //    else if(typecode == TypeCode.String)
-        //    {
-        //        string str_src = src as string;
-        //        string str_dst = dst as string;
-        //        if (str_src != str_dst)
-        //        {
-        //            Assert.Fail($"fail src:{str_src} dst:{str_dst}");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
-        //        foreach(var pp in pps)
-        //        {
-
-        //            dynamic s = pp.GetValue(src);
-        //            dynamic d = pp.GetValue(dst);
-        //            if (pp.PropertyType == typeof(InstalledApp))
-        //            {
-        //                this.Check(s, d);
-        //            }
-        //            else if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-        //            {
-        //                this.Check(s, d);
-        //            }
-        //            else
-        //            {
-        //                if (s != d)
-        //                {
-        //                    Assert.Fail($"{pp.Name} fail src:{s} dst:{d}");
-        //                }
-        //            }
-                    
-                    
-        //        }
-        //    }
-        //}
     }
 
     public class AppData

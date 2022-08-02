@@ -111,7 +111,23 @@ namespace QSoft.Registry.Linq
 
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
-                    oo.Value.Expr = oo.Value.SourceExpr.Type.ToData(oo.Value.Expr, this.Converts);
+                    if(oo.Value.SourceExpr.Type.IsIEnumerable()==true)
+                    {
+                        var temptype = oo.Value.SourceExpr.Type.GetGenericArguments()[0];
+                        var select_method = temptype.SelectMethod_Enumerable();
+                        var sd = temptype.ToLambdaData(this.Converts);
+                        var aaaaa = Expression.Call(select_method, oo.Value.Expr, sd);
+                        oo.Value.Expr = aaaaa;
+
+                        //var select_method = oo.Value.SourceExpr.Type.SelectMethod_Enumerable();
+                        //var sd = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToLambdaData(this.Converts);
+                        //var aaaaa = Expression.Call(select_method, oo.Value.Expr, sd);
+                    }
+                    else
+                    {
+                        oo.Value.Expr = oo.Value.SourceExpr.Type.ToData(oo.Value.Expr, this.Converts);
+                    }
+                    
                     //return;
                 }
                 else if (regss.Item1 == regss.Item2)

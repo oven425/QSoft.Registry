@@ -608,7 +608,7 @@ namespace QSoft.Registry.Linq
 
 
             this.m_RegMethod = this.m_ProcessExprs[expression];
-            if (type.IsGenericType == true && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            if (type.IsNullable()==true)
             {
                 var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
                 var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { this.m_RegMethod });

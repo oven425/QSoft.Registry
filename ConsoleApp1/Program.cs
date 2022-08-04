@@ -352,11 +352,12 @@ namespace ConsoleApp1
 
             //}
 
-            var groupaa = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg });
-            foreach (var oo in groupaa)
-            {
+            //var groupaa = regt.GroupBy(x => x.DisplayName, (key, reg) => new { reg });
+            //foreach (var oo in groupaa)
+            //{
 
-            }
+            //}
+            var o1o = regt.Max(x => x.EstimatedSize);
             var aaaa = regt.Select(x => x.Version);
             foreach(var oo in aaaa)
             {

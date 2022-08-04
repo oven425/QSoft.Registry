@@ -592,7 +592,7 @@ namespace General
         public void Max()
         {
             Assert.IsTrue(this.m_Tests.Max(x=>x.EstimatedSize) == regt.Max(x => x.EstimatedSize), "Max fail");
-            Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
+            //Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
         }
 
         [TestMethod]

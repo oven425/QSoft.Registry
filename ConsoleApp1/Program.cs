@@ -155,6 +155,17 @@ namespace ConsoleApp1
         }
     }
 
+    class Ddaaa
+    {
+        public int? A1 { set; get; }
+        public int A2 { set; get; }
+        public Ddaaa(int dd)
+        {
+            A1 = dd;
+            A2 = dd;
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -357,7 +368,13 @@ namespace ConsoleApp1
             //{
 
             //}
-            var o1o = regt.Max(x => x.EstimatedSize);
+            var o1o = regt;
+            var llen = regt.Select(x => x.Version.ToString());
+            foreach (var oo in llen)
+            {
+
+            }
+
             var aaaa = regt.Select(x => x.Version);
             foreach(var oo in aaaa)
             {

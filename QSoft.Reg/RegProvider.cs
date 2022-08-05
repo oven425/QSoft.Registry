@@ -610,8 +610,9 @@ namespace QSoft.Registry.Linq
             this.m_RegMethod = this.m_ProcessExprs[expression];
             if (type.IsNullable()==true)
             {
-                var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
-                var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { this.m_RegMethod });
+                var excute = this.m_RegsQuery.Provider.Execute(this.m_RegMethod);
+                //var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
+                //var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { this.m_RegMethod });
                 return_hr = (TResult)excute;
                 //return (TResult)excute;
             }

@@ -574,9 +574,29 @@ namespace QSoft.Registry.Linq
                 }
                 else if (pp.attr != null && pp.attr is RegPropertyName)
                 {
-                    if (typecode == TypeCode.Object && property != typeof(Version))
+                    var subkeyname = (pp.attr as RegPropertyName)?.Name;
+                    var convert = converts.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
+                    if (convert != null)
                     {
-                        var subkeyname = (pp.attr as RegPropertyName)?.Name;
+                        if (pp.x.PropertyType.IsGenericTypeDefinition == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        {
+                            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pp.x.PropertyType), param, Expression.Constant(subkeyname, typeof(string)));
+                            UnaryExpression unary1 = Expression.Convert(method, pp.x.PropertyType);
+                            var binding = Expression.Bind(pp.x, unary1);
+                        }
+                        else
+                        {
+                            var methods = convert.GetType().GetMethod("ConvertBack");
+                            var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(methods.GetParameters()[0].ParameterType), param, Expression.Constant(subkeyname, typeof(string)));
+
+                            var convertbackexpr = Expression.Call(Expression.Constant(convert), methods, method);
+                            var binding = Expression.Bind(pp.x, convertbackexpr);
+                            bindings.Add(binding);
+                        }
+                    }
+                    else if (typecode == TypeCode.Object && property != typeof(Version))
+                    {
+                        
                         var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
                         var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
                         var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
@@ -596,6 +616,7 @@ namespace QSoft.Registry.Linq
                         var binding = Expression.Bind(pp.x, block);
                         bindings.Add(binding);
                     }
+                    
                     else
                     {
                         var reganme = pp.attr as RegPropertyName;

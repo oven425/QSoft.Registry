@@ -368,7 +368,11 @@ namespace ConsoleApp1
             //{
 
             //}
-            var o1o = regt;
+            var o1o = regt.TakeWhile(x => x.DisplayName == "AA".ToString());
+            foreach(var oo in o1o)
+            {
+
+            }
             var llen = regt.Select(x => x.Version.ToString());
             foreach (var oo in llen)
             {

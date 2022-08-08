@@ -172,6 +172,7 @@ namespace QSoft.Registry.Linq
                                         Expression.Assign(hr_p, Expression.Call(Expression.Constant(oo.Value.Convert), methods, regss.Item2))),
                                     hr_p
                                     );
+
                                 oo.Value.Expr = membgervalue;
                             }
                             else
@@ -1159,7 +1160,10 @@ namespace QSoft.Registry.Linq
                 else
                 {
                     var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
-                    var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                    //var sssou = ((exprs1.FirstOrDefault().Value.SourceExpr as MemberExpression).Member as PropertyInfo);
+                    //var aa = new List<PropertyInfo>() { sssou }.BuildSubKey(exprs1.FirstOrDefault().Value, reg_p);
+                    var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                    //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
                     if (bubkey != null)
                     {
                         methodcall = bubkey;
@@ -1221,6 +1225,7 @@ namespace QSoft.Registry.Linq
             }
 
             this.m_ExpressionSaves[expr].Expr = expr1??expr;
+            this.m_ExpressionSaves[expr].SourceExpr = expr;
             this.m_Lastnode = expr;
             return expr;
         }

@@ -298,7 +298,7 @@ namespace General
             CheckEx.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA"), regt.TakeWhile(x => x.DisplayName == "AA"));
             CheckEx.Check(this.m_Tests.TakeWhile(x => x.EstimatedSize.ToString() == "10"), regt.TakeWhile(x => x.EstimatedSize.ToString() == "10"));
             CheckEx.Check(this.m_Tests.TakeWhile(x => x.DisplayName == "AA".ToString()), regt.TakeWhile(x => x.DisplayName == "AA".ToString()));
-            CheckEx.Check(this.m_Tests.TakeWhile(x => x.Key.Contains("AA".ToString())), regt.TakeWhile(x => x.Key.Contains("AA".ToString())));
+            //CheckEx.Check(this.m_Tests.TakeWhile(x => x.Key.Contains("AA".ToString())), regt.TakeWhile(x => x.Key.Contains("AA".ToString())));
         }
 
         [TestMethod]

@@ -630,7 +630,8 @@ namespace QSoft.Registry.Linq
                 var excute_reg = excute as RegistryKey;
                 if (excute_reg != null)
                 {
-                    inst = excute_reg.ToDataFunc<TResult>()(excute_reg);
+                    var func_todata = excute_reg.ToDataFunc<TResult>(this.Converts);
+                    inst = func_todata(excute_reg);
                 }
                 else
                 {

@@ -224,7 +224,9 @@ namespace QSoft.Registry.Linq
         public T Get()
         {
             RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
-            return reg.ToDataFunc<T>()(reg);
+            var func_todata = reg.ToDataFunc<T>(this.m_Converts);
+            return func_todata(reg);
+            //return reg.ToDataFunc<T>()(reg);
         }
         [Obsolete("Testing", true)]
         public void Delete()

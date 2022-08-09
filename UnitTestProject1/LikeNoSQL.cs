@@ -37,7 +37,7 @@ namespace General
             this.m_Devices = regt_devices.ToList();
         }
         [TestMethod]
-        public void CreateDB()
+        public void BuildMockup()
         {
             var devices = Enumerable.Range(1, 10).Select(x => new Device()
             {

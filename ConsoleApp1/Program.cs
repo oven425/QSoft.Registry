@@ -76,7 +76,8 @@ namespace ConsoleApp1
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
         public DateTime? Now { set; get; }
-
+        //[RegIgnore]
+        public bool? IsOfficial { set; get; }
         public InstalledApp() { }
 
         public InstalledApp(InstalledApp data)
@@ -368,8 +369,11 @@ namespace ConsoleApp1
             //{
 
             //}
-            var o1o = regt.TakeWhile(x => x.DisplayName == "AA".ToString());
-            foreach(var oo in o1o)
+            bool? bb = null;
+            bool cc = (bool)bb;
+            int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
+            var o1o = regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial });
+            foreach (var oo in o1o)
             {
 
             }

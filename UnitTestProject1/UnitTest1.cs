@@ -41,7 +41,7 @@ namespace General
         [RegPropertyName(Name = "DisplayVersion")]
         public Version Version { set; get; }
         public int? EstimatedSize { set; get; }
-        [RegIgnore]
+        //[RegIgnore]
         public bool? IsOfficial { set; get; }
         public int? ID { set; get; }
 
@@ -262,28 +262,6 @@ namespace General
             CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key=key.ToString(), Count=data.Count() }), regt.GroupBy(x => x.DisplayName, x => x.EstimatedSize, (key, data) => new { Key = key.ToString(), Count = data.Count() }));
         }      
 
-        //void Check<TKey, TElement>(IEnumerable<IGrouping<TKey, TElement>> src, IEnumerable<IGrouping<TKey, TElement>> dst)
-        //{
-        //    if (src.Count() != dst.Count())
-        //    {
-        //        Assert.Fail($"src:{src.Count()} dst:{dst.Count()}");
-        //    }
-
-        //    for (int i = 0; i < src.Count(); i++)
-        //    {
-        //        dynamic key_src = src.ElementAt(i).Key;
-        //        dynamic key_dst = dst.ElementAt(i).Key;
-        //        Check(key_src, key_dst);
-                
-        //        int count_src = src.ElementAt(i).Count();
-        //        int count_dst = dst.ElementAt(i).Count();
-        //        Assert.IsTrue(count_src == count_dst, $"Count fail src:{count_src} dst:{count_dst}");
-        //        for (int j = 0; j < count_src; j++)
-        //        {
-        //            this.Check(src.ElementAt(i).ElementAt(j), dst.ElementAt(i).ElementAt(j));
-        //        }
-        //    }
-        //}
 
         [TestMethod]
         public void Take()
@@ -403,13 +381,13 @@ namespace General
             CheckEx.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
             CheckEx.Check(this.m_Tests.Select(x => x.Version), regt.Select(x => x.Version));
             CheckEx.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
-            //this.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
+            CheckEx.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
             CheckEx.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
             CheckEx.Check(this.m_Tests.Select(x => new { Version = x.Version }), regt.Select(x => new { Version = x.Version }));
             CheckEx.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
-            //this.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
-            //this.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
-            //this.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.Version.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.Version.ToString() }));
+            CheckEx.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
+            CheckEx.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
+            //CheckEx.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.Version.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.Version.ToString() }));
         }
 
         [TestMethod]
@@ -422,8 +400,8 @@ namespace General
         [TestMethod]
         public void Select_Index()
         {
-            //CheckEx.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
-            var aa = regt.Select((x, index) => new { x, index });
+            CheckEx.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
+            //var aa = regt.Select((x, index) => new { x, index });
             CheckEx.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }
 
@@ -592,7 +570,7 @@ namespace General
         public void Max()
         {
             Assert.IsTrue(this.m_Tests.Max(x=>x.EstimatedSize) == regt.Max(x => x.EstimatedSize), "Max fail");
-            //Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
+            Assert.IsTrue(this.m_Tests.Max(x => x.DisplayName.Length) == regt.Max(x => x.DisplayName.Length), "Max fail");
         }
 
         [TestMethod]
@@ -624,10 +602,10 @@ namespace General
             var count1 = regt;
             var count2 = this.m_Tests.Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize + 100 });
             CheckEx.Check(count1, count2);
-            regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
-            var count3 = regt.Where(x => x.EstimatedSize > 130);
-            count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize - 100 });
-            CheckEx.Check(count3, count2);
+            //regt.Where(x => x.EstimatedSize > 130).Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize - 100 });
+            //var count3 = regt.Where(x => x.EstimatedSize > 130);
+            //count2 = this.m_Tests.Where(x => x.EstimatedSize > 130).Select(x => new InstalledApp(x) { EstimatedSize = x.EstimatedSize - 100 });
+            //CheckEx.Check(count3, count2);
 
             //update_count = regt.Update(x => new InstallApp() { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
             //count2 = this.m_Tests.Select(x => new InstallApp(x) { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });

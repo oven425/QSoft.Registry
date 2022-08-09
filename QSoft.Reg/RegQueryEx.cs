@@ -85,7 +85,11 @@ namespace QSoft.Registry.Linq
                     }
                 }
             }
-            child.Close();
+            if(child != source)
+            {
+                child.Close();
+            }
+            
         }
 
         static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction, IEnumerable<RegQueryConvert> converts)

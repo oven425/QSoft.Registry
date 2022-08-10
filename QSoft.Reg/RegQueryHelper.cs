@@ -1514,6 +1514,19 @@ namespace QSoft.Registry.Linq
             return hr;
         }
 
+        public static bool IsIGrouping(this Type src)
+        {
+            bool hr = false;
+            if (src.IsGenericType == true)
+            {
+                if (src.GetGenericTypeDefinition() == typeof(IGrouping<,>))
+                {
+                    hr = true;
+                }
+            }
+            return hr;
+        }
+
         public static string SubKeyName(this MemberExpression src)
         {
             var attr = src.Member.GetCustomAttributes(true).FirstOrDefault() as RegPropertyName;

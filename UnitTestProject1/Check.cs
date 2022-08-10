@@ -1,4 +1,5 @@
 ﻿using General;
+using LikeNoSQL;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using QSoft.Registry.Linq;
 using System;
@@ -68,10 +69,14 @@ namespace UnitTest
                 var pps = typeof(T).GetProperties().Where(x => x.CanRead == true && x.GetCustomAttributes(true).Any(y => y is RegIgnore || y is RegSubKeyName) == false);
                 foreach (var pp in pps)
                 {
-
                     dynamic s = pp.GetValue(src);
                     dynamic d = pp.GetValue(dst);
+                    var typecode1 = Type.GetTypeCode(pp.PropertyType);
                     if (pp.PropertyType == typeof(InstalledApp))
+                    {
+                        Check(s, d);
+                    }
+                    else if(typecode1 == TypeCode.Object)
                     {
                         Check(s, d);
                     }

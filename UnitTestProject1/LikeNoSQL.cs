@@ -29,6 +29,10 @@ namespace General
                 x.Hive = RegistryHive.CurrentConfig;
                 x.SubKey = @"devices";
                 x.View = RegistryView.Registry64;
+            })
+            .useConverts(x=> 
+            {
+                x.Add(new Version2String());
             });
 
         List<Device> m_Devices;
@@ -50,8 +54,8 @@ namespace General
                     Port = 1000+(x>5?1:0),
                     Root = new Address.Auth()
                     {
-                        Account = "root_local",
-                        Password = "root_local"
+                        Account = $"root_local_account_{x}",
+                        Password = $"root_local_password_{x}"
                     },
                     Guest = new Address.Auth()
                     {
@@ -62,11 +66,11 @@ namespace General
                 Remote = new Address()
                 {
                     IP = $"192.168.10.{x}",
-                    Port = 1001,
+                    Port = 2000+x,
                     Root = new Address.Auth()
                     {
-                        Account = "root_local",
-                        Password = "root_local"
+                        Account = "root_remote",
+                        Password = "root_remote"
                     },
                     Guest = new Address.Auth()
                     {
@@ -87,13 +91,13 @@ namespace General
                 },
                 Location = new Locationata()
                 {
-                    Name = "DD",
+                    Name = $"Location_{x}",
                     Floor = new FloorData()
                     {
-                        Name = $"{x}F",
+                        Name = $"Floor_{x}",
                         Area = new AreaData()
                         {
-                            Name = "aaa",
+                            Name = $"Area_{x}",
                             Data = new Rect()
                             {
                                 Point = new Point()
@@ -127,6 +131,12 @@ namespace General
             var org1 = this.m_Devices.Select(x => new { Key = x.Key });
             CheckEx.Check(reg1, org1);
 
+        }
+
+        [TestMethod]
+        public void Where()
+        {
+            CheckEx.Check(this.m_Devices.Where(x => x.Location.Floor.Area.Name == "Area_1"), regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1"));
         }
 
         [TestMethod]

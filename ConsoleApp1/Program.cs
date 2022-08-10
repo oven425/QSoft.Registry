@@ -369,10 +369,8 @@ namespace ConsoleApp1
             //{
 
             //}
-            bool? bb = null;
-            bool cc = (bool)bb;
             int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
-            var o1o = regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial });
+            var o1o = regt.GroupBy(x => x).Select(x => x.Key);
             foreach (var oo in o1o)
             {
 

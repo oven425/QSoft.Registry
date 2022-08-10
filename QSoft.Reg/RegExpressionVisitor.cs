@@ -69,7 +69,7 @@ namespace QSoft.Registry.Linq
                 
                 this.m_ExpressionSaves[expr].Expr = binary;
 
-                this.m_MembersExprs.Clear();
+                //this.m_MembersExprs.Clear();
                 this.m_Lastnode = expr;
             }
             return expr;
@@ -123,9 +123,16 @@ namespace QSoft.Registry.Linq
                         //var sd = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToLambdaData(this.Converts);
                         //var aaaaa = Expression.Call(select_method, oo.Value.Expr, sd);
                     }
+                    else if(oo.Value.SourceExpr.Type.IsIGrouping() == true)
+                    {
+
+                    }
                     else
                     {
-                        oo.Value.Expr = oo.Value.SourceExpr.Type.ToData(oo.Value.Expr, this.Converts);
+                        if(oo.Value.Handled == false)
+                        {
+                            oo.Value.Expr = oo.Value.SourceExpr.Type.ToData(oo.Value.Expr, this.Converts);
+                        }
                     }
                     
                     //return;
@@ -213,24 +220,24 @@ namespace QSoft.Registry.Linq
         }
 
 
-        Stack<List<Tuple<Expression, MemberExpression>>> m_MembersExprGroup = new Stack<List<Tuple<Expression, MemberExpression>>>();
+        //Stack<List<Tuple<Expression, MemberExpression>>> m_MembersExprGroup = new Stack<List<Tuple<Expression, MemberExpression>>>();
 
         protected override Expression VisitNew(NewExpression node)
         {
             System.Diagnostics.Debug.WriteLine($"VisitNew");
             this.m_ExpressionSaves[node] = new Ex();
-            if (this.m_MembersExprs.Count > 0)
-            {
-                this.m_MembersExprGroup.Push(this.m_MembersExprs);
-                this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
-            }
+            //if (this.m_MembersExprs.Count > 0)
+            //{
+            //    //this.m_MembersExprGroup.Push(this.m_MembersExprs);
+            //    this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
+            //}
             
             var expr = base.VisitNew(node) as NewExpression;
-            if (this.m_MembersExprs.Count > 0)
-            {
-                this.m_MembersExprGroup.Push(this.m_MembersExprs);
-                this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
-            }
+            //if (this.m_MembersExprs.Count > 0)
+            //{
+            //    //this.m_MembersExprGroup.Push(this.m_MembersExprs);
+            //    this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
+            //}
 
             //var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value.Expr);
             var exprs = this.m_ExpressionSaves.Clone(expr);
@@ -243,7 +250,7 @@ namespace QSoft.Registry.Linq
 
             for (int i = 0; i < exprs.Count; i++)
             {
-                this.m_MembersExprs.Clear();
+                //this.m_MembersExprs.Clear();
                 ParameterExpression parameter = exprs.ElementAt(i).Value.Expr as ParameterExpression;
                 if (parameter != null)
                 {
@@ -342,7 +349,8 @@ namespace QSoft.Registry.Linq
                     var binding = Expression.Bind(expr.Bindings[i].Member, x.Value.Expr);
                     return binding;
                 });
-                switch(this.LastMethodName)
+                this.m_ExpressionSaves[expr].SourceExpr = expr;
+                switch (this.LastMethodName)
                 {
                     case "Update":
                     case "InsertOrUpdate":
@@ -372,6 +380,7 @@ namespace QSoft.Registry.Linq
                             var pps = anyt.GetProperties();
                             var expr_new = Expression.New(anyt.GetConstructors()[0], exprs.Skip(1).Select(x => x.Value.Expr), anyt.GetProperties());
                             this.m_ExpressionSaves[expr].Expr = expr_new;
+                            this.m_ExpressionSaves[expr].Handled = true;
                         }
                         break;
                     default:
@@ -507,11 +516,12 @@ namespace QSoft.Registry.Linq
                     }
                     m_Lambda = Expression.Lambda(functype1, exprs.First().Value.Expr, parameters);
                 }
-                else if(this.m_MembersExprs.Count > 0)
+                //else if(this.m_MembersExprs.Count > 0)
+                else
                 {
                     ToNew(exprs);
                     //m_Lambda = Expression.Lambda(exprs1.First().Value, parameters);
-                    this.m_MembersExprs.Clear();
+                    //this.m_MembersExprs.Clear();
                 }
                 if(m_Lambda == null)
                 {
@@ -615,12 +625,13 @@ namespace QSoft.Registry.Linq
                     
                 }
                 this.m_ExpressionSaves[expr].Expr = this.m_Parameters[expr.Name];
+                this.m_ExpressionSaves[expr].SourceExpr = expr;
             }
             this.m_Lastnode = expr;
             return expr;
         }
 
-        public List<Tuple<Expression, MemberExpression>> m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
+        //public List<Tuple<Expression, MemberExpression>> m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
         public List<string> m_SubKeyNames = new List<string>();
         protected override Expression VisitMember(MemberExpression node)
         {
@@ -711,10 +722,10 @@ namespace QSoft.Registry.Linq
                                     member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
-                            if (this.m_MembersExprs.Count > 0 || add==true)
-                            {
-                                this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
-                            }
+                            //if (this.m_MembersExprs.Count > 0 || add==true)
+                            //{
+                            //    this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
+                            //}
                             this.m_ExpressionSaves[expr].Convert = this.Converts?.FirstOrDefault(x => x.CanConvert(node.Type));
                             this.m_ExpressionSaves[expr].Expr = member;
                             this.m_ExpressionSaves[expr].SourceExpr = expr;
@@ -775,10 +786,10 @@ namespace QSoft.Registry.Linq
                         }
 
                         //member = exprs.ElementAt(0).Value;
-                        if(this.m_MembersExprs.Count > 0)
-                        {
-                            this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
-                        }
+                        //if(this.m_MembersExprs.Count > 0)
+                        //{
+                        //    this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
+                        //}
                         this.m_ExpressionSaves[expr].Convert = this.Converts.FirstOrDefault(x => x.CanConvert(node.Type));
                         this.m_ExpressionSaves[expr].Expr = member;
                         this.m_ExpressionSaves[expr].SourceExpr = expr;
@@ -1135,8 +1146,9 @@ namespace QSoft.Registry.Linq
                             else
                             {
                                 var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
-                                var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
-                                if(bubkey != null)
+                                //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
+                                var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                                if (bubkey != null)
                                 {
                                     methodcall = bubkey;
                                 }

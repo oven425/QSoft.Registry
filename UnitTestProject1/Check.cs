@@ -48,6 +48,7 @@ namespace UnitTest
             }
         }
 
+
         public static void Check<T>(T src, T dst)
         {
             var typecode = Type.GetTypeCode(typeof(T));
@@ -78,7 +79,17 @@ namespace UnitTest
                     }
                     else if(typecode1 == TypeCode.Object)
                     {
-                        Check(s, d);
+                        if(pp.PropertyType.IsGenericType==true && pp.PropertyType.GetGenericTypeDefinition()==typeof(Nullable<>))
+                        {
+                            if (s != d)
+                            {
+                                Assert.Fail($"{pp.Name} fail src:{s} dst:{d}");
+                            }
+                        }
+                        else
+                        {
+                            Check(s, d);
+                        }
                     }
                     else if (pp.PropertyType.IsGenericType == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                     {

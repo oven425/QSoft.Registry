@@ -8,19 +8,30 @@ namespace ConsoleApp1
 {
     public class Device
     {
-        public Device() { }
-        public Device(string name) { }
+        ////public Device() { }
+        ////public Device(string name) { }
+        ////[RegPropertyName("LocalIP")]
+        ////public Address Local { set; get; }
+        ////[RegPropertyName("RemoteIP")]
+        ////public Address Remote { set; get; }
+        ////public string Name { set; get; }
+        ////public int? ID { set; get; }
+        ////public Size Size { set; get; }
+        ////public Locationata Location { set; get; }
+        ////public CameraSetting CameraSetting { set; get; }
+        //[RegPropertyName("Ver")]
+        //public Version Version { set; get; }
+
         [RegPropertyName("LocalIP")]
         public Address Local { set; get; }
         [RegPropertyName("RemoteIP")]
         public Address Remote { set; get; }
         public string Name { set; get; }
-        public int? ID { set; get; }
         public Size Size { set; get; }
         public Locationata Location { set; get; }
         public CameraSetting CameraSetting { set; get; }
-        [RegPropertyName("Ver")]
-        public Version Version { set; get; }
+        [RegSubKeyName]
+        public string Key { set; get; }
     }
 
     public class Locationata

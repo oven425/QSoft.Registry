@@ -209,14 +209,14 @@ namespace ConsoleApp1
                 var regt_devices = new RegQuery<Device>()
                     .useSetting(x =>
                     {
-                        x.View = RegistryView.Registry64;
                         x.Hive = RegistryHive.CurrentConfig;
-                        x.SubKey = "devices";
+                        x.SubKey = @"devices";
+                        x.View = RegistryView.Registry64;
                     })
                     .useConverts(new List<RegQueryConvert>()
                     {
                         new Version2String(),
-                        new Size2String()
+                        //new Size2String()
                     });
                 //var llo = regt_devices.Select(x => new
                 //{
@@ -238,6 +238,7 @@ namespace ConsoleApp1
                 //});
                 //var iiu = Expression.Constant(null);
                 //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
+                var ffi = regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1");
                 var llo = regt_devices.Select(x => x.Location.Floor.Area.Data.Size);
                 //foreach (var oo in llo)
                 //{

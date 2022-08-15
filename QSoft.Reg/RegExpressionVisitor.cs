@@ -719,7 +719,8 @@ namespace QSoft.Registry.Linq
                                 else
                                 {
                                     left_args_1 = Expression.Constant(expr.Member.Name);
-                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+                                    member = exprs.ElementAt(0).Value.Expr;
+                                    //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
                             //if (this.m_MembersExprs.Count > 0 || add==true)

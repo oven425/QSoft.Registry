@@ -134,6 +134,15 @@ namespace General
         }
 
         [TestMethod]
+        public void FirstOrDefault()
+        {
+            CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"),
+                            regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"));
+            CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0),
+                            regt_devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0));
+        }
+
+        [TestMethod]
         public void Where()
         {
             CheckEx.Check(this.m_Devices.Where(x => x.Location.Floor.Area.Name == "Area_1"), regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1"));

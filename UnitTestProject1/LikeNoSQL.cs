@@ -124,13 +124,10 @@ namespace General
         [TestMethod]
         public void Select()
         {
-            var reg = this.regt_devices.Select(x => x.Key);
-            var org = this.m_Devices.Select(x => x.Key);
-            CheckEx.Check(reg, org);
-            var reg1 = this.regt_devices.Select(x => new { Key = x.Key });
-            var org1 = this.m_Devices.Select(x => new { Key = x.Key });
-            CheckEx.Check(reg1, org1);
-
+            CheckEx.Check(this.m_Devices.Select(x => x.Key), this.regt_devices.Select(x => x.Key));
+            CheckEx.Check(this.m_Devices.Select(x => new { Key = x.Key }), this.regt_devices.Select(x => new { Key = x.Key }));
+            CheckEx.Check(this.m_Devices.Select(x => x.CameraSetting.Brightness), this.regt_devices.Select(x => x.CameraSetting.Brightness));
+            CheckEx.Check(this.m_Devices.Select(x => x.CameraSetting.Brightness.CanEdit), this.regt_devices.Select(x => x.CameraSetting.Brightness.CanEdit));
         }
 
         [TestMethod]
@@ -147,18 +144,6 @@ namespace General
         {
             CheckEx.Check(this.m_Devices.Where(x => x.Location.Floor.Area.Name == "Area_1"), regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1"));
         }
-
-        [TestMethod]
-        public void Select1()
-        {
-            var reg = this.regt_devices.Select((x,i) => x.Key);
-            var org = this.m_Devices.Select((x, i) => x.Key);
-            CheckEx.Check(reg, org);
-            var reg1 = this.regt_devices.Select((x, i) => new {index = i, Key = x.Key });
-            var org1 = this.m_Devices.Select((x, i) => new {index=i, Key = x.Key });
-            CheckEx.Check(reg1, org1);
-        }
-
     }
 
 

@@ -149,7 +149,7 @@ namespace General
             regt.RemoveAll();
             regt.Insert(new List<InstalledApp>()
             {
-                new InstalledApp() { Key="AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0},
+                new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.1"), EstimatedSize = 10, ID=0 },
                 new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.2"), EstimatedSize = 10, ID = 1 },
                 new InstalledApp() { Key = "AA", DisplayName = "AA", Version = new Version("1.1.1.3"), EstimatedSize = 10, ID = 2 },
                 new InstalledApp() { Key = "BB", DisplayName = "BB", Version = new Version("2.2.2.2"), EstimatedSize = 20, ID = 3 },
@@ -157,9 +157,9 @@ namespace General
                 new InstalledApp() { Key = "DD", DisplayName = "DD", Version = new Version("4.4.4.4"), EstimatedSize = 40, ID = 5 },
                 new InstalledApp() { Key = "EE", DisplayName = "EE", Version = new Version("5.5.5.5"), EstimatedSize = 50, ID = 6 },
                 new InstalledApp() { Key = "FF", DisplayName = "FF", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 7 },
-                new InstalledApp() { Key = "FF", DisplayName = "GG", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 8 },
-                new InstalledApp() { Key = "FF", DisplayName = "HH", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 9 },
-                new InstalledApp() { Key = "FF", DisplayName = "II", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 10 },
+                new InstalledApp() { Key = "FF", DisplayName = "GG", Version = new Version("7.7.7.7"), EstimatedSize = 60, ID = 8 },
+                new InstalledApp() { Key = "FF", DisplayName = "HH", Version = new Version("8.8.8.8"), EstimatedSize = 60, ID = 9 },
+                new InstalledApp() { Key = "FF", DisplayName = "II", Version = new Version("9.9.9.9"), EstimatedSize = 60, ID = 10 },
                 new InstalledApp() { Key = "FF", DisplayName = "JJ", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 11 },
                 new InstalledApp() { Key = "FF", DisplayName = "KK", Version = new Version("6.6.6.6"), EstimatedSize = 60, ID = 12 },
             });
@@ -173,52 +173,6 @@ namespace General
                 new AppMapping(){AppID = 3, CompanyID = 0},
                 new AppMapping(){AppID = 4, CompanyID = 1}
             });
-            //var comapnys = regt_company.Join(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => y).Join(regt, x=>x.AppID, y=>y.ID,(x,y)=>y);
-            //foreach(var oo in comapnys)
-            //{
-
-            //}
-            //RegistryKey regbase = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            //var reg = regbase.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", true);
-            //try
-            //{
-            //    reg.DeleteSubKeyTree("1A");
-            //}
-            //catch(Exception ee)
-            //{
-            //    System.Diagnostics.Trace.WriteLine(ee.Message);
-            //    System.Diagnostics.Trace.WriteLine(ee.StackTrace);
-            //}
-
-
-            //var propertys = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true&&x.GetCustomAttributes(true).Any(y=>y is RegIgnore || y is RegSubKeyName)==false);
-
-            //var test1A = reg.CreateSubKey(@"1A", true);
-            //foreach(var oo in this.m_Tests)
-            //{
-            //    var regd = test1A.CreateSubKey(oo.Key, true);
-            //    foreach(var pp in propertys)
-            //    {
-            //        var doo = pp.GetValue(oo);
-            //        if(doo!=null)
-            //        {
-            //            var regnames = pp.GetCustomAttributes(typeof(RegPropertyName), false) as RegPropertyName[];
-            //            string subkeyname = pp.Name;
-            //            if (regnames.Length > 0)
-            //            {
-            //                subkeyname = regnames[0].Name;
-            //            }
-            //            regd.SetValue(subkeyname, doo);
-            //        }
-
-
-            //    }
-            //    //var parent = regd.GetParent();
-            //    //parent.DeleteSubKeyTree(oo.DisplayName);
-            //    regd.Close();
-            //    regd.Dispose();
-            //}
-
         }
 
         [TestMethod]
@@ -526,7 +480,6 @@ namespace General
         [TestMethod]
         public void All()
         {
-
             Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "") == regt.All(x => x.DisplayName == ""), "All(x => x.DisplayName == ) fail");
             Assert.IsTrue(this.m_Tests.All(x => x.DisplayName == "" && x.EstimatedSize > 10) == regt.All(x => x.DisplayName == "" && x.EstimatedSize > 10), "All fail");
         }

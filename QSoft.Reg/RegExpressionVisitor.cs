@@ -111,7 +111,7 @@ namespace QSoft.Registry.Linq
 
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
-                    if(oo.Value.SourceExpr.Type.IsIEnumerable()==true)
+                    if (oo.Value.SourceExpr.Type.IsIEnumerable() == true)
                     {
                         var temptype = oo.Value.SourceExpr.Type.GetGenericArguments()[0];
                         var select_method = temptype.SelectMethod_Enumerable();
@@ -123,18 +123,18 @@ namespace QSoft.Registry.Linq
                         //var sd = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToLambdaData(this.Converts);
                         //var aaaaa = Expression.Call(select_method, oo.Value.Expr, sd);
                     }
-                    else if(oo.Value.SourceExpr.Type.IsIGrouping() == true)
+                    else if (oo.Value.SourceExpr.Type.IsIGrouping() == true)
                     {
 
                     }
                     else
                     {
-                        if(oo.Value.Handled == false)
+                        if (oo.Value.Handled == false)
                         {
                             oo.Value.Expr = oo.Value.SourceExpr.Type.ToData(oo.Value.Expr, this.Converts);
                         }
                     }
-                    
+
                     //return;
                 }
                 else if (regss.Item1 == regss.Item2)
@@ -164,10 +164,10 @@ namespace QSoft.Registry.Linq
                     }
                     if (typecode == TypeCode.Object)
                     {
-                        if(oo.Value.Convert != null)
+                        if (oo.Value.Convert != null)
                         {
                             var methods = oo.Value.Convert.GetType().GetMethod("ConvertBack");
-                            if(regss.Item1 == null)
+                            if (regss.Item1 == null)
                             {
                                 var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Value.Expr);
                                 var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
@@ -202,15 +202,20 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                        var needdispose = Expression.Parameter(typeof(bool), "needdispose");
+                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Value.Expr);
                         var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
                         var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
-                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p, needdispose },
+                            Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
                             reg_p_assign,
                             hr_p_assign,
                             Expression.Block(
                                 Expression.Assign(hr_p, regss.Item2),
-                                reg_p.DisposeExpr()),
+                                Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
+                                Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                Expression.MakeBinary(ExpressionType.Equal, needdispose, Expression.Constant(true, typeof(bool)))),
+                                    reg_p.DisposeExpr())),
                             hr_p
                             );
                         oo.Value.Expr = membgervalue;
@@ -218,9 +223,6 @@ namespace QSoft.Registry.Linq
                 }
             }
         }
-
-
-        //Stack<List<Tuple<Expression, MemberExpression>>> m_MembersExprGroup = new Stack<List<Tuple<Expression, MemberExpression>>>();
 
         protected override Expression VisitNew(NewExpression node)
         {

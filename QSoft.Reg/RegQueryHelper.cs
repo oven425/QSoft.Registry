@@ -1058,28 +1058,60 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    if (item.ElementAt(0).type_src.IsNullable())
+                    foreach(var oo in item)
                     {
-                        getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                                    item.ElementAt(0).type_src.DefaultExpr(),
-                                    Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name)));
-                    }
-                    else
-                    {
-                        if(ex_src.Convert != null)
+                        if(getvalue == null)
                         {
-                            //var ooi = ex_src.Convert.GetType().BaseType.GetGenericArguments();
-                            var mmethod = ex_src.Convert.GetType().GetMethod("ConvertBack").GetParameters();
-                            getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
-                            //var methods = ex_src.Convert.GetType().GetMethod("ConvertBack");
+                            if (item.ElementAt(0).type_src.IsNullable())
+                            {
+                                getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                            item.ElementAt(0).type_src.DefaultExpr(),
+                                            Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name)));
+                            }
+                            else
+                            {
+                                if (ex_src.Convert != null)
+                                {
+                                    //var ooi = ex_src.Convert.GetType().BaseType.GetGenericArguments();
+                                    var mmethod = ex_src.Convert.GetType().GetMethod("ConvertBack").GetParameters();
+                                    getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
+                                    //var methods = ex_src.Convert.GetType().GetMethod("ConvertBack");
 
-                            //getvalue = Expression.Call(Expression.Constant(ex_src.Convert), methods, getvalue);
+                                    //getvalue = Expression.Call(Expression.Constant(ex_src.Convert), methods, getvalue);
+                                }
+                                else
+                                {
+                                    getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name));
+                                }
+                            }
                         }
                         else
                         {
-                            getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name));
+                            getvalue = Expression.Property(getvalue, oo.name);
                         }
                     }
+                    //if (item.ElementAt(0).type_src.IsNullable())
+                    //{
+                    //    getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                    //                item.ElementAt(0).type_src.DefaultExpr(),
+                    //                Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name)));
+                    //}
+                    //else
+                    //{
+                    //    if(ex_src.Convert != null)
+                    //    {
+                    //        //var ooi = ex_src.Convert.GetType().BaseType.GetGenericArguments();
+                    //        var mmethod = ex_src.Convert.GetType().GetMethod("ConvertBack").GetParameters();
+                    //        getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
+                    //        //var methods = ex_src.Convert.GetType().GetMethod("ConvertBack");
+
+                    //        //getvalue = Expression.Call(Expression.Constant(ex_src.Convert), methods, getvalue);
+                    //    }
+                    //    else
+                    //    {
+                    //        getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name));
+                    //    }
+                    //}
                 }
             }
             Expression expr = getsubkeyexpr;
@@ -1282,15 +1314,20 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                        var needdispose = Expression.Parameter(typeof(bool), "needdispose");
+                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Value.Expr);
                         var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
                         var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
-                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p, needdispose },
+                            Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
                             reg_p_assign,
                             hr_p_assign,
                             Expression.Block(
                                 Expression.Assign(hr_p, regss.Item2),
-                                reg_p.DisposeExpr()),
+                                Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
+                                Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                Expression.MakeBinary(ExpressionType.Equal, needdispose, Expression.Constant(true, typeof(bool)))),
+                                    reg_p.DisposeExpr())),
                             hr_p
                             );
                         oo.Value.Expr = membgervalue;

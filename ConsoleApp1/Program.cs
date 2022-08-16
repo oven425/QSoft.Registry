@@ -238,8 +238,8 @@ namespace ConsoleApp1
                 //});
                 //var iiu = Expression.Constant(null);
                 //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
-                var ffi = regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1");
-                var llo = regt_devices.Select(x => x.Location.Floor.Area.Data.Size);
+                //var ffi = regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1");
+                //var llo = regt_devices.Select(x => x.Location.Floor.Area.Data.Size);
                 //foreach (var oo in llo)
                 //{
                 //}
@@ -370,8 +370,25 @@ namespace ConsoleApp1
             //{
 
             //}
-            int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
-            var o1o = regt.GroupBy(x => x).Select(x => x.Key);
+            var aa = regt.Average(x => x.DisplayName.Length);
+            RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\AppMapping";
+                x.View = RegistryView.Registry64;
+            });
+            RegQuery<App> regt_apps = new RegQuery<App>()
+            .useSetting(x =>
+            {
+                x.Hive = RegistryHive.CurrentConfig;
+                x.SubKey = @"UnitTest\Apps";
+            }).useConverts(x => x.Add(new Version2String()));
+            var join1 = regt_apps.Join(regt_appmapping, app => app.ID, mapping => mapping.AppID, (x, y) => x);
+            var apps = join1.ToList();
+
+            //int update_count = regt.Update(x => new InstalledApp() { EstimatedSize = x.EstimatedSize + 100 });
+            var o1o = regt.GroupBy(x => x);
             foreach (var oo in o1o)
             {
 

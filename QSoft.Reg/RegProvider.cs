@@ -608,9 +608,12 @@ namespace QSoft.Registry.Linq
 
 
             this.m_RegMethod = this.m_ProcessExprs[expression];
+            var pppps = this.m_RegMethod.GetType().GetProperties(BindingFlags.NonPublic);
+            System.Diagnostics.Debug.WriteLine(this.m_RegMethod.ToString());
             if (type.IsNullable()==true)
             {
                 var excute = this.m_RegsQuery.Provider.Execute(this.m_RegMethod);
+                
                 //var creatquery = this.m_CreateQuery.MakeGenericMethod(tts);
                 //var excute = creatquery.Invoke(this.m_RegsQuery.Provider, new object[] { this.m_RegMethod });
                 return_hr = (TResult)excute;

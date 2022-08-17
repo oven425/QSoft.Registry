@@ -331,17 +331,19 @@ namespace General
         [TestMethod]
         public void Select()
         {
-            CheckEx.Check(this.m_Tests.Select(x => x), regt.Select(x => x));
-            CheckEx.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
-            CheckEx.Check(this.m_Tests.Select(x => x.Version), regt.Select(x => x.Version));
-            CheckEx.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
-            CheckEx.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
-            CheckEx.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
-            CheckEx.Check(this.m_Tests.Select(x => new { Version = x.Version }), regt.Select(x => new { Version = x.Version }));
-            CheckEx.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
-            CheckEx.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
+            //CheckEx.Check(this.m_Tests.Select(x => x), regt.Select(x => x));
+            //CheckEx.Check(this.m_Tests.Select(x => x.DisplayName), regt.Select(x => x.DisplayName));
+            //CheckEx.Check(this.m_Tests.Select(x => x.Version), regt.Select(x => x.Version));
+            //CheckEx.Check(this.m_Tests.Select(x => x.EstimatedSize), regt.Select(x => x.EstimatedSize));
+            //CheckEx.Check(this.m_Tests.Select(x => x.IsOfficial), regt.Select(x => x.IsOfficial));
+            //CheckEx.Check(this.m_Tests.Select(x => new { Name = x.DisplayName }), regt.Select(x => new { Name = x.DisplayName }));
+            //CheckEx.Check(this.m_Tests.Select(x => new { Version = x.Version }), regt.Select(x => new { Version = x.Version }));
+            //CheckEx.Check(this.m_Tests.Select(x => new { Size = x.EstimatedSize }), regt.Select(x => new { Size = x.EstimatedSize }));
+            //CheckEx.Check(this.m_Tests.Select(x => new { Official = x.IsOfficial }), regt.Select(x => new { Official = x.IsOfficial }));
+            var a1 = regt.Select(x => $"IsOfficial{x.IsOfficial}");
+            var a2 = this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}");
             CheckEx.Check(this.m_Tests.Select(x => $"IsOfficial{x.IsOfficial}"), regt.Select(x => $"IsOfficial{x.IsOfficial}"));
-            //CheckEx.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.Version.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.Version.ToString() }));
+            ////CheckEx.Check(this.m_Tests.Select(x => new AppData(x.DisplayName) { Ver = x.Version.ToString(), IsOfficial = (bool)x.IsOfficial }), regt.Select(x => new AppData(x.DisplayName) { IsOfficial = (bool)x.IsOfficial, Ver = x.Version.ToString() }));
         }
 
         [TestMethod]

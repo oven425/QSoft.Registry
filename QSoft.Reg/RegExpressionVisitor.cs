@@ -29,6 +29,7 @@ namespace QSoft.Registry.Linq
         {
             this.m_Saves = saves;
             this.m_ExpressionSaves[node] = new Ex();
+            this.m_ExpressionSaves[node].SourceExpr = node;
             this.m_RegSource = regfunc;
             Expression expr = this.Visit(node);
 
@@ -529,7 +530,7 @@ namespace QSoft.Registry.Linq
                 {
                     m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
                 }
-                
+
                 //if(m_Lambda.ReturnType == typeof(IEnumerable<RegistryKey>))
                 //{
                 //    var param = exprs.First().Value;
@@ -539,6 +540,7 @@ namespace QSoft.Registry.Linq
                 //    var select_expr = Expression.Call(select_method, param, sd);
                 //    m_Lambda = Expression.Lambda(select_expr, parameters);
                 //}
+                this.m_ExpressionSaves[expr].SourceExpr = expr;
                 this.m_ExpressionSaves[expr].Expr = this.m_Lambda;
             }
             else
@@ -876,7 +878,10 @@ namespace QSoft.Registry.Linq
                     result_type = result_type.GetGenericArguments().First();
                 }
             }
-
+            if(expr.NodeType == ExpressionType.Convert)
+            {
+                ToNew(exprs);
+            }
             UnaryExpression unary = Expression.MakeUnary(node.NodeType, exprs.First().Value.Expr, result_type);
             this.m_ExpressionSaves[expr].Expr = unary;
             
@@ -1086,6 +1091,7 @@ namespace QSoft.Registry.Linq
                 var aaa = this.m_Saves[node];
                 this.m_ExpressionSaves[node] = new Ex();
                 this.m_ExpressionSaves[node].Expr = aaa;
+                this.m_ExpressionSaves[node].SourceExpr = node;
                 return node;
             }
             LastMethodName = node.Method.Name;
@@ -1144,13 +1150,21 @@ namespace QSoft.Registry.Linq
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
                                 }
-
-                                methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value.Expr));
+                                var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
+                                if(bubkey != null)
+                                {
+                                    methodcall = bubkey;
+                                }
+                                else
+                                {
+                                    methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value.Expr));
+                                }
                             }
                             else
                             {
                                 var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
                                 //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
+                                
                                 var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
                                 if (bubkey != null)
                                 {
@@ -1196,8 +1210,8 @@ namespace QSoft.Registry.Linq
             {
                 this.m_GenericTypes.Pop();
             }
-            
 
+            this.m_ExpressionSaves[expr].SourceExpr = expr;
             this.m_ExpressionSaves[expr].Expr = methodcall;
             this.m_Lastnode = expr;
             return expr;

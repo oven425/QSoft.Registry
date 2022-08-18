@@ -370,7 +370,12 @@ namespace ConsoleApp1
             //{
 
             //}
-            var a1 = regt.Select(x => $"IsOfficial{x.IsOfficial}");
+            //var a2 = regt.ToList().Select(x => $"IsOfficial:{x.IsOfficial}");
+            var a1 = regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize));
+            foreach (var oo in a1)
+            {
+
+            }
             var aa = regt.Average(x => x.DisplayName.Length);
             RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
             .useSetting(x =>

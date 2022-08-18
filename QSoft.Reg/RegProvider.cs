@@ -608,7 +608,7 @@ namespace QSoft.Registry.Linq
 
 
             this.m_RegMethod = this.m_ProcessExprs[expression];
-            var pppps = this.m_RegMethod.GetType().GetProperties(BindingFlags.NonPublic);
+            var pppps = this.m_RegMethod.GetType().GetProperties();
             System.Diagnostics.Debug.WriteLine(this.m_RegMethod.ToString());
             if (type.IsNullable()==true)
             {

@@ -447,6 +447,7 @@ namespace QSoft.Registry.Linq
                             //var expr = pp.dst.PropertyType.ToData(param1);
                             //var test = Expression.Equal(param1, Expression.Constant(null));
                             //var ifelse = Expression.Condition(test, pp.dst.PropertyType.DefaultExpr(), expr);
+                            
                             var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
                             var getsubkeyexpr = Expression.Call(param1, opensubkey, Expression.Constant(pp.dst.PropertyType.Name));
                             var objepxr = pp.dst.PropertyType.ToData(param1, converts);
@@ -700,23 +701,6 @@ namespace QSoft.Registry.Linq
             return memberinit;
         }
 
-
-        //public static Expression Convert(this IEnumerable<RegQueryConvert> src, Expression regexpr)
-        //{
-        //    var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name);
-        //    var convert = src.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
-        //    if (convert != null)
-        //    {
-        //        var methods = convert.GetType().GetMethod("ConvertBack");
-        //        var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(methods.GetParameters()[0].ParameterType), param, name);
-
-        //        var convertbackexpr = Expression.Call(Expression.Constant(convert), methods, regexpr);
-        //        var binding = Expression.Bind(pp.x, convertbackexpr);
-        //        bindings.Add(binding);
-        //    }
-        //}
-
-
         public static Type Find(this Type src, MethodInfo method, string target)
         {
             var args1 = method.GetGenericMethodDefinition().GetGenericArguments().Select(x => x.Name);
@@ -856,41 +840,6 @@ namespace QSoft.Registry.Linq
                 return src.Select(x => x.Type).ToArray();
             }
         }
-
-        //public static Dictionary<string,Type> GetTypess(this IEnumerable<Expression> src, MethodInfo method)
-        //{
-        //    if (method.IsGenericMethod == true)
-        //    {
-        //        var method_define = method.GetGenericMethodDefinition();
-        //        var names = method_define.GetGenericArguments().Select(x => x.Name).ToArray();
-
-        //        var method_pps = method_define.GetParameters();
-        //        var types1 = new Dictionary<string, Type>();
-
-
-        //        for (int i = 0; i < names.Length; i++)
-        //        {
-        //            for (int j = 0; j < method_pps.Length; j++)
-        //            {
-        //                var ttype = names.ElementAt(i).Findd(src.ElementAt(j).Type, method_pps[j].ParameterType);
-        //                if (ttype != null)
-        //                {
-        //                    types1[names.ElementAt(i)] = ttype;
-        //                    break;
-        //                }
-        //            }
-
-
-        //        }
-        //        return types1;
-        //    }
-        //    else
-        //    {
-        //        return src.ToDictionary(x => x.Type.Name, x => x.Type);
-        //       // return src.Select(x => x.Type).ToArray();
-        //    }
-        //}
-
 
         public static string GetLastSegement(this string src)
         {
@@ -1338,53 +1287,89 @@ namespace QSoft.Registry.Linq
             return binary;
         }
 
-        //public static Expression ToBinary(this List<Tuple<Expression, MemberExpression>> members, BinaryExpression node, DictionaryList<Expression, Ex> exprs)
-        //{
-        //    Expression binary = null;
-        //    var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-        //    var regss = members.BuildSubKey(reg_p);
+
+        public static Expression ToStaticMethodCall(this IEnumerable<Ex> src, MethodInfo method, IEnumerable<Expression> args)
+        {
+
+            if (src.First().Expr != null && src.First().Expr.Type == src.First().SourceExpr.Type)
+            {
+                return null;
+            }
+            else if (!(src.First().SourceExpr is MemberExpression))
+            {
+                return null;
+            }
+            foreach(var oo in src)
+            {
+                var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                var sssou = ((oo.SourceExpr as MemberExpression).Member as PropertyInfo);
+                var regss = new List<PropertyInfo>() { sssou }.BuildSubKey(oo, reg_p);
+                if (regss.Item1 == null && regss.Item2 == null)
+                {
+                    return null;
+                }
+                var method_return = Expression.Parameter(method.ReturnType, "method_return");
+                var needdispose = Expression.Parameter(typeof(bool), "needdispose");
+                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Expr);
+                Expression convert = null;
+                if (oo.Convert != null)
+                {
+                    var method_convertback = oo.Convert.GetType().GetMethod("ConvertBack");
+                    convert = Expression.Call(Expression.Constant(oo.Convert), method_convertback, regss.Item2);
+                }
+
+
+                var hr_p = Expression.Parameter(oo.SourceExpr.Type, "hr");
+                var hr_p_assign = Expression.Assign(hr_p, oo.SourceExpr.Type.DefaultExpr());
+                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p, needdispose },
+                    Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
+                    reg_p_assign,
+                    hr_p_assign,
+                    Expression.Block(
+                        Expression.Assign(hr_p, regss.Item2),
+                        Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
+                        Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.MakeBinary(ExpressionType.Equal, needdispose, Expression.Constant(true, typeof(bool)))),
+                            reg_p.DisposeExpr())),
+                    hr_p
+                    );
+                oo.Expr = membgervalue;
+            }
             
-        //    if (regss.Item1==null&& regss.Item2==null)
-        //    {
-        //        return null;
-        //    }
-        //    else if(members.Count == 1)
-        //    {
-        //        if(regss.Item2.Type == typeof(RegistryKey))
-        //        {
-        //            var binary_return = Expression.Parameter(typeof(bool), "hr");
-        //            binary = Expression.Block(new ParameterExpression[] { binary_return },
-        //                Expression.IfThen(Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value.Expr),
-        //                    Expression.Assign(binary_return, Expression.Constant(true))),
-        //                    regss.Item2.DisposeExpr(),
-        //                    binary_return
-        //                );
-        //        }
-        //        else
-        //        {
-        //            binary = Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value.Expr);
-        //        }
-        //    }
-        //    else
-        //    {
-        //        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
-        //        var binary_return = Expression.Parameter(typeof(bool), "hr");
-        //        binary = Expression.Block(new[] { binary_return, reg_p },
-        //            reg_p_assign,
-        //            Expression.IfThenElse(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(regss.Item2 != null), Expression.Constant(true)),
-        //                Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, regss.Item2, exprs.ElementAt(1).Value.Expr)),
-        //                Expression.Assign(binary_return, Expression.MakeBinary(node.NodeType, reg_p, Expression.Constant(null, typeof(RegistryKey))))),
-        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-        //                reg_p.DisposeExpr()),
-        //            binary_return);
-        //    }
-            
-        //    return binary;
-        //}
+
+            Expression block = null;
+            block = Expression.Call(method, src.Select(x => x.Expr));
+
+            //if (method.IsStatic == true)
+            //{
+            //    List<Expression> exprs = new List<Expression>();
+            //    exprs.Add(convert == null ? regss.Item2 : convert);
+            //    exprs.AddRange(args.Skip(1));
+            //    block = Expression.Block(new[] { reg_p, method_return, needdispose },
+            //        Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
+            //        Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
+            //        reg_p_assign,
+            //        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+            //            Expression.Assign(method_return, Expression.Call(method, exprs))),
+            //        Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
+            //        Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+            //        Expression.MakeBinary(ExpressionType.Equal, needdispose, Expression.Constant(true, typeof(bool)))),
+            //            reg_p.DisposeExpr()),
+            //        method_return
+            //    );
+            //}
+
+
+            return block;
+        }
 
         public static Expression ToMethodCall(this Ex src, MethodInfo method, IEnumerable<Expression> args)
         {
             if(src.Expr != null && src.Expr.Type == src.SourceExpr.Type)
+            {
+                return null;
+            }
+            else if(!(src.SourceExpr is MemberExpression))
             {
                 return null;
             }
@@ -1403,9 +1388,6 @@ namespace QSoft.Registry.Linq
             if(src.Convert != null)
             {
                 var method_convertback = src.Convert.GetType().GetMethod("ConvertBack");
-                //getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
-                //var methods = ex_src.Convert.GetType().GetMethod("ConvertBack");
-
                 convert = Expression.Call(Expression.Constant(src.Convert), method_convertback, regss.Item2);
             }
 
@@ -1448,47 +1430,47 @@ namespace QSoft.Registry.Linq
         }
 
 
-        public static Expression ToMethodCall(this List<Tuple<Expression, MemberExpression>> members, MethodInfo method, IEnumerable<Expression> args)
-        {
-            var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-            var regss = members.BuildSubKey(reg_p);
-            if (regss.Item1 == null && regss.Item2 == null)
-            {
-                return null;
-            }
-            var method_return = Expression.Parameter(method.ReturnType, "method_return");
-            var reg_p_assign = Expression.Assign(reg_p, regss.Item1);
-            BlockExpression block = null;
-            if (method.IsStatic == true)
-            {
-                List<Expression> exprs = new List<Expression>();
-                exprs.Add(regss.Item2);
-                exprs.AddRange(args.Skip(1));
-                block = Expression.Block(new[] { reg_p, method_return },
-                    Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
-                    reg_p_assign,
-                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        Expression.Assign(method_return, Expression.Call(method, exprs))),
-                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        reg_p.DisposeExpr()),
-                    method_return
-                );
-            }
-            else
-            {
-                block = Expression.Block(new[] { reg_p, method_return },
-                    Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
-                    reg_p_assign,
-                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        Expression.Assign(method_return, Expression.Call(regss.Item2, method, args))),
-                    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        reg_p.DisposeExpr()),
-                    method_return
-                );
-            }
+        //public static Expression ToMethodCall(this List<Tuple<Expression, MemberExpression>> members, MethodInfo method, IEnumerable<Expression> args)
+        //{
+        //    var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+        //    var regss = members.BuildSubKey(reg_p);
+        //    if (regss.Item1 == null && regss.Item2 == null)
+        //    {
+        //        return null;
+        //    }
+        //    var method_return = Expression.Parameter(method.ReturnType, "method_return");
+        //    var reg_p_assign = Expression.Assign(reg_p, regss.Item1);
+        //    BlockExpression block = null;
+        //    if (method.IsStatic == true)
+        //    {
+        //        List<Expression> exprs = new List<Expression>();
+        //        exprs.Add(regss.Item2);
+        //        exprs.AddRange(args.Skip(1));
+        //        block = Expression.Block(new[] { reg_p, method_return },
+        //            Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
+        //            reg_p_assign,
+        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                Expression.Assign(method_return, Expression.Call(method, exprs))),
+        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                reg_p.DisposeExpr()),
+        //            method_return
+        //        );
+        //    }
+        //    else
+        //    {
+        //        block = Expression.Block(new[] { reg_p, method_return },
+        //            Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
+        //            reg_p_assign,
+        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                Expression.Assign(method_return, Expression.Call(regss.Item2, method, args))),
+        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+        //                reg_p.DisposeExpr()),
+        //            method_return
+        //        );
+        //    }
 
-            return block;
-        }
+        //    return block;
+        //}
 
         public static Tuple<PropertyInfo, Dictionary<PropertyInfo, string>> PropertyName(this Type src)
         {

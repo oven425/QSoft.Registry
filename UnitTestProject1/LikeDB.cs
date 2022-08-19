@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using QSoft.Registry.Linq;
 using System.Linq;
 using General;
+using UnitTest;
 
 namespace LikeDB
 {
@@ -15,7 +16,7 @@ namespace LikeDB
             .useSetting(x =>
             {
                 x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\AppMapping";
+                x.SubKey = @"UnitTestLikeDB\AppMapping";
                 x.View = RegistryView.Registry64;
             });
 
@@ -23,7 +24,7 @@ namespace LikeDB
             .useSetting(x =>
             {
                 x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\Company";
+                x.SubKey = @"UnitTestLikeDB\Company";
                 x.View = RegistryView.Registry64;
             });
 
@@ -32,7 +33,7 @@ namespace LikeDB
             .useSetting(x =>
             {
                 x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\Apps";
+                x.SubKey = @"UnitTestLikeDB\Apps";
             }).useConverts(x=>x.Add(new Version2String()));
 
 
@@ -40,16 +41,16 @@ namespace LikeDB
         public void CreateDB()
         {
             regt_apps.RemoveAll();
-            regt_apps.Insert(Enumerable.Range(1, 50000).Select(x => new App() { ID = x, DisplayName = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
-            //regt_apps.Insert(new List<App>()
-            //{
-            //    new App(){ID=1, DisplayName="Camera", Version=new Version(1,1,1,1), Size=123 },
-            //    new App(){ID=2, DisplayName="Motion", Version=new Version(2,2,2,2), Size=123 },
-            //    new App(){ID=3, DisplayName="VLC.exe", Version=new Version(3,3,3,3), Size=123 },
-            //    new App(){ID=4, DisplayName="Joystick.cpl", Version=new Version(4,4,4,4), Size=123 },
-            //    new App(){ID=5, DisplayName="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
-            //    new App(){ID=6, DisplayName="PLC.exe", Version=new Version(6,6,6,6), Size=123 },
-            //});
+            //regt_apps.Insert(Enumerable.Range(1, 50000).Select(x => new App() { ID = x, DisplayName = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));
+            regt_apps.Insert(new List<App>()
+            {
+                new App(){ID=1, DisplayName="Camera", Version=new Version(1,1,1,1), Size=123 },
+                new App(){ID=2, DisplayName="Motion", Version=new Version(2,2,2,2), Size=123 },
+                new App(){ID=3, DisplayName="VLC.exe", Version=new Version(3,3,3,3), Size=123 },
+                new App(){ID=4, DisplayName="Joystick.cpl", Version=new Version(4,4,4,4), Size=123 },
+                new App(){ID=5, DisplayName="IPBoroadcast.exe", Version=new Version(5,5,5,5), Size=123 },
+                new App(){ID=6, DisplayName="PLC.exe", Version=new Version(6,6,6,6), Size=123 },
+            });
             regt_company.RemoveAll();
             //var companydatas = Enumerable.Range(1, 10).Select(x => new Company() { Key=x,Name=$"Name_{x}", Address=$"Address_{x}" });
             //regt_company.Insert(companydatas);
@@ -78,7 +79,7 @@ namespace LikeDB
             var apps = join1.ToList();
             var mappings = regt_appmapping.ToList();
             var join2 = apps.Join(mappings, app => app.ID, mapping => mapping.AppID, (x, y) => x);
-            //Check(join1, join2);
+            CheckEx.Check(join1, join2);
 
         }
 
@@ -89,66 +90,66 @@ namespace LikeDB
             var companys = regt_company.ToList();
             var mappings = regt_appmapping.ToList();
             var join2 = companys.Join(mappings, company => company.Key, mapping => mapping.CompanyID, (x, y) => x);
-            Check(join1, join2);
+            CheckEx.Check(join1, join2);
         }
 
-        bool Check<T>(T src, T dst)
-        {
-            bool result = true;
-            var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
-            foreach(var pp in pps)
-            {
-                bool ch = false;
-                var typecode = Type.GetTypeCode(pp.PropertyType);
-                if(typecode == TypeCode.Object)
-                {
-                    if(pp.PropertyType == typeof(Version))
-                    {
+        //bool Check<T>(T src, T dst)
+        //{
+        //    bool result = true;
+        //    var pps = typeof(T).GetProperties().Where(x => x.CanRead == true);
+        //    foreach(var pp in pps)
+        //    {
+        //        bool ch = false;
+        //        var typecode = Type.GetTypeCode(pp.PropertyType);
+        //        if(typecode == TypeCode.Object)
+        //        {
+        //            if(pp.PropertyType == typeof(Version))
+        //            {
 
-                    }
-                    else
-                    {
-                        ch = true;
-                        dynamic s = pp.GetValue(src);
-                        dynamic d = pp.GetValue(dst);
-                        if(s == null && d==null)
-                        {
+        //            }
+        //            else
+        //            {
+        //                ch = true;
+        //                dynamic s = pp.GetValue(src);
+        //                dynamic d = pp.GetValue(dst);
+        //                if(s == null && d==null)
+        //                {
 
-                        }
-                        else
-                        {
-                            Check(s, d);
-                        }
-                    }
-                }
-                if(ch==false)
-                {
-                    dynamic s = pp.GetValue(src);
-                    dynamic d = pp.GetValue(dst);
-                    Assert.AreEqual(s, d, $"{s}!={d}");
-                }
+        //                }
+        //                else
+        //                {
+        //                    Check(s, d);
+        //                }
+        //            }
+        //        }
+        //        if(ch==false)
+        //        {
+        //            dynamic s = pp.GetValue(src);
+        //            dynamic d = pp.GetValue(dst);
+        //            Assert.AreEqual(s, d, $"{s}!={d}");
+        //        }
                 
-            }
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        bool Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
-        {
-            bool result = true;
-            if(src.Count() != dst.Count())
-            {
-                Assert.Fail($"src:{src.Count()}!=dst:{dst.Count()}");
-                return false;
-            }
-            var zip = src.Zip(dst, (x, y) => new { src = x, dst = y });
-            foreach(var oo in zip)
-            {
-                Check(oo.src, oo.dst);
-            }
+        //bool Check<T>(IEnumerable<T> src, IEnumerable<T> dst)
+        //{
+        //    bool result = true;
+        //    if(src.Count() != dst.Count())
+        //    {
+        //        Assert.Fail($"src:{src.Count()}!=dst:{dst.Count()}");
+        //        return false;
+        //    }
+        //    var zip = src.Zip(dst, (x, y) => new { src = x, dst = y });
+        //    foreach(var oo in zip)
+        //    {
+        //        Check(oo.src, oo.dst);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         [TestMethod]
         public void LeftJoin_2Table()
@@ -179,7 +180,7 @@ namespace LikeDB
                         select new { app, mapping };
 
 
-            Check(left1, left2);
+            CheckEx.Check(left1, left2);
         }
 
         [TestMethod]
@@ -202,7 +203,7 @@ namespace LikeDB
                 .Where(x => x.mapping != null)
                 .GroupJoin(apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
                 .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { Company = x.company.Name, App = y.DisplayName });
-            Check(left1, left2);
+            CheckEx.Check(left1, left2);
         }
 
         [TestMethod]
@@ -240,7 +241,7 @@ namespace LikeDB
 
 
 
-            Check(left1, left2);
+            CheckEx.Check(left1, left2);
         }
 
         [TestMethod]

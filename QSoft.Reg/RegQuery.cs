@@ -70,15 +70,15 @@ namespace QSoft.Registry.Linq
         List<RegQueryConvert> m_Converts = new List<RegQueryConvert>();
 
         
-        public RegQuery<T> useConverts(List<RegQueryConvert> converts)
-        {
-            if(converts!=null)
-            {
-                this.m_Converts.AddRange(converts);
-            }
-            this.m_Provider.Converts = this.m_Converts;
-            return this;
-        }
+        //public RegQuery<T> useConverts(List<RegQueryConvert> converts)
+        //{
+        //    if(converts!=null)
+        //    {
+        //        this.m_Converts.AddRange(converts);
+        //    }
+        //    this.m_Provider.Converts = this.m_Converts;
+        //    return this;
+        //}
 
         public RegQuery<T> useConverts(Action<List<RegQueryConvert>> converts)
         {

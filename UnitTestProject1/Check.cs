@@ -88,7 +88,15 @@ namespace UnitTest
                         }
                         else
                         {
-                            Check(s, d);
+                            if(s== null && d==null)
+                            {
+
+                            }
+                            else
+                            {
+                                Check(s, d);
+                            }
+                            
                         }
                     }
                     else if (pp.PropertyType.IsGenericType == true && pp.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>))

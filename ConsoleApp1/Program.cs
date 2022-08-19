@@ -213,9 +213,9 @@ namespace ConsoleApp1
                         x.SubKey = @"devices";
                         x.View = RegistryView.Registry64;
                     })
-                    .useConverts(new List<RegQueryConvert>()
+                    .useConverts(x=>
                     {
-                        new Version2String(),
+                        x.Add(new Version2String());
                         //new Size2String()
                     });
                 //var llo = regt_devices.Select(x => new
@@ -371,7 +371,7 @@ namespace ConsoleApp1
 
             //}
             //var a2 = regt.ToList().Select(x => $"IsOfficial:{x.IsOfficial}");
-            var a1 = regt.Select((x, index) => Tuple.Create(x.DisplayName, x.EstimatedSize));
+            var a1 = regt.Where(x => x.DisplayName == $"{x.DisplayName}");
             foreach (var oo in a1)
             {
 

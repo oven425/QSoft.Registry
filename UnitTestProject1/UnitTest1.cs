@@ -129,9 +129,9 @@ namespace General
                 x.Hive = RegistryHive.CurrentConfig;
                 x.SubKey = @"UnitTest\Apps";
             })
-            .useConverts(new List<RegQueryConvert>()
+            .useConverts(x =>
             {
-                new Version2String()
+                x.Add(new Version2String());
             });
         [TestCategory("Init")]
         [TestMethod]

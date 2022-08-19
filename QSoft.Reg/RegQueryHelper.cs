@@ -1340,25 +1340,65 @@ namespace QSoft.Registry.Linq
             Expression block = null;
             block = Expression.Call(method, src.Select(x => x.Expr));
 
-            //if (method.IsStatic == true)
-            //{
-            //    List<Expression> exprs = new List<Expression>();
-            //    exprs.Add(convert == null ? regss.Item2 : convert);
-            //    exprs.AddRange(args.Skip(1));
-            //    block = Expression.Block(new[] { reg_p, method_return, needdispose },
-            //        Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
-            //        Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
-            //        reg_p_assign,
-            //        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-            //            Expression.Assign(method_return, Expression.Call(method, exprs))),
-            //        Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
-            //        Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-            //        Expression.MakeBinary(ExpressionType.Equal, needdispose, Expression.Constant(true, typeof(bool)))),
-            //            reg_p.DisposeExpr()),
-            //        method_return
-            //    );
-            //}
+            return block;
+        }
 
+
+        public static Expression ToMethodCall(this IEnumerable<Ex> src, MethodInfo method, IEnumerable<Expression> args)
+        {
+
+            //if (src.First().Expr != null && src.First().Expr.Type == src.First().SourceExpr.Type)
+            //{
+            //    return null;
+            //}
+            //else if (!(src.First().SourceExpr is MemberExpression))
+            //{
+            //    return null;
+            //}
+            foreach (var oo in src)
+            {
+                var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                if(!(oo.SourceExpr is MemberExpression))
+                {
+                    continue;
+                }
+                var sssou = ((oo.SourceExpr as MemberExpression).Member as PropertyInfo);
+                var regss = new List<PropertyInfo>() { sssou }.BuildSubKey(oo, reg_p);
+                if (regss.Item1 == null && regss.Item2 == null)
+                {
+                    return null;
+                }
+                var method_return = Expression.Parameter(method.ReturnType, "method_return");
+                var needdispose = Expression.Parameter(typeof(bool), "needdispose");
+                var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Expr);
+                Expression convert = null;
+                if (oo.Convert != null)
+                {
+                    var method_convertback = oo.Convert.GetType().GetMethod("ConvertBack");
+                    convert = Expression.Call(Expression.Constant(oo.Convert), method_convertback, regss.Item2);
+                }
+
+
+                var hr_p = Expression.Parameter(oo.SourceExpr.Type, "hr");
+                var hr_p_assign = Expression.Assign(hr_p, oo.SourceExpr.Type.DefaultExpr());
+                var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p, needdispose },
+                    Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
+                    reg_p_assign,
+                    hr_p_assign,
+                    Expression.Block(
+                        Expression.Assign(hr_p, regss.Item2),
+                        Expression.IfThen(Expression.MakeBinary(ExpressionType.AndAlso,
+                        Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                        Expression.MakeBinary(ExpressionType.Equal, needdispose, Expression.Constant(true, typeof(bool)))),
+                            reg_p.DisposeExpr())),
+                    hr_p
+                    );
+                oo.Expr = membgervalue;
+            }
+
+
+            Expression block = null;
+            block = Expression.Call(method, src.Select(x => x.Expr));
 
             return block;
         }

@@ -1095,9 +1095,7 @@ namespace QSoft.Registry.Linq
                 return node;
             }
             LastMethodName = node.Method.Name;
-            if (node.Method.Name == "Any")
-            {
-            }
+
 
             this.PreparMethod1(node, node.Arguments.ToArray(), node.Method);
 
@@ -1164,7 +1162,7 @@ namespace QSoft.Registry.Linq
                             {
                                 var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
                                 //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
-                                
+                                var bubkey1 = exprs1.Values.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
                                 var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
                                 if (bubkey != null)
                                 {

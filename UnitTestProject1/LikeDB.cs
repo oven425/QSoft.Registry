@@ -161,8 +161,8 @@ namespace LikeDB
             var apps = regt_apps.ToList();
             var mappings = regt_appmapping.ToList();
             var gj2 = apps.GroupJoin(mappings, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping });
-            var left2 = gj2.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app.DisplayName, mapping});
-            //Check(left1, left2);
+            var left2 = gj2.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping});
+            CheckEx.Check(left1, left2);
         }
 
         [TestMethod]

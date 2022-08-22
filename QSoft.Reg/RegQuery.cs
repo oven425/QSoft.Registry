@@ -54,6 +54,7 @@ namespace QSoft.Registry.Linq
         public RegQuery()
         {
             this.Expression = Expression.Constant(this);
+            this.m_Provider.Converts = this.m_Converts;
         }
 
         RegSetting m_Setting = new RegSetting();

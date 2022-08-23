@@ -133,6 +133,7 @@ namespace General
         [TestMethod]
         public void FirstOrDefault()
         {
+            CheckEx.Check(this.m_Devices.FirstOrDefault(), regt_devices.FirstOrDefault());
             CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"),
                             regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"));
             CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0),
@@ -142,7 +143,30 @@ namespace General
         [TestMethod]
         public void Where()
         {
-            CheckEx.Check(this.m_Devices.Where(x => x.Location.Floor.Area.Name == "Area_1"), regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1"));
+            var where = regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1");
+            CheckEx.Check(this.m_Devices.Where(x => x.Location.Floor.Area.Name == "Area_1"), 
+                regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1"));
+        }
+
+        [TestMethod]
+        public void ElementAt()
+        {
+            for(int i=0; i<this.m_Devices.Count; i++)
+            {
+                CheckEx.Check(this.m_Devices.ElementAt(i), regt_devices.ElementAt(i));
+            }
+        }
+
+        [TestMethod]
+        public void Take()
+        {
+            CheckEx.Check(this.m_Devices.Take(1), regt_devices.Take(1));
+        }
+
+        [TestMethod]
+        public void TakeWhile()
+        {
+            CheckEx.Check(this.m_Devices.TakeWhile(x=>x.Name !=null), regt_devices.TakeWhile(x => x.Name != null));
         }
     }
 

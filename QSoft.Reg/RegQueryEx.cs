@@ -302,23 +302,23 @@ namespace QSoft.Registry.Linq
             return count;
         }
 
-        public static IQueryable<TSource> Hierarchy<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        {
-            var method = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Hierarchy");
-            var methdodcall = Expression.Call(method.ElementAt(0).MakeGenericMethod(typeof(TSource)), source.Expression, predicate);
-            var hr = source.Provider.Execute<IQueryable<TSource>>(methdodcall);
-            return hr;
-        }
+        //public static IQueryable<TSource> Hierarchy<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
+        //{
+        //    var method = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Hierarchy");
+        //    var methdodcall = Expression.Call(method.ElementAt(0).MakeGenericMethod(typeof(TSource)), source.Expression, predicate);
+        //    var hr = source.Provider.Execute<IQueryable<TSource>>(methdodcall);
+        //    return hr;
+        //}
 
 
-        static IEnumerable<TSource> Hierarchy<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
-        {
-            if(typeof(TSource) != typeof(RegistryKey))
-            {
-                throw new Exception("Source must be RegistryKey");
-            }
-            return null;
-        }
+        //static IEnumerable<TSource> Hierarchy<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        //{
+        //    if(typeof(TSource) != typeof(RegistryKey))
+        //    {
+        //        throw new Exception("Source must be RegistryKey");
+        //    }
+        //    return null;
+        //}
 
 
 

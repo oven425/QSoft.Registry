@@ -57,16 +57,7 @@ namespace ConsoleApp1
         public int Key { set; get; }
         [RegPropertyName(Name = "Name1")]
         public string Name { set; get; }
-        [RegPropertyName(Name="ID")]
-        public int ID { set; get; }
         public string Address { set; get; }
-
-        [RegIgnore]
-        public int OrderBy { set; get; }
-        [RegIgnore]
-        public int ThenBy { set; get; }
-        [RegIgnore]
-        public int ThenBy1 { set; get; }
     }
 
     public class InstalledApp
@@ -173,6 +164,7 @@ namespace ConsoleApp1
         {
             try
             {
+                TestDB();
                 //Version2String vv = new Version2String();
                 //vv.CanConvert(typeof(Version), typeof(string));
                 //var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
@@ -463,28 +455,28 @@ namespace ConsoleApp1
         public static void TestDB()
         {
             RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
-            .useSetting(x =>
-            {
-                x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\AppMapping";
-                x.View = RegistryView.Registry64;
-            });
+             .useSetting(x =>
+             {
+                 x.Hive = RegistryHive.CurrentConfig;
+                 x.SubKey = @"UnitTestLikeDB\AppMapping";
+                 x.View = RegistryView.Registry64;
+             });
 
             RegQuery<Company> regt_company = new RegQuery<Company>()
                 .useSetting(x =>
                 {
                     x.Hive = RegistryHive.CurrentConfig;
-                    x.SubKey = @"UnitTest\Company";
+                    x.SubKey = @"UnitTestLikeDB\Company";
                     x.View = RegistryView.Registry64;
                 });
 
 
             RegQuery<App> regt_apps = new RegQuery<App>()
-            .useSetting(x =>
-            {
-                x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"UnitTest\Apps";
-            });
+                .useSetting(x =>
+                {
+                    x.Hive = RegistryHive.CurrentConfig;
+                    x.SubKey = @"UnitTestLikeDB\Apps";
+                }).useConverts(x => x.Add(new Version2String()));
             //regt_company.RemoveAll();
             //regt_company.Insert(new List<Company>()
             //{
@@ -550,120 +542,17 @@ namespace ConsoleApp1
             //var gj = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y }).ToList();
             //var comp = regt_company.First(x=>x.Name == "Company_A");
 
-            var queryreg_company = RegistryHive.CurrentConfig.OpenView64(@"UnitTest\Company", false).ToList().AsQueryable();
-            var queryreg_appmapping = RegistryHive.CurrentConfig.OpenView64(@"UnitTest\AppMapping", false).ToList().AsQueryable();
-            var rr = queryreg_company.GroupJoin(queryreg_appmapping, a => a.GetValue<string>("ID"), b => b.GetValue<string>("CompanyID"), (c, d) => new { c, d })
-                .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g })
-                .Select(h => new
-                {
-                    f = new Company()
-                    {
-                        Name = h.c.GetValue<string>("Name")
-                    },
-                    g = h.g==null?null:new AppMapping()
-                    {
-                        CompanyID = h.g.GetValue<int>("CompanyID")
-                    }
-                });
-            var methodcall = rr.Expression as MethodCallExpression;
-            var unary = methodcall.Arguments[1] as UnaryExpression;
-            var lambda = unary.Operand as LambdaExpression;
-            var new1 = lambda.Body as NewExpression;
-            var ifelse = new1.Arguments[1] as ConditionalExpression;
-            var binary = ifelse.Test as BinaryExpression;
-            var yu = ifelse.Test.GetType();
-            var oioi  = Expression.Condition(ifelse.Test, ifelse.IfTrue, ifelse.IfFalse);
-            var sel = regt_company.ToList();
-            var left1 = from company in regt_company
-                        join mapping in regt_appmapping on company.Key equals mapping.CompanyID into gj_company_mapping
-                        from company_mapping in gj_company_mapping.DefaultIfEmpty()
-                        where company_mapping != null
-                        join app in regt_apps on company_mapping.AppID equals app.ID into gj_app_mapping
-                        from app_mapping in gj_app_mapping.DefaultIfEmpty()
-                        select new
-                        {
-                            company = company.Key,
-                            app = app_mapping.ID
-                        };
+            var left1 = regt_company.GroupJoin(regt_appmapping, company => company.Key, mapping => mapping.CompanyID, (company, mapping) => new { company, mapping })
+                .SelectMany(x => x.mapping.DefaultIfEmpty(), (company, mapping) => new { company.company, mapping })
+                .Where(x => x.mapping != null)
+                .GroupJoin(regt_apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
+                .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { Company = x.company.Name, App = y.Name });
             foreach (var oo in left1)
             {
 
             }
 
-            var apps = regt_apps.ToList();
-            var mappings = regt_appmapping.ToList();
-            var companys = regt_company.ToList();
-            var left22 = from company in companys
-                        join mapping in mappings on company.ID equals mapping.CompanyID into gj_company_mapping
-                        from company_mapping in gj_company_mapping.DefaultIfEmpty()
-                        where company_mapping != null
-                        join app in apps on company_mapping.AppID equals app.ID into gj_app_mapping
-                        from app_mapping in gj_app_mapping.DefaultIfEmpty()
-                        select new
-                        {
-                            company = company.ID,
-                            app = app_mapping.ID
-                        };
-            foreach (var oo in left22)
-            {
 
-            }
-
-            //var left2 = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d })
-            //    .SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { f.c, g });
-
-            ////remove no mapping appmapping
-            //var appaming = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
-            //    .SelectMany(e => e.app.DefaultIfEmpty(), (mapping, app) => new { mapping.mapping, app })
-            //    .Where(x => x.app == null)
-            //    .Select(x => x.mapping);
-
-
-            //var app1 = regt_apps.ToList();
-            //var map = regt_appmapping.ToList();
-            //var nu = map.GroupJoin(app1, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
-            //    .Where(x => x.app.Any() == false).Select(x=>x.mapping);
-
-
-            //var appaming1 = regt_appmapping.GroupJoin(regt_apps, x => x.AppID, y => y.ID, (mapping, app) => new { mapping, app })
-            //    .Where(x => x.app.Any() == false).Select(x => x.mapping).RemoveAll();
-
-            //.RemoveAll();
-
-            //var groupjoin = regt_company.GroupJoin(regt_appmapping, a => a.ID, b => b.CompanyID, (c, d) => new { c, d });
-            //var selectmany = groupjoin.SelectMany(e => e.d.DefaultIfEmpty(), (f, g) => new { comapny=f.c, mapping=g });
-
-
-            //var nulldata_company = selectmany.Where(x => x.mapping == null).Select(x=>x.comapny);
-            //nulldata_company.InsertTo(regt_appmapping, x => new AppMapping() { CompanyID=x.ID });
-            ////removenall.RemoveAll();
-            //foreach (var oo in groupjoin)
-            //{
-
-            //}
-
-            var left2 = regt_company.GroupJoin(regt_appmapping, x => x.ID, y => y.CompanyID, (x, y) => new { x, y })
-                .SelectMany(a => a.y.DefaultIfEmpty(), (x, y) => new { x.x, y }).ToList();
-
-            //var left1 = from company in regt_company
-            //           join map in regt_appmapping on company.ID equals map.CompanyID into temp
-            //           from mapresult in temp.DefaultIfEmpty()
-            //           select new { company, mapresult };
-            //left1.Where(x => x.mapresult == null).Select(x => x.company).RemoveAll();
-
-
-            //var left11 = (from map in regt_appmapping
-            //              join comapny in regt_company on map.CompanyID equals comapny.ID into companys
-            //              from companyhr in companys.DefaultIfEmpty()
-            //              join app in regt_apps on map.AppID equals app.ID into apps
-            //              from apphr in apps.DefaultIfEmpty()
-            //              select new { companyhr.Name, apphr.DisplayName });
-
-            //var inner = from company in regt_company
-            //            from appmapping in regt_appmapping
-            //            from app in regt_apps
-            //            where company.ID == appmapping.CompanyID && appmapping.AppID == app.ID
-            //            select new { company.Name };
         }
     }
 

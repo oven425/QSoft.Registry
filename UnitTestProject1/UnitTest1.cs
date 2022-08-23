@@ -562,6 +562,17 @@ namespace General
             //count2 = this.m_Tests.Select(x => new InstallApp(x) { DisplayName = $"{x.DisplayName}_{x.DisplayVersion}" });
             //this.Check(count1, count2);
         }
+
+        [TestMethod]
+        public void RemoveAll()
+        {
+            var removeall = regt.Take(1).RemoveAll();
+            foreach(var oo in this.m_Tests.Take(1).ToList())
+            {
+                this.m_Tests.Remove(oo);
+            }
+            CheckEx.Check(regt, this.m_Tests);
+        }
     }
 
     public class AppData

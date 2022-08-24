@@ -1,4 +1,6 @@
-﻿using System;
+﻿using QSoft.Registry.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -43,73 +45,169 @@ namespace ConsoleApp2
         public Node Root { set; get; }
     }
 
+    public class SQLData
+    {
+        public string Name { set; get; }
+        public int Age { set; get; }
+    }
 
+
+    public class SQLProvide<T> : IQueryProvider
+    {
+        static int ProvideCount = 0;
+        static SQLProvide()
+        {
+            ProvideCount++;
+        }
+
+        public IQueryable CreateQuery(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
+        {
+            RegExpressionVisitor1<TElement> visitor = new RegExpressionVisitor1<TElement>();
+            var expr = visitor.Visit(expression);
+            return new SqlQuery<TElement>(this, expr);
+        }
+
+        public object Execute(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TResult Execute<TResult>(Expression expression)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class SqlQuery<T> : IOrderedQueryable<T>
+    {
+        static int QueryCount = 0;
+        static SqlQuery()
+        {
+            QueryCount++;
+        }
+        public SqlQuery()
+        {
+            this.Provider = new SQLProvide<T>();
+            Expression = Expression.Constant(this);
+        }
+
+        SQLProvide<T> m_Provider;
+        public SqlQuery(IQueryProvider provider, Expression expression)
+        {
+            if (provider == null)
+            {
+                throw new ArgumentNullException("provider");
+            }
+
+            if (expression == null)
+            {
+                throw new ArgumentNullException("expression");
+            }
+
+            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
+            {
+                throw new ArgumentOutOfRangeException("expression");
+            }
+
+            Provider = provider;
+            Expression = expression;
+        }
+        public Expression Expression { private set; get; }
+
+        public Type ElementType => typeof(T);
+
+        public IQueryProvider Provider { private set; get; }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            Provider.Execute<T>(this.Expression);
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var li = Enumerable.Range(1, 9).ToList();
-            int agree = 3;
-            List<Leaf> leafs = new List<Leaf>();
-            int skip = 0;
-            while (true)
+            var sql = new SqlQuery<SQLData>();
+            var query = sql.Where(x => x.Name == "").Select(x=>x.Name);
+            var query2 = sql.OrderByDescending(x => x.Age).Select(x => x.Age);
+            var sqlds = Enumerable.Range(1, 10).Select(x => new SQLData() { Name = $"name{x}", Age = x + 10 });
+            foreach(var oo in query)
             {
-                var values = li.Skip(skip).Take(agree - 1);
-                Leaf leaf = new Leaf();
-                leaf.Values.AddRange(values);
-                if(leafs.Count > 0)
-                {
-                    leafs.Last().Next = leaf;
-                }
-                leafs.Add(leaf);
-                if (values.Count() < (agree - 1))
-                {
-                    break;
-                }
-                skip = skip + (agree - 1);
-            }
-            List<List<Node>> tree = new List<List<Node>>();
-            List<Node> nodes = new List<Node>();
-            skip = 0;
-            while (true)
-            {
-                Node node = new Node();
-                node.Leafs = new List<ILeaf>();
-                while(true)
-                {
-                    var leaf = leafs.Skip(skip).Take(agree - 1);
 
-                    node.Leafs.AddRange(leaf);
-                    skip = skip + (agree - 1);
-                    if (node.Leafs.Count >= (agree - 1))
-                    {
-                        nodes.Add(node);
-                        break;
-                    }
-                    else if (skip > leafs.Count)
-                    {
-                        break;
-                    }
-                }
-                if(skip > leafs.Count)
-                {
-                    break;
-                }
             }
+            //var li = Enumerable.Range(1, 9).ToList();
+            //int agree = 3;
+            //List<Leaf> leafs = new List<Leaf>();
+            //int skip = 0;
+            //while (true)
+            //{
+            //    var values = li.Skip(skip).Take(agree - 1);
+            //    Leaf leaf = new Leaf();
+            //    leaf.Values.AddRange(values);
+            //    if(leafs.Count > 0)
+            //    {
+            //        leafs.Last().Next = leaf;
+            //    }
+            //    leafs.Add(leaf);
+            //    if (values.Count() < (agree - 1))
+            //    {
+            //        break;
+            //    }
+            //    skip = skip + (agree - 1);
+            //}
+            //List<List<Node>> tree = new List<List<Node>>();
+            //List<Node> nodes = new List<Node>();
+            //skip = 0;
+            //while (true)
+            //{
+            //    Node node = new Node();
+            //    node.Leafs = new List<ILeaf>();
+            //    while(true)
+            //    {
+            //        var leaf = leafs.Skip(skip).Take(agree - 1);
+
+            //        node.Leafs.AddRange(leaf);
+            //        skip = skip + (agree - 1);
+            //        if (node.Leafs.Count >= (agree - 1))
+            //        {
+            //            nodes.Add(node);
+            //            break;
+            //        }
+            //        else if (skip > leafs.Count)
+            //        {
+            //            break;
+            //        }
+            //    }
+            //    if(skip > leafs.Count)
+            //    {
+            //        break;
+            //    }
+            //}
             
             
             
-            BTree<int> btree = new BTree<int>();
-            btree.Insert(1);
-            btree.Insert(2);
-            btree.Insert(3);
-            btree.Insert(4);
-            btree.Insert(5);
-            btree.Insert(6);
-            btree.Insert(7);
-            btree.Insert(8);
-            btree.Insert(9);
+            //BTree<int> btree = new BTree<int>();
+            //btree.Insert(1);
+            //btree.Insert(2);
+            //btree.Insert(3);
+            //btree.Insert(4);
+            //btree.Insert(5);
+            //btree.Insert(6);
+            //btree.Insert(7);
+            //btree.Insert(8);
+            //btree.Insert(9);
 
 
 
@@ -134,7 +232,7 @@ namespace ConsoleApp2
             //btree.Insert(8);
 
 
-            btree.Traverse();
+            //btree.Traverse();
 
             Console.ReadLine();
         }

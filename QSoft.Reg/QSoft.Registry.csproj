@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;RegToEnd</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;TestProvider</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -42,8 +42,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegAttribute.cs" />
     <Compile Include="RegExpressionVisitor.cs" />
+    <Compile Include="RegExpressionVisitor1.cs" />
     <Compile Include="RegistryKeyEx.cs" />
     <Compile Include="RegProvider.cs" />
+    <Compile Include="RegProvider1.cs" />
     <Compile Include="RegQuery.cs" />
     <Compile Include="RegQueryEx.cs" />
     <Compile Include="RegQueryHelper.cs" />

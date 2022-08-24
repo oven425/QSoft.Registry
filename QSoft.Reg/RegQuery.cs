@@ -114,8 +114,16 @@ namespace QSoft.Registry.Linq
             this.Expression = expression;
         }
 
+        public RegQuery(IQueryProvider provider, Expression src, Expression dst)
+        {
+            this.Provider = provider;
+            this.Expression = src;
+        }
+
+        Type m_ElementType = typeof(RegistryKey);
+
         public Expression Expression { private set; get; }
-        public Type ElementType => typeof(T);
+        public Type ElementType => typeof(RegistryKey);
         public IQueryProvider Provider { private set; get; }
         public IEnumerator<T> GetEnumerator()
         {
@@ -221,26 +229,26 @@ namespace QSoft.Registry.Linq
         //        reg.SetValue(pp.Value, oo);
         //    }
         //}
-        [Obsolete("Testing", true)]
-        public T Get()
-        {
-            RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
-            var func_todata = reg.ToDataFunc<T>(this.m_Converts);
-            return func_todata(reg);
-            //return reg.ToDataFunc<T>()(reg);
-        }
-        [Obsolete("Testing", true)]
-        public void Delete()
-        {
-            RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
-            var parent = reg.GetParent();
-            Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
-            var match = regex1.Match(reg.Name);
-            if (match.Success)
-            {
-                parent.DeleteSubKeyTree(match.Groups["path"].Value);
-            }
-        }
+        //[Obsolete("Testing", true)]
+        //public T Get()
+        //{
+        //    RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
+        //    var func_todata = reg.ToDataFunc<T>(this.m_Converts);
+        //    return func_todata(reg);
+        //    //return reg.ToDataFunc<T>()(reg);
+        //}
+        //[Obsolete("Testing", true)]
+        //public void Delete()
+        //{
+        //    RegistryKey reg = (this.Provider as RegProvider<T>)?.Setting?.Open();
+        //    var parent = reg.GetParent();
+        //    Regex regex1 = new Regex(@"^(.+)(?<=\\)(?<path>.*)", RegexOptions.Compiled);
+        //    var match = regex1.Match(reg.Name);
+        //    if (match.Success)
+        //    {
+        //        parent.DeleteSubKeyTree(match.Groups["path"].Value);
+        //    }
+        //}
 
         void Admin(string se)
         {

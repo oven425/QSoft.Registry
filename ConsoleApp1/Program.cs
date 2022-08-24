@@ -164,7 +164,7 @@ namespace ConsoleApp1
         {
             try
             {
-                TestDB();
+                //TestDB();
                 //Version2String vv = new Version2String();
                 //vv.CanConvert(typeof(Version), typeof(string));
                 //var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
@@ -363,7 +363,8 @@ namespace ConsoleApp1
 
             //}
             //var a2 = regt.ToList().Select(x => $"IsOfficial:{x.IsOfficial}");
-            var a1 = regt.Where(x => x.DisplayName == $"{x.DisplayName}");
+            var a1 = regt.OrderByDescending(x => x.Version).Select(x=>x.DisplayName);
+            var a2 = regt.Where(x => x.DisplayName != "");
             foreach (var oo in a1)
             {
 

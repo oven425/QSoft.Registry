@@ -49,65 +49,12 @@ namespace QSoft.Registry.Linq
             var type1 = typeof(TElement);
             var type2 = typeof(TData);
 #if TestProvider
-            RegProvider<TElement> provid = null;
-            RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
-            MethodCallExpression method1 = expression as MethodCallExpression;
-
-            //this.m_RegMethod = expression;
-            if (method1.Arguments[0].NodeType == ExpressionType.Constant)
-            {
-                this.m_Exprs.Clear();
-                this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-                provid = new RegProvider<TElement>(expression, this.m_RegMethod);
-                this.m_Exprs[expression] = this.m_RegMethod;
-            }
-            else if (this.m_RegMethod.Type.IsGenericType == true)
-            {
-                var ttype = this.m_RegMethod.Type;
-                var ttype_def = ttype.GetGenericTypeDefinition();
-                if (ttype == typeof(IQueryable<RegistryKey>) || ttype == typeof(IEnumerable<RegistryKey>) || ttype == typeof(IOrderedQueryable<RegistryKey>))
-                {
-                    this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-                    this.m_Exprs[expression] = this.m_RegMethod;
-                }
-                else if (ttype_def == typeof(IQueryable<>) || ttype_def == typeof(IEnumerable<>) || ttype_def == typeof(IOrderedQueryable<>))
-                {
-                    var group = ttype.GetGenericArguments()[0];
-
-                    bool has = group.GetGenericArguments().Any(x => x == typeof(RegistryKey));
-                    has = group.HaseRegistryKey();
-                    if (has == true)
-                    {
-                        this.m_RegMethod = reg.VisitA(expression, this.m_RegSource, this.m_Exprs);
-                        this.m_Exprs[expression] = this.m_RegMethod;
-                    }
-                    else
-                    {
-                        var args = method1.Arguments.ToArray();
-                        args[0] = this.m_RegMethod;
-                        this.m_RegMethod = Expression.Call(method1.Method, args);
-                    }
-                }
-                else
-                {
-                    var args = method1.Arguments.ToArray();
-                    args[0] = this.m_RegMethod;
-                    this.m_RegMethod = Expression.Call(method1.Method, args);
-                }
-            }
-            else
-            {
-                var args = method1.Arguments.ToArray();
-                args[0] = this.m_RegMethod;
-                this.m_RegMethod = Expression.Call(method1.Method, args);
-            }
-            //var provid = new RegProvider<TElement>(expression, this.m_RegMethod);
-            if(provid == null)
-            {
-                return new RegQuery<TElement>(this, expression);
-            }
-            return new RegQuery<TElement>(provid, expression);
+            RegExpressionVisitor1<TElement> visitor = new RegExpressionVisitor1<TElement>();
+            visitor.Converts = this.Converts;
+            var aa = visitor.VisitAA(expression);
+            return new RegQuery<TElement>(this, aa);
 #else
+            
             this.m_CreateQuerys.Add(expression);
             return new RegQuery<TElement>(this, expression);
 
@@ -228,12 +175,16 @@ namespace QSoft.Registry.Linq
 #if TestProvider
             //var expr_org = expression as MethodCallExpression;
             //this.m_RegMethod = this.Expression_Dst;
-            var updatemethod = this.m_RegMethod as MethodCallExpression;
+            RegExpressionVisitor1<TData> visitor = new RegExpressionVisitor1<TData>();
+            visitor.Converts = this.Converts;
+            var aa = visitor.VisitAA(expression);
+
+            var updatemethod = aa as MethodCallExpression;
 
             if (expression is ConstantExpression && tts[0] == typeof(TData))
             {
                 var expr = expression;
-                var sd = typeof(TData).ToSelectData();
+                var sd = typeof(TData).ToSelectData(this.Converts);
                 var select = typeof(TData).SelectMethod();
                 this.m_RegMethod = Expression.Call(select, this.m_RegSource, sd);
                 this.m_ProcessExprs[expression] = this.m_RegMethod;
@@ -248,7 +199,7 @@ namespace QSoft.Registry.Linq
                 if (updatemethod.Type == typeof(IQueryable<RegistryKey>) || updatemethod.Type == typeof(IOrderedQueryable<RegistryKey>))
                 {
                     var t = typeof(TResult).GetGenericArguments()[0];
-                    var sd = t.ToSelectData();
+                    var sd = t.ToSelectData(this.Converts);
                     var select = t.SelectMethod();
                     updatemethod = Expression.Call(select, updatemethod, sd);
                 }
@@ -268,7 +219,7 @@ namespace QSoft.Registry.Linq
                         if (type3[1] == typeof(RegistryKey))
                         {
                             type3[1] = typeof(TData).GetGenericArguments()[1];
-                            arg2 = type3[1].ToSelectData();
+                            arg2 = type3[1].ToSelectData(this.Converts);
                         }
 
                         type3[2] = typeof(TData).GetGenericArguments()[1];
@@ -278,7 +229,7 @@ namespace QSoft.Registry.Linq
                         //{
                         //    arg2 = typeof(TData).ToSelectData();
                         //}
-                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, type3[2].ToSelectData());
+                        updatemethod = Expression.Call(oo, updatemethod.Arguments[0], arg2, type3[2].ToSelectData(this.Converts));
 
                     }
                 }
@@ -289,7 +240,7 @@ namespace QSoft.Registry.Linq
                     {
                         var ty = ttype1.GetGenericArguments()[0].GetProperties();
                     }
-                    var sd = type.GetGenericArguments()[0].ToSelectData(null, updatemethod.Type.GetGenericArguments()[0]);
+                    var sd = type.GetGenericArguments()[0].ToSelectData(this.Converts, null, updatemethod.Type.GetGenericArguments()[0]);
                     if (sd != null)
                     {
                         var select = typeof(TResult).GetGenericArguments()[0].SelectMethod(updatemethod.Type.GetGenericArguments()[0]);
@@ -342,8 +293,9 @@ namespace QSoft.Registry.Linq
                 }
                 else if (expr_org.Arguments[0].Type.IsGenericType == true && expr_org.Arguments[0].Type.GetGenericTypeDefinition() == typeof(RegQuery<>))
                 {
-                    RegExpressionVisitor<TData> regvisitor = new RegExpressionVisitor<TData>();
-                    expr = regvisitor.VisitA(expr_org, this.m_RegSource, this.m_Exprs);
+                    RegExpressionVisitor1<TData> regvisitor = new RegExpressionVisitor1<TData>();
+                    regvisitor.Converts = this.Converts;
+                    expr = regvisitor.VisitAA(expr_org);
                     if (regvisitor.Fail != null)
                     {
                         this.m_Errors.Add(Tuple.Create(expression, expr, regvisitor.Fail));
@@ -430,7 +382,8 @@ namespace QSoft.Registry.Linq
                 var excute_reg = excute as RegistryKey;
                 if (excute_reg != null)
                 {
-                    inst = excute_reg.ToDataFunc<TResult>()(excute_reg);
+                    var func_todata = excute_reg.ToDataFunc<TResult>(this.Converts);
+                    inst = func_todata(excute_reg);
                 }
                 else
                 {
@@ -672,34 +625,8 @@ namespace QSoft.Registry.Linq
             return excpt;
         }
 
-        //Expression m_SelectData;
-        //MethodInfo m_SelectMethod; 
-        //Expression BuildSelect(Expression src)
-        //{
-        //    if(this.m_SelectData == null)
-        //    {
-        //        this.m_SelectData = typeof(TData).ToSelectData();
-        //    }
-        //    if(this.m_SelectMethod == null)
-        //    {
-        //        this.m_SelectMethod = typeof(TData).SelectMethod();
-        //    }
-        //    var dst = Expression.Call(this.m_SelectMethod, src, this.m_SelectData);
-        //    return dst;
-        //}
-
-        //Expression m_SelectData;
-        //MethodInfo m_SelectMethod;
         Expression BuildSelect(Expression src, Type dst = null)
         {
-            //if (this.m_SelectData == null)
-            //{
-            //    this.m_SelectData = typeof(TData).ToSelectData();
-            //}
-            //if (this.m_SelectMethod == null)
-            //{
-            //    this.m_SelectMethod = typeof(TData).SelectMethod();
-            //}
             Type ttype = dst ?? typeof(TData);
             var sd = ttype.ToSelectData(this.Converts);
             var sd_method = ttype.SelectMethod();

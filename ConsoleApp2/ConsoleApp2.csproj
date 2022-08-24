@@ -59,5 +59,14 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QSoft.Reg\QSoft.Registry.csproj">
+      <Project>{ae9b7457-fd1e-4ea5-9b96-c6f74607e477}</Project>
+      <Name>QSoft.Registry</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

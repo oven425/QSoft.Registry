@@ -363,12 +363,12 @@ namespace ConsoleApp1
 
             //}
             //var a2 = regt.ToList().Select(x => $"IsOfficial:{x.IsOfficial}");
-            var a1 = regt.OrderByDescending(x => x.Version).Select(x=>x.DisplayName);
+            var a1 = regt.Where(x => x.DisplayName != "");
             var a2 = regt.Where(x => x.DisplayName != "");
-            foreach (var oo in a1)
-            {
+            //foreach (var oo in a1)
+            //{
 
-            }
+            //}
             var aa = regt.Average(x => x.DisplayName.Length);
             RegQuery<AppMapping> regt_appmapping = new RegQuery<AppMapping>()
             .useSetting(x =>

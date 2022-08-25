@@ -52,7 +52,7 @@ namespace QSoft.Registry.Linq
             RegExpressionVisitor1<TElement> visitor = new RegExpressionVisitor1<TElement>();
             visitor.Converts = this.Converts;
             var aa = visitor.VisitAA(expression);
-            return new RegQuery<TElement>(this, aa);
+            return new RegQuery<TElement>(this, expression, aa);
 #else
             
             this.m_CreateQuerys.Add(expression);
@@ -175,11 +175,11 @@ namespace QSoft.Registry.Linq
 #if TestProvider
             //var expr_org = expression as MethodCallExpression;
             //this.m_RegMethod = this.Expression_Dst;
-            RegExpressionVisitor1<TData> visitor = new RegExpressionVisitor1<TData>();
-            visitor.Converts = this.Converts;
-            var aa = visitor.VisitAA(expression);
+            //RegExpressionVisitor1<TData> visitor = new RegExpressionVisitor1<TData>();
+            //visitor.Converts = this.Converts;
+            //var aa = visitor.VisitAA(expression);
 
-            var updatemethod = aa as MethodCallExpression;
+            var updatemethod = expression as MethodCallExpression;
 
             if (expression is ConstantExpression && tts[0] == typeof(TData))
             {

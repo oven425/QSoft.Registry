@@ -118,10 +118,11 @@ namespace QSoft.Registry.Linq
         {
             this.Provider = provider;
             this.Expression = src;
+            Expression_Reg = dst;
         }
 
         Type m_ElementType = typeof(RegistryKey);
-
+        public Expression Expression_Reg { private set; get; }
         public Expression Expression { private set; get; }
         public Type ElementType => typeof(RegistryKey);
         public IQueryProvider Provider { private set; get; }
@@ -138,7 +139,7 @@ namespace QSoft.Registry.Linq
                 //return provider.Execute<IEnumerable<T>>(provider.Expr_Dst).GetEnumerator();
             }
             
-            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
+            return Provider.Execute<IEnumerable<T>>(Expression_Reg).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

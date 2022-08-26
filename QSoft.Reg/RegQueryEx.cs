@@ -253,6 +253,7 @@ namespace QSoft.Registry.Linq
         //    return count;
         //}
 
+
         public static int RemoveAll<TSource>(this IQueryable<TSource> source)
         {
             var removeall = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).FirstOrDefault(x =>
@@ -268,7 +269,13 @@ namespace QSoft.Registry.Linq
                 }
                 return result;
             });
+#if TestProvider
+            var ss = source as RegQuery<TSource>;
+            var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(RegistryKey)), ss.Expression_Reg);
+#else
             var methdodcall = Expression.Call(removeall.MakeGenericMethod(typeof(TSource)), source.Expression);
+#endif
+            
             return source.Provider.Execute<int>(methdodcall);
         }
 
@@ -301,25 +308,6 @@ namespace QSoft.Registry.Linq
 
             return count;
         }
-
-        //public static IQueryable<TSource> Hierarchy<TSource>(this IQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
-        //{
-        //    var method = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Hierarchy");
-        //    var methdodcall = Expression.Call(method.ElementAt(0).MakeGenericMethod(typeof(TSource)), source.Expression, predicate);
-        //    var hr = source.Provider.Execute<IQueryable<TSource>>(methdodcall);
-        //    return hr;
-        //}
-
-
-        //static IEnumerable<TSource> Hierarchy<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
-        //{
-        //    if(typeof(TSource) != typeof(RegistryKey))
-        //    {
-        //        throw new Exception("Source must be RegistryKey");
-        //    }
-        //    return null;
-        //}
-
 
 
         //public static IQueryable<RegistryKey> Intersect_RegistryKey<TSource2>(this IQueryable<RegistryKey> source1, IEnumerable<TSource2> source2)

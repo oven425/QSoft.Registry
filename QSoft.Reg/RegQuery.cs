@@ -12,15 +12,6 @@ using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
-    //public abstract partial class RegistryKeyConvert
-    //{
-    //    internal RegistryKeyConvert() { }
-    //    public object ConvertTo(object obj)
-    //    {
-    //        return 1;
-    //    }
-    //}
-
     public abstract class RegQueryConvert
     {
         internal RegQueryConvert() { }
@@ -113,16 +104,18 @@ namespace QSoft.Registry.Linq
             this.Provider = provider;
             this.Expression = expression;
         }
-
+#if TestProvider
+        public Expression Expression_Reg { private set; get; }
         public RegQuery(IQueryProvider provider, Expression src, Expression dst)
         {
             this.Provider = provider;
             this.Expression = src;
-            Expression_Reg = dst;
+            this.Expression_Reg = dst;
         }
+#endif
 
         Type m_ElementType = typeof(RegistryKey);
-        public Expression Expression_Reg { private set; get; }
+        
         public Expression Expression { private set; get; }
         public Type ElementType => typeof(RegistryKey);
         public IQueryProvider Provider { private set; get; }
@@ -138,8 +131,11 @@ namespace QSoft.Registry.Linq
                 }
                 //return provider.Execute<IEnumerable<T>>(provider.Expr_Dst).GetEnumerator();
             }
-            
+#if TestProvider
             return Provider.Execute<IEnumerable<T>>(Expression_Reg).GetEnumerator();
+#else
+            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
+#endif
         }
 
         IEnumerator IEnumerable.GetEnumerator()

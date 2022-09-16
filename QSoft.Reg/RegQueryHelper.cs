@@ -1024,9 +1024,6 @@ namespace QSoft.Registry.Linq
                                     //var ooi = ex_src.Convert.GetType().BaseType.GetGenericArguments();
                                     var mmethod = ex_src.Convert.GetType().GetMethod("ConvertBack").GetParameters();
                                     getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
-                                    //var methods = ex_src.Convert.GetType().GetMethod("ConvertBack");
-
-                                    //getvalue = Expression.Call(Expression.Constant(ex_src.Convert), methods, getvalue);
                                 }
                                 else
                                 {
@@ -1039,28 +1036,6 @@ namespace QSoft.Registry.Linq
                             getvalue = Expression.Property(getvalue, oo.name);
                         }
                     }
-                    //if (item.ElementAt(0).type_src.IsNullable())
-                    //{
-                    //    getvalue = Expression.Condition(Expression.MakeBinary(ExpressionType.Equal, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                    //                item.ElementAt(0).type_src.DefaultExpr(),
-                    //                Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name)));
-                    //}
-                    //else
-                    //{
-                    //    if(ex_src.Convert != null)
-                    //    {
-                    //        //var ooi = ex_src.Convert.GetType().BaseType.GetGenericArguments();
-                    //        var mmethod = ex_src.Convert.GetType().GetMethod("ConvertBack").GetParameters();
-                    //        getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(mmethod[0].ParameterType), reg_p, Expression.Constant(item.ElementAt(0).name));
-                    //        //var methods = ex_src.Convert.GetType().GetMethod("ConvertBack");
-
-                    //        //getvalue = Expression.Call(Expression.Constant(ex_src.Convert), methods, getvalue);
-                    //    }
-                    //    else
-                    //    {
-                    //        getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name));
-                    //    }
-                    //}
                 }
             }
             Expression expr = getsubkeyexpr;
@@ -1370,6 +1345,15 @@ namespace QSoft.Registry.Linq
                 }
                 var method_return = Expression.Parameter(method.ReturnType, "method_return");
                 var needdispose = Expression.Parameter(typeof(bool), "needdispose");
+                //var reg_p_assign = Expression.Assign(reg_p, reg_p);
+                //if(regss.Item1 != null)
+                //{
+                //    reg_p_assign = Expression.Assign(reg_p, regss.Item1);
+                //}
+                //else if(oo.Expr.Type == reg_p.Type)
+                //{
+                //    reg_p_assign = Expression.Assign(reg_p, oo.Expr);
+                //}
                 var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Expr);
                 Expression convert = null;
                 if (oo.Convert != null)

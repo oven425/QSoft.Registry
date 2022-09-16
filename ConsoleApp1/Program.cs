@@ -311,8 +311,14 @@ namespace ConsoleApp1
                 //        }
                 //    }
                 //});
-
-
+                RegQuery<Company> regt_company = new RegQuery<Company>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.SubKey = @"UnitTestLikeDB\Company";
+                        x.View = RegistryView.Registry64;
+                    });
+                regt_company.Update(x => new Company() { Address = $"{x.Name}_{x.Name}" });
             }
             catch (Exception ee)
             {

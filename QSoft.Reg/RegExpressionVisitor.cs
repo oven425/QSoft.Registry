@@ -682,7 +682,7 @@ namespace QSoft.Registry.Linq
                         else if(exprs.ElementAt(0).Value.Expr.Type == typeof(RegistryKey))
                         {
                             //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
-                            bool add = false;
+                            //bool add = false;
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                             var typecode = Type.GetTypeCode(expr.Type);
                             var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
@@ -700,12 +700,13 @@ namespace QSoft.Registry.Linq
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
                                     
                                     //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
-                                    add = true;
+                                    //add = true;
                                 }
                                 else
                                 {
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+                                    member = exprs.ElementAt(0).Value.Expr;
+                                    //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
                             else if (attr is RegSubKeyName)
@@ -717,7 +718,7 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {
-                                    add = true;
+                                    //add = true;
                                     member = exprs.ElementAt(0).Value.Expr;
                                 }
                                 else

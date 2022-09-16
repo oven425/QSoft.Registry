@@ -12,15 +12,6 @@ using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
-    //public abstract partial class RegistryKeyConvert
-    //{
-    //    internal RegistryKeyConvert() { }
-    //    public object ConvertTo(object obj)
-    //    {
-    //        return 1;
-    //    }
-    //}
-
     public abstract class RegQueryConvert
     {
         internal RegQueryConvert() { }
@@ -88,43 +79,43 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        //public RegQuery<T> HasDefault1(Action<T> data)
-        //{
-        //    //var obj = Activator.CreateInstance<T>();
-        //    //data(obj);
-        //    //System.Threading.Thread.Sleep(2000);
-        //    //data(obj);
-        //    this.m_Provider.DefaultValue = data;
+        public RegQuery<T> HasDefault1(Action<T> data)
+        {
+            //var obj = Activator.CreateInstance<T>();
+            //data(obj);
+            //System.Threading.Thread.Sleep(2000);
+            //data(obj);
+            this.m_Provider.DefaultValue = data;
 
-        //    return this;
-        //}
+            return this;
+        }
 
 
 
-        //public RegQuery<T> HasDefault(Expression<Func<T>> data)
-        //{
-        //    //Expression.Lambda<T>()
+        public RegQuery<T> HasDefault(Expression<Func<T>> data)
+        {
+            //Expression.Lambda<T>()
 
-        //    return this;
-        //}
+            return this;
+        }
 
         public RegQuery(IQueryProvider provider, Expression expression)
         {
             this.Provider = provider;
             this.Expression = expression;
         }
-
 #if TestProvider
+        public Expression Expression_Reg { private set; get; }
         public RegQuery(IQueryProvider provider, Expression src, Expression dst)
         {
             this.Provider = provider;
             this.Expression = src;
-            Expression_Reg = dst;
+            this.Expression_Reg = dst;
         }
 #endif
 
         Type m_ElementType = typeof(RegistryKey);
-        public Expression Expression_Reg { private set; get; }
+        
         public Expression Expression { private set; get; }
         public Type ElementType => typeof(RegistryKey);
         public IQueryProvider Provider { private set; get; }
@@ -140,8 +131,11 @@ namespace QSoft.Registry.Linq
                 }
                 //return provider.Execute<IEnumerable<T>>(provider.Expr_Dst).GetEnumerator();
             }
-            
+#if TestProvider
             return Provider.Execute<IEnumerable<T>>(Expression_Reg).GetEnumerator();
+#else
+            return Provider.Execute<IEnumerable<T>>(Expression).GetEnumerator();
+#endif
         }
 
         IEnumerator IEnumerable.GetEnumerator()

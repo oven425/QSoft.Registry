@@ -139,6 +139,7 @@ namespace ConsoleApp2
     {
         static void Main(string[] args)
         {
+            var aaaa = Enumerable.Range(1, 100).TakeWhile(x=>x<=10).ToList();
             var sql = new SqlQuery<SQLData>();
             var query = sql.Where(x => x.Name == "").Select(x=>x.Name);
             var query2 = sql.OrderByDescending(x => x.Age).Select(x => x.Age);

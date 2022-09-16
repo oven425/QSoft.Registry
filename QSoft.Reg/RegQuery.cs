@@ -88,25 +88,25 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        public RegQuery<T> HasDefault1(Action<T> data)
-        {
-            //var obj = Activator.CreateInstance<T>();
-            //data(obj);
-            //System.Threading.Thread.Sleep(2000);
-            //data(obj);
-            this.m_Provider.DefaultValue = data;
+        //public RegQuery<T> HasDefault1(Action<T> data)
+        //{
+        //    //var obj = Activator.CreateInstance<T>();
+        //    //data(obj);
+        //    //System.Threading.Thread.Sleep(2000);
+        //    //data(obj);
+        //    this.m_Provider.DefaultValue = data;
 
-            return this;
-        }
+        //    return this;
+        //}
 
 
 
-        public RegQuery<T> HasDefault(Expression<Func<T>> data)
-        {
-            //Expression.Lambda<T>()
+        //public RegQuery<T> HasDefault(Expression<Func<T>> data)
+        //{
+        //    //Expression.Lambda<T>()
 
-            return this;
-        }
+        //    return this;
+        //}
 
         public RegQuery(IQueryProvider provider, Expression expression)
         {
@@ -114,12 +114,14 @@ namespace QSoft.Registry.Linq
             this.Expression = expression;
         }
 
+#if TestProvider
         public RegQuery(IQueryProvider provider, Expression src, Expression dst)
         {
             this.Provider = provider;
             this.Expression = src;
             Expression_Reg = dst;
         }
+#endif
 
         Type m_ElementType = typeof(RegistryKey);
         public Expression Expression_Reg { private set; get; }

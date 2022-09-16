@@ -38,7 +38,7 @@ namespace LikeDB
 
 
         [TestMethod]
-        public void CreateDB()
+        public void BuildMockup()
         {
             regt_apps.RemoveAll();
             //regt_apps.Insert(Enumerable.Range(1, 50000).Select(x => new App() { ID = x, DisplayName = $"App{x}", Version = new Version(x, x, x, x), Size = x + 1 }));

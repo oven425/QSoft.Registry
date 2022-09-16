@@ -329,16 +329,16 @@ namespace ConsoleApp1
 
 
             var regt = new RegQuery<InstalledApp>()
-                .HasDefault1(x =>
-                {
-                    x.Now = DateTime.Now;
-                    x.DisplayName = "AA";
-                })
-                .HasDefault(() => new InstalledApp()
-                {
-                    Now = DateTime.Now,
-                    DisplayName = "A"
-                })
+                //.HasDefault1(x =>
+                //{
+                //    x.Now = DateTime.Now;
+                //    x.DisplayName = "AA";
+                //})
+                //.HasDefault(() => new InstalledApp()
+                //{
+                //    Now = DateTime.Now,
+                //    DisplayName = "A"
+                //})
                 .useSetting(x =>
                 {
                     //x.Hive = RegistryHive.LocalMachine;

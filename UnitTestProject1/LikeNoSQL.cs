@@ -141,6 +141,30 @@ namespace General
         }
 
         [TestMethod]
+        public void Update()
+        {
+            //regt_devices.Update(x => new
+            //{
+            //    Size = new
+            //    {
+            //        Width=1111,
+            //        Height=2222
+            //    }
+            //});
+
+            //regt_devices.Update(x => new Device()
+            //{
+            //    Size = new Size
+            //    {
+            //        Width = 1111,
+            //        Height = 2222
+            //    }
+            //});
+
+
+        }
+
+        [TestMethod]
         public void Where()
         {
             var where = regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1");
@@ -155,6 +179,13 @@ namespace General
             {
                 CheckEx.Check(this.m_Devices.ElementAt(i), regt_devices.ElementAt(i));
             }
+        }
+
+        [TestMethod]
+        public void OrderBy()
+        {
+            CheckEx.Check(this.m_Devices.OrderBy(x => x.Local.Port), regt_devices.OrderBy(x=>x.Local.Port));
+            CheckEx.Check(this.m_Devices.OrderBy(x => x.Location.Name.Length), regt_devices.OrderBy(x => x.Location.Name.Length));
         }
 
         [TestMethod]

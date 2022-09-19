@@ -210,6 +210,25 @@ namespace ConsoleApp1
                         x.Add(new Version2String());
                         //new Size2String()
                     });
+
+                //regt_devices.Update(x => new
+                //{
+                //    Size = new
+                //    {
+                //        Width = 1111,
+                //        Height = 2222
+                //    }
+                //});
+
+                regt_devices.Update(x => new Device()
+                {
+                    Size = new Size()
+                    {
+                        Width = 101010,
+                        Height = 212121,
+                    }
+                });
+
                 //var llo = regt_devices.Select(x => new
                 //{
                 //    version = x.Version,

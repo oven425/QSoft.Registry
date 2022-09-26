@@ -6,7 +6,7 @@ using System.Text;
 
 namespace QSoft.Registry.Linq
 {
-    public class Ex
+    internal class Ex
     {
         public bool Handled { set; get; }
         public Expression SourceExpr { set; get; }

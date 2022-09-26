@@ -127,7 +127,17 @@ namespace General
             CheckEx.Check(this.m_Devices.Select(x => x.Key), this.regt_devices.Select(x => x.Key));
             CheckEx.Check(this.m_Devices.Select(x => new { Key = x.Key }), this.regt_devices.Select(x => new { Key = x.Key }));
             CheckEx.Check(this.m_Devices.Select(x => x.CameraSetting.Brightness), this.regt_devices.Select(x => x.CameraSetting.Brightness));
-            CheckEx.Check(this.m_Devices.Select(x => x.CameraSetting.Brightness.CanEdit), this.regt_devices.Select(x => x.CameraSetting.Brightness.CanEdit));
+            CheckEx.Check(this.m_Devices.Select(x => new { x.CameraSetting.Brightness }), this.regt_devices.Select(x => new { x.CameraSetting.Brightness }));
+            CheckEx.Check(this.m_Devices.Select(x => new { brightness = x.CameraSetting.Brightness }), this.regt_devices.Select(x => new { brightness = x.CameraSetting.Brightness }));
+        }
+
+        [TestMethod]
+        public void Select_Index()
+        {
+            CheckEx.Check(this.m_Devices.Select((x, i) =>new { x.Key, i }), this.regt_devices.Select((x, i) => new { x.Key, i }));
+            CheckEx.Check(this.m_Devices.Select((x, i) => new { key = x.Key, index = i }), this.regt_devices.Select((x, i) => new { key = x.Key, index = i }));
+            CheckEx.Check(this.m_Devices.Select((x, i) => x.CameraSetting.Brightness), this.regt_devices.Select((x, i) => x.CameraSetting.Brightness));
+            CheckEx.Check(this.m_Devices.Select((x, i) => x.CameraSetting.Brightness.CanEdit), this.regt_devices.Select((x, i) => x.CameraSetting.Brightness.CanEdit));
         }
 
         [TestMethod]
@@ -143,33 +153,31 @@ namespace General
         [TestMethod]
         public void Update()
         {
-            //regt_devices.Update(x => new
-            //{
-            //    Size = new
-            //    {
-            //        Width=1111,
-            //        Height=2222
-            //    }
-            //});
-
-            //regt_devices.Update(x => new Device()
-            //{
-            //    Size = new Size
-            //    {
-            //        Width = 1111,
-            //        Height = 2222
-            //    }
-            //});
-
+            int cc = regt_devices.Where(x=>x.Key=="1").Update(x => new
+            {
+                Size = new
+                {
+                    Width = 123,
+                    Height = 456
+                }
+            });
 
         }
 
         [TestMethod]
         public void Where()
         {
-            var where = regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1");
             CheckEx.Check(this.m_Devices.Where(x => x.Location.Floor.Area.Name == "Area_1"), 
                 regt_devices.Where(x => x.Location.Floor.Area.Name == "Area_1"));
+
+        }
+
+        [TestMethod]
+        public void Where_Index()
+        {
+            CheckEx.Check(this.m_Devices.Where((x,i) => x.Location.Floor.Area.Name == "Area_1"),
+                regt_devices.Where((x, i) => x.Location.Floor.Area.Name == "Area_1"));
+
         }
 
         [TestMethod]
@@ -179,6 +187,47 @@ namespace General
             {
                 CheckEx.Check(this.m_Devices.ElementAt(i), regt_devices.ElementAt(i));
             }
+        }
+
+        [TestMethod]
+        public void GroupBy1()
+        {
+            CheckEx.Check(this.m_Devices.GroupBy(x => x), regt_devices.GroupBy(x => x));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name), regt_devices.GroupBy(x => x.Name));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Location.Name), regt_devices.GroupBy(x => x.Location.Name));
+        }
+
+        [TestMethod]
+        public void GroupBy1_Select()
+        {
+            CheckEx.Check(this.m_Devices.GroupBy(x => x).Select(x => x.Key), regt_devices.GroupBy(x => x).Select(x => x.Key));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name).Select(x => x.Key), regt_devices.GroupBy(x => x.Name).Select(x => x.Key));
+        }
+
+        [TestMethod]
+        public void GroupBy2()
+        {
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, x => x.Name), regt_devices.GroupBy(x => x.Name, x => x.Name));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, x => x.Local), regt_devices.GroupBy(x => x.Name, x => x.Local));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, x => new { x.Name, x.Local }), regt_devices.GroupBy(x => x.Name, x => new { x.Name, x.Local }));
+        }
+
+        [TestMethod]
+        public void GroupBy3()
+        {
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, (key, reg) => key), regt_devices.GroupBy(x => x.Name, (key, reg) => key));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, (key, reg) => reg), regt_devices.GroupBy(x => x.Name, (key, reg) => reg));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, (key, reg) => new { key }), regt_devices.GroupBy(x => x.Name, (key, reg) => new { key }));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, (key, reg) => new { reg }), regt_devices.GroupBy(x => x.Name, (key, reg) => new { reg }));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, (key, reg) => new { key.Length }), regt_devices.GroupBy(x => x.Name, (key, reg) => new { key.Length }));
+        }
+
+        [TestMethod]
+        public void GroupBy4()
+        {
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, x => x.Local.Port, (key, data) => data), regt_devices.GroupBy(x => x.Name, x => x.Local.Port, (key, data) => data));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, x => x.Local.Port, (key, data) => data.Count()), regt_devices.GroupBy(x => x.Name, x => x.Local.Port, (key, data) => data.Count()));
+            CheckEx.Check(this.m_Devices.GroupBy(x => x.Name, x => x.Local.Port, (key, data) => new { Key = key.ToString(), Count = data.Count() }), regt_devices.GroupBy(x => x.Name, x => x.Local.Port, (key, data) => new { Key = key.ToString(), Count = data.Count() }));
         }
 
         [TestMethod]
@@ -198,6 +247,10 @@ namespace General
         public void TakeWhile()
         {
             CheckEx.Check(this.m_Devices.TakeWhile(x=>x.Name !=null), regt_devices.TakeWhile(x => x.Name != null));
+            CheckEx.Check(this.m_Devices.TakeWhile(x => x.CameraSetting.Brightness != null), 
+                regt_devices.TakeWhile(x => x.CameraSetting.Brightness != null));
+            CheckEx.Check(this.m_Devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true),
+                regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true));
         }
     }
 

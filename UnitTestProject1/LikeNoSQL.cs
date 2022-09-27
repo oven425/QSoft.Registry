@@ -94,6 +94,7 @@ namespace General
                     Name = $"Location_{x}",
                     Floor = new FloorData()
                     {
+                        Floor=x,
                         Name = $"Floor_{x}",
                         Area = new AreaData()
                         {
@@ -140,15 +141,7 @@ namespace General
             CheckEx.Check(this.m_Devices.Select((x, i) => x.CameraSetting.Brightness.CanEdit), this.regt_devices.Select((x, i) => x.CameraSetting.Brightness.CanEdit));
         }
 
-        [TestMethod]
-        public void FirstOrDefault()
-        {
-            CheckEx.Check(this.m_Devices.FirstOrDefault(), regt_devices.FirstOrDefault());
-            CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"),
-                            regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"));
-            CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0),
-                            regt_devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0));
-        }
+        
 
         [TestMethod]
         public void Update()
@@ -252,6 +245,88 @@ namespace General
             CheckEx.Check(this.m_Devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true),
                 regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true));
         }
+
+        [TestMethod]
+        public void ToList()
+        {
+            CheckEx.Check(this.m_Devices, regt_devices.ToList());
+            CheckEx.Check(this.m_Devices.Where(x => x.Remote.IP !=""), regt_devices.Where(x => x.Remote.IP != "").ToList());
+            //CheckEx.Check(this.m_Devices.Where(x => string.IsNullOrEmpty(x.Remote.IP)), regt_devices.Where(x => string.IsNullOrEmpty(x.Remote.IP)).ToList());
+        }
+
+        [TestMethod]
+        public void ToArray()
+        {
+            CheckEx.Check(this.m_Devices.ToArray(), regt_devices.ToArray());
+            CheckEx.Check(this.m_Devices.Where(x => x.Size.Width >0).ToArray(), regt_devices.Where(x => x.Size.Width > 0).ToArray());
+        }
+
+        [TestMethod]
+        public void First()
+        {
+            var first1 = this.m_Devices.First(x => x.Location.Floor.Floor != 0);
+            var first2 = regt_devices.First(x => x.Location.Floor.Floor != 0);
+            CheckEx.Check(this.m_Devices.First(), regt_devices.First());
+            CheckEx.Check(this.m_Devices.First(x => x.Location.Floor.Floor!=0), regt_devices.First(x => x.Location.Floor.Floor != 0));
+        }
+
+        [TestMethod]
+        public void Last()
+        {
+            CheckEx.Check(this.m_Devices.Last(), regt_devices.Last());
+            CheckEx.Check(this.m_Devices.Last(x => x.Local.IP.Contains("1")), regt_devices.Last(x => x.Local.IP.Contains("1")));
+        }
+
+        [TestMethod]
+        public void FirstOrDefault()
+        {
+            CheckEx.Check(this.m_Devices.FirstOrDefault(), regt_devices.FirstOrDefault());
+            CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"),
+                            regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1"));
+            CheckEx.Check(this.m_Devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0),
+                            regt_devices.FirstOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0));
+        }
+
+
+        [TestMethod]
+        public void LastOrDefault()
+        {
+            CheckEx.Check(this.m_Devices.LastOrDefault(), regt_devices.LastOrDefault());
+            CheckEx.Check(this.m_Devices.LastOrDefault(x => x.Location.Floor.Area.Name == "Area_1"),
+                            regt_devices.LastOrDefault(x => x.Location.Floor.Area.Name == "Area_1"));
+            CheckEx.Check(this.m_Devices.LastOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0),
+                            regt_devices.LastOrDefault(x => x.Size.Width > 0 && x.Size.Height > 0));
+        }
+
+        [TestMethod]
+        public void Any()
+        {
+            Assert.IsTrue(this.m_Devices.Any(x => x.Local.Root.Account == "") == regt_devices.Any(x => x.Local.Root.Account == ""), ".Any(x => x.Local.Root.Account == \"\") fail");
+        }
+
+        //[TestMethod]
+        //public void All()
+        //{
+        //    Assert.IsTrue(this.m_Devices.All(x => x.DisplayName == "") == regt_devices.All(x => x.DisplayName == ""), "All(x => x.DisplayName == ) fail");
+        //    Assert.IsTrue(this.m_Devices.All(x => x.DisplayName == "" && x.EstimatedSize > 10) == regt_devices.All(x => x.DisplayName == "" && x.EstimatedSize > 10), "All fail");
+        //}
+
+        //[TestMethod]
+        //public void Count()
+        //{
+        //    Assert.IsTrue(this.m_Devices.Count() == regt_devices.Count(), "Count fail");
+        //    Assert.IsTrue(this.m_Devices.Count(x => x.EstimatedSize > 30) == regt_devices.Count(x => x.EstimatedSize > 30), "Count fail");
+        //    Assert.IsTrue(this.m_Devices.Count(x => x.EstimatedSize >= 40 && x.DisplayName == "") == regt_devices.Count(x => x.EstimatedSize >= 40 && x.DisplayName == ""), "Count fail");
+        //    Assert.IsTrue(this.m_Devices.Count(x => x.Key.Length >= 2) == regt_devices.Count(x => x.Key.Length >= 2), "Count fail");
+        //}
+
+        //[TestMethod]
+        //public void LongCount()
+        //{
+        //    Assert.IsTrue(this.m_Devices.LongCount() == regt_devices.LongCount(), "LongCount fail");
+        //    Assert.IsTrue(this.m_Devices.LongCount(x => x.EstimatedSize > 30) == regt_devices.LongCount(x => x.EstimatedSize > 30), "LongCount fail");
+        //    Assert.IsTrue(this.m_Devices.LongCount(x => x.EstimatedSize >= 40 && x.DisplayName == "") == regt_devices.LongCount(x => x.EstimatedSize >= 40 && x.DisplayName == ""), "LongCount fail");
+        //}
     }
 
 

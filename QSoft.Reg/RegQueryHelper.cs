@@ -1278,7 +1278,9 @@ namespace QSoft.Registry.Linq
             {
                 var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
                 var sssou = ((oo.SourceExpr as MemberExpression).Member as PropertyInfo);
-                var regss = new List<PropertyInfo>() { sssou }.BuildSubKey(oo, reg_p);
+                var liu = oo.SourceExpr.GetMembers();
+                var pps = liu.Select(x => x as PropertyInfo);
+                var regss = pps.BuildSubKey(oo, reg_p);
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
                     return null;
@@ -1338,7 +1340,9 @@ namespace QSoft.Registry.Linq
                     continue;
                 }
                 var sssou = ((oo.SourceExpr as MemberExpression).Member as PropertyInfo);
-                var regss = new List<PropertyInfo>() { sssou }.BuildSubKey(oo, reg_p);
+                var liu = oo.SourceExpr.GetMembers();
+                var pps = liu.Select(x => x as PropertyInfo);
+                var regss = pps.BuildSubKey(oo, reg_p);
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
                     return null;
@@ -1400,7 +1404,9 @@ namespace QSoft.Registry.Linq
             var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
             //var regss = members.BuildSubKey(reg_p);
             var sssou = ((src.SourceExpr as MemberExpression).Member as PropertyInfo);
-            var regss = new List<PropertyInfo>() { sssou }.BuildSubKey(src, reg_p);
+            var liu = src.SourceExpr.GetMembers();
+            var pps = liu.Select(x => x as PropertyInfo);
+            var regss = pps.BuildSubKey(src, reg_p);
             if (regss.Item1 == null && regss.Item2 == null)
             {
                 return null;

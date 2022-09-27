@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Check.cs" />
     <Compile Include="Device.cs" />
+    <Compile Include="LikeDB_SubKey.cs" />
     <Compile Include="LikeNoSQL.cs" />
     <Compile Include="LikeNoSQLDB.cs" />
     <Compile Include="UnitTest1.cs" />

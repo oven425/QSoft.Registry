@@ -210,7 +210,7 @@ namespace ConsoleApp1
                         x.Add(new Version2String());
                         //new Size2String()
                     });
-
+                var first2 = regt_devices.Where(x => !string.IsNullOrEmpty(x.Remote.IP)).ToList();
                 //regt_devices.Update(x => new
                 //{
                 //    Size = new

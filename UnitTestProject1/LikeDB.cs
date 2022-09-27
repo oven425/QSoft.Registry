@@ -133,6 +133,8 @@ namespace LikeDB
                 .Where(x => x.mapping != null)
                 .GroupJoin(regt_apps, mapping => mapping.mapping.AppID, app => app.ID, (x, y) => new { x.company, app = y })
                 .SelectMany(x => x.app.DefaultIfEmpty(), (x, y) => new { Company = x.company.Name, App = y.DisplayName });
+
+
             //foreach(var oo in left1)
             //{
 

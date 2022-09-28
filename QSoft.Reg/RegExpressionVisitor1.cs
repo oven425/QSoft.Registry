@@ -10,7 +10,9 @@ namespace QSoft.Registry.Linq
 {
     public class RegExpressionVisitor1<TData> : ExpressionVisitor
     {
+#pragma warning disable CS0649 // 從未指派欄位 'RegExpressionVisitor1<TData>.m_RegSource'，會持續使用其預設值 null。
         Expression m_RegSource;
+#pragma warning restore CS0649 // 從未指派欄位 'RegExpressionVisitor1<TData>.m_RegSource'，會持續使用其預設值 null。
         public IEnumerable<RegQueryConvert> Converts { set; get; }
         public string Fail { private set; get; }
         //public Expression Visit(Expression node, Expression regfunc)
@@ -32,7 +34,9 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+#pragma warning disable CS0649 // 從未指派欄位 'RegExpressionVisitor1<TData>.m_Saves'，會持續使用其預設值 null。
         Dictionary<Expression, Expression> m_Saves;
+#pragma warning restore CS0649 // 從未指派欄位 'RegExpressionVisitor1<TData>.m_Saves'，會持續使用其預設值 null。
         //public Expression VisitA(Expression node, Expression regfunc, Dictionary<Expression, Expression> saves, bool lastquery = false)
         //{
         //    this.m_Saves = saves;
@@ -680,7 +684,9 @@ namespace QSoft.Registry.Linq
                         else if (exprs.ElementAt(0).Value.Expr.Type == typeof(RegistryKey))
                         {
                             //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
+#pragma warning disable CS0219 // 已指派變數 'add'，但是從未使用過它的值。
                             bool add = false;
+#pragma warning restore CS0219 // 已指派變數 'add'，但是從未使用過它的值。
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                             var typecode = Type.GetTypeCode(expr.Type);
                             var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();
@@ -1044,7 +1050,9 @@ namespace QSoft.Registry.Linq
                             }
                             var invokepps = invoke.GetParameters().Select(x => x.ParameterType.Name);
                             List<string> argsnames = new List<string>();
+#pragma warning disable CS0219 // 已指派變數 'pp'，但是從未使用過它的值。
                             Tuple<ParameterInfo, MethodInfo, List<string>> pp = null;
+#pragma warning restore CS0219 // 已指派變數 'pp'，但是從未使用過它的值。
                             foreach (var oo in lo1)
                             {
                                 if (this.m_GenericTypes.First().ContainsKey(oo) && this.m_GenericTypes.First()[oo] == typeof(RegistryKey))

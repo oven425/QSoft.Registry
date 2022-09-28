@@ -1047,7 +1047,9 @@ namespace QSoft.Registry.Linq
                             }
                             var invokepps = invoke.GetParameters().Select(x => x.ParameterType.Name);
                             List<string> argsnames = new List<string>();
+#pragma warning disable CS0219 // 已指派變數 'pp'，但是從未使用過它的值。
                             Tuple<ParameterInfo, MethodInfo, List<string>> pp = null;
+#pragma warning restore CS0219 // 已指派變數 'pp'，但是從未使用過它的值。
                             foreach(var oo in lo1)
                             {
                                 if (this.m_GenericTypes.First().ContainsKey(oo) && this.m_GenericTypes.First()[oo] == typeof(RegistryKey))

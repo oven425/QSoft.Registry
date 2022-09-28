@@ -165,179 +165,34 @@ namespace ConsoleApp1
             try
             {
                 //TestDB();
-                //Version2String vv = new Version2String();
-                //vv.CanConvert(typeof(Version), typeof(string));
-                //var testkey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-                //var query = testkey.GetSubKeyNames().Select(x => testkey.OpenSubKey(x)).AsQueryable();
-                //var syntax = from oo in query
-                //             where oo.GetValue<string>("DisplayName") != ""
-                //             let kk1 = oo.GetValue<string>("DisplayName").ToLower()
-                //             let kk2 = oo.GetValue<string>("DisplayName").ToUpper()
-                //             select new { d1 = oo.GetValue<string>("DisplayName"), d2 = kk1, d3 = kk2 };
-
-
-                //var qq = query.Where(x => x.GetValue<string>("DisplayName") != "")
-                //    .Select(x => new { x, kk1 = x.GetValue<string>("DisplayName").ToLower() })
-                //    .Select(x => new { x1 = x.x, x2 = x, kk2 = x.x.GetValue<string>("DisplayName").ToUpper() })
-                //    .Select(x => new { d1=x.x1.GetValue<string>("DisplayName"), d2=x.x2.kk1, d3=x.kk2 });
 
 
 
-                //var pps = dst.GetProperties().Where(x => x.CanWrite == true)
-                //.Select(x => new
-                //{
-                //    x,
-                //    attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
-                //}).Where(x => !(x.attr is RegIgnore));
-
-
-
-
-                Dictionary<Tuple<Type, Type>, object> dics = new Dictionary<Tuple<Type, Type>, object>();
-                dics.Add(Tuple.Create(typeof(Version), typeof(string)), new Version2String());
-
-
-                var ccs = typeof(Device).GetConstructors();
-                var regt_devices = new RegQuery<Device>()
+                RegQuery<Computer> regt_computer = new RegQuery<Computer>()
+                     .useSetting(x =>
+                     {
+                         x.Hive = RegistryHive.CurrentConfig;
+                         x.SubKey = @"UnitTestLikeDB_SubKey\Computers";
+                         x.View = RegistryView.Registry64;
+                     });
+                RegQuery<NetworkCard> regt_networkcards = new RegQuery<NetworkCard>()
                     .useSetting(x =>
                     {
                         x.Hive = RegistryHive.CurrentConfig;
-                        x.SubKey = @"devices";
+                        x.SubKey = @"UnitTestLikeDB_SubKey\NetworkCards";
                         x.View = RegistryView.Registry64;
-                    })
-                    .useConverts(x=>
-                    {
-                        x.Add(new Version2String());
-                        //new Size2String()
                     });
-                var first2 = regt_devices.Where(x => !string.IsNullOrEmpty(x.Remote.IP)).ToList();
-                //regt_devices.Update(x => new
-                //{
-                //    Size = new
-                //    {
-                //        Width = 1111,
-                //        Height = 2222
-                //    }
-                //});
-
-                regt_devices.Update(x => new Device()
+                RegQuery<Mapping> regt_mapping = new RegQuery<Mapping>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.SubKey = @"UnitTestLikeDB_SubKey\Mappings";
+                        x.View = RegistryView.Registry64;
+                    });
+                var join = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new Computer()
                 {
-                    Size = new Size()
-                    {
-                        Width = 101010,
-                        Height = 212121,
-                    }
-                });
-
-                //var llo = regt_devices.Select(x => new
-                //{
-                //    version = x.Version,
-                //    sz = x.Location.Floor.Area.Data.Size,
-                //    id = x.ID,
-                //    localport = x.Local.Port,
-                //    pir_auto = x.CameraSetting.PIR.IsAuto,
-                //    pir_enable = x.CameraSetting.PIR.IsEnable,
-                //    setting = new
-                //    {
-                //        aa = x.CameraSetting.Brightness,
-                //        pir = new
-                //        {
-                //            auto = x.CameraSetting.PIR.IsAuto,
-                //            enable = x.CameraSetting.PIR.IsEnable
-                //        }
-                //    }
-                //});
-                //var iiu = Expression.Constant(null);
-                //var llo = regt_devices.Where(x => x.Version == new Version("1.1.1.1"));
-                //var ffi = regt_devices.FirstOrDefault(x => x.Location.Floor.Area.Name == "Area_1");
-                //var llo = regt_devices.Select(x => x.Location.Floor.Area.Data.Size);
-                //foreach (var oo in llo)
-                //{
-                //}
-
-                //regt_devices.Insert(new List<Device>()
-                //{
-                //    new Device()
-                //    {
-                //        Version = new Version("1.1.1.1"),
-                //        Name = "1F_AA",
-                //        Size = new Size(){Width=100,Height=100 },
-                //        Local = new Address()
-                //        {
-                //            IP = "127.0.0.1",
-                //            Port=1000,
-                //            Root = new Address.Auth()
-                //            {
-                //                Account = "root_local",
-                //                Password="root_local"
-                //            },
-                //            Guest = new Address.Auth()
-                //            {
-                //                Account = "guest_local",
-                //                Password="guest_local"
-                //            }
-                //        },
-                //        Remote = new Address()
-                //        {
-                //            IP="192.168.10.1",
-                //            Port = 1001,
-                //            Root = new Address.Auth()
-                //            {
-                //                Account = "root_local",
-                //                Password="root_local"
-                //            },
-                //            Guest = new Address.Auth()
-                //            {
-                //                Account = "guest_local",
-                //                Password="guest_local"
-                //            }
-                //        },
-                //        CameraSetting = new CameraSetting()
-                //        {
-                //            PIR = new PIR(){ IsEnable=true, IsAuto=true },
-                //            WDR = new WDR(){IsEnable=true},
-                //            Brightness = new Brightness()
-                //            {
-                //                Range = new Range(){Min=0, Max=1000},
-                //                Current = 500,
-                //                CanEdit=true
-                //            }
-                //        },
-                //        Location = new Locationata()
-                //        {
-                //            Name = "DD",
-                //            Floor = new FloorData()
-                //            {
-                //                Name = "1F",
-                //                Area = new AreaData()
-                //                {
-                //                    Name = "aaa",
-                //                    Data = new Rect()
-                //                    {
-                //                        Point = new Point()
-                //                        {
-                //                            X = 100,
-                //                            Y=200
-                //                        },
-                //                        Size = new Size()
-                //                        {
-                //                            Width = 111,
-                //                            Height=222
-                //                        }
-                //                    }
-                //                }
-                //            }
-                //        }
-                //    }
-                //});
-                RegQuery<Company> regt_company = new RegQuery<Company>()
-                    .useSetting(x =>
-                    {
-                        x.Hive = RegistryHive.CurrentConfig;
-                        x.SubKey = @"UnitTestLikeDB\Company";
-                        x.View = RegistryView.Registry64;
-                    });
-                regt_company.Update(x => new Company() { Address = $"{x.Name}_{x.Name}" });
+                    Name = x.Name
+                }).ToList();
             }
             catch (Exception ee)
             {
@@ -619,5 +474,34 @@ namespace ConsoleApp1
         public string SystemProductName { set; get; }
         public string SystemSKU { set; get; }
         public string SystemVersion { set; get; }
-    } 
+    }
+
+    //public class Address
+    //{
+    //    public string IP { set; get; }
+    //    public int Port { set; get; }
+    //}
+
+    public class NetworkCard
+    {
+        [RegSubKeyName]
+        public string MAC { set; get; }
+        public Address Local { set; get; }
+        public Address Remote { set; get; }
+    }
+
+    public class Computer
+    {
+        [RegSubKeyName]
+        public string Name { set; get; }
+        [RegIgnore]
+        public NetworkCard Network { set; get; }
+        public string Network_MAC { set; get; }
+    }
+
+    public class Mapping
+    {
+        public string ComputerName { set; get; }
+        public string MAC { set; get; }
+    }
 }

@@ -322,13 +322,17 @@ namespace QSoft.Registry.Linq
                     {
                         var err = ErrMsg(is_success);
                         throw new Exception(err);
+#pragma warning disable CS0162 // 偵測到不會執行到的程式碼
                         err = "";
+#pragma warning restore CS0162 // 偵測到不會執行到的程式碼
                     }
                     
                     //NativeMethod.RegCloseKey();
                 }
             }
+#pragma warning disable CS0168 // 已宣告變數 'ee'，但從未使用過它。
             catch(Exception ee)
+#pragma warning restore CS0168 // 已宣告變數 'ee'，但從未使用過它。
             {
                 throw;
             }
@@ -377,7 +381,9 @@ namespace QSoft.Registry.Linq
                     }
                 }
             }
+#pragma warning disable CS0168 // 已宣告變數 'ee'，但從未使用過它。
             catch(Exception ee)
+#pragma warning restore CS0168 // 已宣告變數 'ee'，但從未使用過它。
             {
                 throw;
             }

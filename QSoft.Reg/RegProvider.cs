@@ -529,7 +529,9 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
+#pragma warning disable CS0219 // 已指派變數 'arg1'，但是從未使用過它的值。
                         Expression arg1 = null;
+#pragma warning restore CS0219 // 已指派變數 'arg1'，但是從未使用過它的值。
                         var updatemethod2 = expr as MethodCallExpression;
                         if (updatemethod2.Arguments.Count == 1)
                         {

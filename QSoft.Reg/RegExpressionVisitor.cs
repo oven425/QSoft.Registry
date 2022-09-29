@@ -349,6 +349,10 @@ namespace QSoft.Registry.Linq
                 
                 var bindings = exprs.Skip(1).Select((x,i) =>
                 {
+                    if(x.Value.Expr.Type== typeof(RegistryKey))
+                    {
+                        x.Value.Expr = x.Value.SourceExpr.Type.ToData(x.Value.Expr, this.Converts);
+                    }
                     var binding = Expression.Bind(expr.Bindings[i].Member, x.Value.Expr);
                     return binding;
                 });
@@ -401,7 +405,12 @@ namespace QSoft.Registry.Linq
 
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment node)
         {
-            this.m_ExpressionSaves[node.Expression] = null;
+            if(this.m_ExpressionSaves.ContainsKey(node.Expression) == false)
+            {
+                this.m_ExpressionSaves[node.Expression] = new Ex();
+            }
+            this.m_ExpressionSaves[node.Expression].SourceExpr = node.Expression;
+            //this.m_ExpressionSaves[node.Expression] = null;
             System.Diagnostics.Debug.WriteLine($"VisitMemberAssignment {node.Member.Name}");
 
             var expr = base.VisitMemberAssignment(node);
@@ -510,13 +519,13 @@ namespace QSoft.Registry.Linq
                     ggs.Add(exprs.First().Value.Expr.Type);
                     var functype1 = lambda.Type.GetGenericTypeDefinition().MakeGenericType(ggs.ToArray());
                     var zz = functype.GetGenericArguments().Zip(functype1.GetGenericArguments(), (x, y) => new { x, y });
-                    foreach(var oo in zz)
-                    {
-                        if(oo.x != oo.y)
-                        {
+                    //foreach(var oo in zz)
+                    //{
+                    //    if(oo.x != oo.y)
+                    //    {
 
-                        }
-                    }
+                    //    }
+                    //}
                     m_Lambda = Expression.Lambda(functype1, exprs.First().Value.Expr, parameters);
                 }
                 //else if(this.m_MembersExprs.Count > 0)
@@ -559,7 +568,12 @@ namespace QSoft.Registry.Linq
         Dictionary<string, ParameterExpression> m_Parameters = new Dictionary<string, ParameterExpression>();
         protected override Expression VisitParameter(ParameterExpression node)
         {
-            m_ExpressionSaves[node] = new Ex() { SourceExpr = node};
+            if(this.m_ExpressionSaves.ContainsKey(node) == false)
+            {
+                m_ExpressionSaves[node] = new Ex() { SourceExpr = node };
+            }
+            //m_ExpressionSaves[node].SourceExpr = node;
+            //m_ExpressionSaves[node] = new Ex() { SourceExpr = node};
             System.Diagnostics.Debug.WriteLine($"VisitParameter {node.Type.Name}");
 
             var expr = base.VisitParameter(node) as ParameterExpression;

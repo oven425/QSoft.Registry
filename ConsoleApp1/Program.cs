@@ -191,8 +191,15 @@ namespace ConsoleApp1
                     });
                 var join = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new Computer()
                 {
-                    Name = x.Name
-                }).ToList();
+                    Name = x.Name,
+                    Network = y
+                });
+
+                //var join = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new
+                //{
+                //    x.Name
+                //});
+                join.ToList();
             }
             catch (Exception ee)
             {

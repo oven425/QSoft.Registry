@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnitTest;
 
 namespace LikeDB
 {
@@ -73,10 +74,19 @@ namespace LikeDB
         [TestMethod]
         public void Join1()
         {
-            var join = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new Computer()
+            var join1 = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new Computer()
             {
-                Name = x.Name
+                Name = x.Name,
+                Network = y
             });
+            var computers = regt_computer.ToList();
+            var networkcads = regt_networkcards.ToList();
+            var join2 = computers.Join(networkcads, x => x.Network_MAC, y => y.MAC, (x, y) => new Computer()
+            {
+                Name = x.Name,
+                Network = y
+            });
+            CheckEx.Check(join1, join2);
         }
     }
 

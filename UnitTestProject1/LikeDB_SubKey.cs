@@ -38,7 +38,7 @@ namespace LikeDB
         [TestMethod]
         public void BuildMockup()
         {
-            var computers = Enumerable.Range(1, 10).Select(x => new Computer()
+            var computers = Enumerable.Range(1, 5).Select(x => new Computer()
             {
                 Name = $"Computer_{x}",
                 Network_MAC = $"{x}.{x}{x},{x}",
@@ -87,6 +87,61 @@ namespace LikeDB
                 Network = y
             });
             CheckEx.Check(join1, join2);
+        }
+
+        [TestMethod]
+        public void Join2()
+        {
+            var join1 = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new
+            {
+                x.Name,
+                x.Network
+            });
+            var computers = regt_computer.ToList();
+            var networkcads = regt_networkcards.ToList();
+            var join2 = computers.Join(networkcads, x => x.Network_MAC, y => y.MAC, (x, y) => new
+            {
+                x.Name,
+                x.Network
+            });
+            CheckEx.Check(join1, join2);
+        }
+
+        [TestMethod]
+        public void LeftJoin_2Table()
+        {
+            var join1 = regt_computer.GroupJoin(regt_networkcards, x => x.Network_MAC, y => y.MAC, (computes, nets) => new
+            {
+                computes,
+                nets
+            }).SelectMany(x=>x.nets.DefaultIfEmpty(), (x,y)=>new {x.computes, x.nets});
+            var computers = regt_computer.ToList();
+            var networkcads = regt_networkcards.ToList();
+            var join2 = computers.GroupJoin(networkcads, x => x.Network_MAC, y => y.MAC, (computes, nets) => new
+            {
+                computes,
+                nets
+            }).SelectMany(x => x.nets.DefaultIfEmpty(), (x, y) => new { x.computes, x.nets });
+            CheckEx.Check(join1, join2);
+        }
+
+        [TestMethod]
+        public void LeftJoin_3Table()
+        {
+            var join1 = regt_computer.GroupJoin(regt_networkcards, x => x.Network_MAC, y => y.MAC, (computes, nets) => new
+            {
+                computes,
+                nets
+            }).SelectMany(x => x.nets.DefaultIfEmpty(), (x, y) => new { x.computes, x.nets });
+            var computers = regt_computer.ToList();
+            var networkcads = regt_networkcards.ToList();
+            var mapping = regt_mapping.ToList();
+            //var join2 = computers.GroupJoin(networkcads, x => x.Network_MAC, y => y.MAC, (computes, nets) => new
+            //{
+            //    computes,
+            //    nets
+            //}).SelectMany(x => x.nets.DefaultIfEmpty(), (x, y) => new { x.computes, x.nets });
+            //CheckEx.Check(join1, join2);
         }
     }
 

@@ -1,4 +1,3 @@
-Welcome to the QSoft.Registry wiki!
 # Introduction
 *  Support Queryable function
 *  Auto control Registry resource no control resource create and dispose

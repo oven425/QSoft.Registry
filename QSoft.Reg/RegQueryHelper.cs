@@ -646,6 +646,7 @@ namespace QSoft.Registry.Linq
                                 var convertbackexpr = Expression.Call(Expression.Constant(convert), methods, method);
                                 var binding = Expression.Bind(pp.x, convertbackexpr);
                                 bindings.Add(binding);
+                                name = null;
                             }
                         }
                         else

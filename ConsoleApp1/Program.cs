@@ -147,17 +147,34 @@ namespace ConsoleApp1
         }
     }
 
-    class Ddaaa
+
+    public class Ram
     {
-        public int? A1 { set; get; }
-        public int A2 { set; get; }
-        public Ddaaa(int dd)
-        {
-            A1 = dd;
-            A2 = dd;
-        }
+        public int Size { set; get; }
+        public string Manufacturer { set; get; }
     }
 
+    public class NetworkCard
+    {
+        public string Manufacturer { set; get; }
+        [RegPropertyName("Address")]
+        public Address1 Address { set; get; }
+    }
+
+    public class Address1
+    {
+        public string IP { set; get; }
+        public int Port { set; get; }
+    }
+
+    public class Computer
+    {
+        [RegSubKeyName]
+        public string Name { set; get; }
+        public Ram Ram { set; get; }
+        public NetworkCard NetworkCard { set; get; }
+        public Size Size { set; get; }
+    }
     class Program
     {
         static void Main(string[] args)
@@ -166,40 +183,35 @@ namespace ConsoleApp1
             {
                 //TestDB();
 
-
-
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()
-                     .useSetting(x =>
-                     {
-                         x.Hive = RegistryHive.CurrentConfig;
-                         x.SubKey = @"UnitTestLikeDB_SubKey\Computers";
-                         x.View = RegistryView.Registry64;
-                     });
-                RegQuery<NetworkCard> regt_networkcards = new RegQuery<NetworkCard>()
                     .useSetting(x =>
                     {
                         x.Hive = RegistryHive.CurrentConfig;
-                        x.SubKey = @"UnitTestLikeDB_SubKey\NetworkCards";
+                        x.SubKey = @"LikeDB_SubKey\Computers";
                         x.View = RegistryView.Registry64;
                     });
-                RegQuery<Mapping> regt_mapping = new RegQuery<Mapping>()
-                    .useSetting(x =>
-                    {
-                        x.Hive = RegistryHive.CurrentConfig;
-                        x.SubKey = @"UnitTestLikeDB_SubKey\Mappings";
-                        x.View = RegistryView.Registry64;
-                    });
-                var join = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new Computer()
+                var computers = Enumerable.Range(1, 10).Select(x => new Computer()
                 {
-                    Name = x.Name,
-                    Network = y
+                    Name = $"Computer_{x}",
+                    Ram = new Ram()
+                    {
+                        Manufacturer = $"Ram{x}",
+                        Size = (int)Math.Pow(x,2)
+                    },
+                    NetworkCard = new NetworkCard()
+                    {
+                        Manufacturer = $"NetworkCard{x}",
+                        Address = new Address1()
+                        {
+                            IP = $"127.0.0.{x}",
+                            Port = x+80
+                        }
+                    },
+                    Size = new Size() {Width=x+1, Height=x+2 }
                 });
-
-                //var join = regt_computer.Join(regt_networkcards, x => x.Network_MAC, y => y.MAC, (x, y) => new
-                //{
-                //    x.Name
-                //});
-                join.ToList();
+                regt_computer.RemoveAll();
+                regt_computer.Insert(computers);
+                var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)
             {
@@ -489,26 +501,26 @@ namespace ConsoleApp1
     //    public int Port { set; get; }
     //}
 
-    public class NetworkCard
-    {
-        [RegSubKeyName]
-        public string MAC { set; get; }
-        public Address Local { set; get; }
-        public Address Remote { set; get; }
-    }
+    //public class NetworkCard
+    //{
+    //    [RegSubKeyName]
+    //    public string MAC { set; get; }
+    //    public Address Local { set; get; }
+    //    public Address Remote { set; get; }
+    //}
 
-    public class Computer
-    {
-        [RegSubKeyName]
-        public string Name { set; get; }
-        [RegIgnore]
-        public NetworkCard Network { set; get; }
-        public string Network_MAC { set; get; }
-    }
+    //public class Computer
+    //{
+    //    [RegSubKeyName]
+    //    public string Name { set; get; }
+    //    [RegIgnore]
+    //    public NetworkCard Network { set; get; }
+    //    public string Network_MAC { set; get; }
+    //}
 
-    public class Mapping
-    {
-        public string ComputerName { set; get; }
-        public string MAC { set; get; }
-    }
+    //public class Mapping
+    //{
+    //    public string ComputerName { set; get; }
+    //    public string MAC { set; get; }
+    //}
 }

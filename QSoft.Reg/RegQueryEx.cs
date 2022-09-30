@@ -57,8 +57,6 @@ namespace QSoft.Registry.Linq
                 var convert = converts?.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
                 if(convert != null)
                 {
-                    System.Diagnostics.Debug.WriteLine("");
-                    
                     var methods = convert.GetType().GetMethod("ConvertTo");
                     var vv = pp.Key.GetValue(data, null);
                     var dst = methods.Invoke(convert, new[] { vv });

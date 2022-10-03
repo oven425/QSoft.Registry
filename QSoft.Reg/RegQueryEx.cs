@@ -49,6 +49,10 @@ namespace QSoft.Registry.Linq
 
             foreach (var pp in dicpps)
             {
+                if (pp.Key.PropertyType.IsGenericType == true)
+                {
+                    var poi = pp.Key.PropertyType.GetGenericTypeDefinition();
+                }
                 var typecode = Type.GetTypeCode(pp.Key.PropertyType);
                 if (pp.Key.PropertyType.IsGenericType == true && pp.Key.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {

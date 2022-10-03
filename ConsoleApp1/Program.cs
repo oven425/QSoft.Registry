@@ -171,9 +171,10 @@ namespace ConsoleApp1
     {
         [RegSubKeyName]
         public string Name { set; get; }
-        public Ram Ram { set; get; }
-        public NetworkCard NetworkCard { set; get; }
-        public Size Size { set; get; }
+        public List<Ram> Rams { set; get; }
+        //public Ram Ram { set; get; }
+        //public NetworkCard NetworkCard { set; get; }
+        //public Size Size { set; get; }
     }
     class Program
     {
@@ -193,25 +194,38 @@ namespace ConsoleApp1
                 var computers = Enumerable.Range(1, 10).Select(x => new Computer()
                 {
                     Name = $"Computer_{x}",
-                    Ram = new Ram()
+                    //Ram = new Ram()
+                    //{
+                    //    Manufacturer = $"Ram{x}",
+                    //    Size = (int)Math.Pow(x,2)
+                    //},
+                    Rams = new List<Ram>()
                     {
-                        Manufacturer = $"Ram{x}",
-                        Size = (int)Math.Pow(x,2)
-                    },
-                    NetworkCard = new NetworkCard()
-                    {
-                        Manufacturer = $"NetworkCard{x}",
-                        Address = new Address1()
+                        new Ram()
                         {
-                            IP = $"127.0.0.{x}",
-                            Port = x+80
+                            Manufacturer = $"Ram{x}_1",
+                            Size = (int)Math.Pow(x,2)
+                        },
+                        new Ram()
+                        {
+                            Manufacturer = $"Ram{x}_2",
+                            Size = (int)Math.Pow(x,2)
                         }
                     },
-                    Size = new Size() {Width=x+1, Height=x+2 }
+                    //NetworkCard = new NetworkCard()
+                    //{
+                    //    Manufacturer = $"NetworkCard{x}",
+                    //    Address = new Address1()
+                    //    {
+                    //        IP = $"127.0.0.{x}",
+                    //        Port = x+80
+                    //    }
+                    //},
+                    //Size = new Size() {Width=x+1, Height=x+2 }
                 });
                 regt_computer.RemoveAll();
                 regt_computer.Insert(computers);
-                var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
+                //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)
             {

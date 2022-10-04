@@ -49,10 +49,8 @@ namespace QSoft.Registry.Linq
 
             foreach (var pp in dicpps)
             {
-                if (pp.Key.PropertyType.IsGenericType == true)
-                {
-                    var poi = pp.Key.PropertyType.GetGenericTypeDefinition();
-                }
+
+                
                 var typecode = Type.GetTypeCode(pp.Key.PropertyType);
                 if (pp.Key.PropertyType.IsGenericType == true && pp.Key.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
@@ -70,13 +68,28 @@ namespace QSoft.Registry.Linq
                 //if(typecode == TypeCode.Object && pp.Key.PropertyType!= typeof(Version))
                 else if (typecode == TypeCode.Object)
                 {
-                    
-                    var obj = pp.Key.GetValue(data, null);
-                    if (obj != null)
+                    var interfaces = pp.Key.PropertyType.GetInterfaces();
+                    var isloop = interfaces.Any(x1 => x1 == typeof(System.Collections.IEnumerable));
+                    if(isloop == true)
                     {
+                        var obj = pp.Key.GetValue(data, null) as System.Collections.IEnumerable;
                         var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        cc.Insert(pp.Key.GetValue(data, null), null, isinsert, converts);
+                        foreach (var oo in obj)
+                        {
+                            isinsert = true;
+                            cc.Insert(oo, null, isinsert, converts);
+                        }
                     }
+                    else
+                    {
+                        var obj = pp.Key.GetValue(data, null);
+                        if (obj != null)
+                        {
+                            var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                            cc.Insert(pp.Key.GetValue(data, null), null, isinsert, converts);
+                        }
+                    }
+                    
                 }
                 else
                 {

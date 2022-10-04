@@ -182,8 +182,10 @@ namespace ConsoleApp1
         {
             try
             {
-                //TestDB();
-
+                   //TestDB();
+                   var tty = typeof(List<int>);
+                var ins = tty.GetInterfaces().Where(x=>x == typeof(IEnumerable));
+                var bbb = typeof(IEnumerable).IsAssignableFrom(tty);
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()
                     .useSetting(x =>
                     {

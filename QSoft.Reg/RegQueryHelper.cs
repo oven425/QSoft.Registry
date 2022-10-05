@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -1001,6 +1002,7 @@ namespace QSoft.Registry.Linq
             {
                 if (item.Key == true)
                 {
+                    var isenumable = item.Last().type.GetInterfaces().Any(x => x == typeof(IEnumerable));
                     var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
                     var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
                     getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));

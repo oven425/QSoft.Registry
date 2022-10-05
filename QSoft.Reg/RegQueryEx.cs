@@ -10,6 +10,14 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryEx
     {
+        public static IEnumerable<RegistryKey> Create(this RegistryKey src)
+        {
+            var syb = src.GetSubKeyNames();
+            foreach(var oo in syb)
+            {
+                yield return src.OpenSubKey(oo);
+            }
+        }
         public static int Insert<TSource>(this RegQuery<TSource> source, IEnumerable<TSource> datas) where TSource : class
         {
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");

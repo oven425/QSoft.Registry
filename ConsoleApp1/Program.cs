@@ -225,8 +225,10 @@ namespace ConsoleApp1
                     //},
                     //Size = new Size() {Width=x+1, Height=x+2 }
                 });
-                regt_computer.RemoveAll();
-                regt_computer.Insert(computers);
+                //regt_computer.RemoveAll();
+                //regt_computer.Insert(computers);
+                var kk = regt_computer.Where(x => x.Rams.FirstOrDefault()!=null);
+                kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)

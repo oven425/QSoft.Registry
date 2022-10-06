@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -556,10 +557,7 @@ namespace QSoft.Registry.Linq
             foreach (var pp in pps)
             {
                 var typecode = Type.GetTypeCode(pp.x.PropertyType);
-                if (pp.x.PropertyType == typeof(Version))
-                {
-                    System.Diagnostics.Debug.WriteLine("");
-                }
+
                 var property = pp.x.PropertyType;
                 if (pp.x.PropertyType.IsGenericType == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
@@ -652,27 +650,55 @@ namespace QSoft.Registry.Linq
                         }
                         else
                         {
-                            var subkeyname = pp.x.Name;
-                            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                            var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
-                            var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
-                            var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
-                            var objexpr = pp.x.PropertyType.ToData(reg_p, converts);
-                            var block = Expression.Block(new[] { reg_p, new_p },
-                                Expression.Assign(reg_p, getsubkeyexpr),
-                                Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                                    Expression.Block(
-                                        Expression.Assign(new_p, objexpr),
-                                        reg_p.DisposeExpr(),
-                                        new_p
-                                        ),
-                                    Expression.Constant(null, pp.x.PropertyType)
-                                    )
-                                );
-                            var binding = Expression.Bind(pp.x, block);
-                            bindings.Add(binding);
+                            if(pp.x.PropertyType.GetInterfaces().Any(x => x == typeof(IEnumerable)))
+                            {
+                                var subkeyname = pp.x.Name;
+                                var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+
+                                var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
+                                typeof(RegQueryEx).GetMethod("OpenSubKeys");
+                                var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), getsubkeyexpr);
+                                var aaa = typeof(Enumerable).GetMethods().Where(x=>x.Name == "Select").ElementAt(0);
+                                aaa = aaa.MakeGenericMethod(typeof(RegistryKey), pp.x.PropertyType.GetGenericArguments()[0]);
+
+                                var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                                var subobjexpr = pp.x.PropertyType.GetGenericArguments()[0].ToData(subreg_p, converts);
+                                var selectexpr = Expression.Call(aaa, opensubkeys_expr, Expression.Lambda(subobjexpr, subreg_p));
+                                var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(pp.x.PropertyType.GetGenericArguments()[0]);
+                                var tolist_expr = Expression.Call(tolist, selectexpr);
+                                var binding = Expression.Bind(pp.x, tolist_expr);
+                                bindings.Add(binding);
+
+                                //var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
+                                //var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
+                                //pp.x.PropertyType.GetGenericArguments()[0].ToData()
+                                //var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                                //var subobjexpr = pp.x.PropertyType.GetGenericArguments()[0].ToData(subreg_p, converts);
+                            }
+                            else
+                            {
+                                var subkeyname = pp.x.Name;
+                                var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
+                                var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
+                                var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
+                                var objexpr = pp.x.PropertyType.ToData(reg_p, converts);
+                                var block = Expression.Block(new[] { reg_p, new_p },
+                                    Expression.Assign(reg_p, getsubkeyexpr),
+                                    Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                        Expression.Block(
+                                            Expression.Assign(new_p, objexpr),
+                                            reg_p.DisposeExpr(),
+                                            new_p
+                                            ),
+                                        Expression.Constant(null, pp.x.PropertyType)
+                                        )
+                                    );
+                                var binding = Expression.Bind(pp.x, block);
+                                bindings.Add(binding);
+                            }
+                            
                         }
-                        
                     }
                     else
                     {
@@ -1003,10 +1029,22 @@ namespace QSoft.Registry.Linq
                 if (item.Key == true)
                 {
                     var isenumable = item.Last().type.GetInterfaces().Any(x => x == typeof(IEnumerable));
-                    var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                    getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
-                    needdispose = true;
+                    if(isenumable == true)
+                    {
+                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                        getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
+                        var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
+                        getsubkeyexpr = Expression.Call(vv, getsubkeyexpr);
+                        needdispose = true;
+                    }
+                    else
+                    {
+                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                        getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
+                        needdispose = true;
+                    }
                 }
                 else
                 {
@@ -1290,6 +1328,7 @@ namespace QSoft.Registry.Linq
                 }
                 var method_return = Expression.Parameter(method.ReturnType, "method_return");
                 var needdispose = Expression.Parameter(typeof(bool), "needdispose");
+                reg_p = Expression.Parameter(regss.Item1.Type, "subreg");
                 var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? oo.Expr);
                 Expression convert = null;
                 if (oo.Convert != null)

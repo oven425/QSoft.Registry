@@ -193,6 +193,10 @@ namespace ConsoleApp1
                         x.SubKey = @"LikeDB_SubKey\Computers";
                         x.View = RegistryView.Registry64;
                     });
+                //var regbase = RegistryKey.OpenBaseKey(RegistryHive.CurrentConfig, RegistryView.Registry64);
+                //RegistryKey reg = regbase.OpenSubKey("LikeDB_SubKey\\Computers");
+                //var regss = reg.OpenSubKeys().Any();
+                //var regss1 = reg.Create().Any();
                 var computers = Enumerable.Range(1, 10).Select(x => new Computer()
                 {
                     Name = $"Computer_{x}",
@@ -225,10 +229,13 @@ namespace ConsoleApp1
                     //},
                     //Size = new Size() {Width=x+1, Height=x+2 }
                 });
+                //var kkj = computers.AsQueryable().Where(x => x.Rams.FirstOrDefault() != null);
                 //regt_computer.RemoveAll();
                 //regt_computer.Insert(computers);
-                var kk = regt_computer.Where(x => x.Rams.FirstOrDefault()!=null);
+                var kk = regt_computer;
                 kk.ToList();
+                //var kk = regt_computer.Where(x => x.Rams.FirstOrDefault()!=null);
+                //kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)

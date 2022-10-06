@@ -10,12 +10,32 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryEx
     {
-        public static IEnumerable<RegistryKey> Create(this RegistryKey src)
+        //public static IEnumerable<RegistryKey> Create(this RegistryKey src)
+        //{
+        //    var syb = src.GetSubKeyNames();
+        //    foreach(var oo in syb)
+        //    {
+        //        yield return src.OpenSubKey(oo);
+        //    }
+        //}
+
+        public static List<RegistryKey> OpenSubKeys(this RegistryKey src)
         {
+            List<RegistryKey> ll = new List<RegistryKey>();
             var syb = src.GetSubKeyNames();
-            foreach(var oo in syb)
+            foreach (var oo in syb)
             {
-                yield return src.OpenSubKey(oo);
+                ll.Add(src.OpenSubKey(oo));
+            }
+            return ll;
+        }
+
+        public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)
+        {
+            foreach(var oo in src)
+            {
+                oo.Close();
+                oo.Dispose();
             }
         }
         public static int Insert<TSource>(this RegQuery<TSource> source, IEnumerable<TSource> datas) where TSource : class

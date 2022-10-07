@@ -44,7 +44,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegAttribute.cs" />
     <Compile Include="RegExpressionVisitor.cs" />
-    <Compile Include="RegExpressionVisitor1.cs" />
     <Compile Include="RegistryKeyEx.cs" />
     <Compile Include="RegProvider.cs" />
     <Compile Include="RegProvider1.cs" />

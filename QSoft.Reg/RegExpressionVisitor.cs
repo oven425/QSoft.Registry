@@ -742,20 +742,6 @@ namespace QSoft.Registry.Linq
                                 }
                             }
                             
-                            
-                            var attr_ = expr.Member.GetCustomAttributes(true).FirstOrDefault();
-                            if(attr_ != null)
-                            {
-                                if(attr is RegIgnore)
-                                {
-
-                                }
-                                else if(attr is RegPropertyName)
-                                {
-                                    this.m_ExpressionSaves[expr].Name = (attr_ as RegPropertyName).Name;
-                                }
-                            }
-                            this.m_ExpressionSaves[expr].Name = this.m_ExpressionSaves[expr].Name??expr.Member.Name;
                             this.m_ExpressionSaves[expr].Convert = this.Converts?.FirstOrDefault(x => x.CanConvert(node.Type));
                             this.m_ExpressionSaves[expr].Expr = member;
                             this.m_ExpressionSaves[expr].SourceExpr = expr;

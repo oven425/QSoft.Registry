@@ -1206,6 +1206,7 @@ namespace QSoft.Registry.Linq
                 }
                 else if (regss.Item1 == regss.Item2)
                 {
+
                     var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
                     var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
                     var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
@@ -1343,7 +1344,7 @@ namespace QSoft.Registry.Linq
                 }
                 if (oo.SourceExpr.Type.GetInterfaces().Any(x => x == typeof(IEnumerable)))
                 {
-                    var subkeyname = oo.Name;
+                    var subkeyname = oo.SourceExpr.Type.Name;
                     var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
 
                     var getsubkeyexpr = Expression.Call(reg_p, opensubkey, Expression.Constant(subkeyname));

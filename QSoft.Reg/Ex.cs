@@ -12,5 +12,6 @@ namespace QSoft.Registry.Linq
         public Expression SourceExpr { set; get; }
         public Expression Expr { set; get; }
         public RegQueryConvert Convert { set; get; }
+        public string Name { set; get; }
     }
 }

@@ -232,10 +232,8 @@ namespace ConsoleApp1
                 //var kkj = computers.AsQueryable().Where(x => x.Rams.FirstOrDefault() != null);
                 //regt_computer.RemoveAll();
                 //regt_computer.Insert(computers);
-                var kk = regt_computer;
+                var kk = regt_computer.Where(x => x.Rams.FirstOrDefault()!=null);
                 kk.ToList();
-                //var kk = regt_computer.Where(x => x.Rams.FirstOrDefault()!=null);
-                //kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)

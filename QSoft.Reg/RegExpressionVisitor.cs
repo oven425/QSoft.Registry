@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -649,8 +650,6 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
-        //public List<Tuple<Expression, MemberExpression>> m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
-        public List<string> m_SubKeyNames = new List<string>();
         protected override Expression VisitMember(MemberExpression node)
         {
             if(this.m_ExpressionSaves.ContainsKey(node) == false)
@@ -742,10 +741,21 @@ namespace QSoft.Registry.Linq
                                     //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
-                            //if (this.m_MembersExprs.Count > 0 || add==true)
-                            //{
-                            //    this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
-                            //}
+                            
+                            
+                            var attr_ = expr.Member.GetCustomAttributes(true).FirstOrDefault();
+                            if(attr_ != null)
+                            {
+                                if(attr is RegIgnore)
+                                {
+
+                                }
+                                else if(attr is RegPropertyName)
+                                {
+                                    this.m_ExpressionSaves[expr].Name = (attr_ as RegPropertyName).Name;
+                                }
+                            }
+                            this.m_ExpressionSaves[expr].Name = this.m_ExpressionSaves[expr].Name??expr.Member.Name;
                             this.m_ExpressionSaves[expr].Convert = this.Converts?.FirstOrDefault(x => x.CanConvert(node.Type));
                             this.m_ExpressionSaves[expr].Expr = member;
                             this.m_ExpressionSaves[expr].SourceExpr = expr;
@@ -1165,7 +1175,7 @@ namespace QSoft.Registry.Linq
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
                                 }
-                                var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
+                                var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts);
                                 if(bubkey != null)
                                 {
                                     methodcall = bubkey;

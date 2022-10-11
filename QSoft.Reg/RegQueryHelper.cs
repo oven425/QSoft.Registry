@@ -541,17 +541,7 @@ namespace QSoft.Registry.Linq
                     x,
                     attr = x.GetCustomAttributes(true).FirstOrDefault(y => y is RegSubKeyName || y is RegIgnore || y is RegPropertyName)
                 }).Where(x => !(x.attr is RegIgnore));
-            //if(pps.Count() == 0)
-            //{
-            //    var convert  = converts.FirstOrDefault(x => x.CanConvert(dst));
-            //    var methods = convert.GetType().GetMethod("ConvertBack");
-            //    var method = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(methods.GetParameters()[0].ParameterType), param, name);
 
-            //    var convertbackexpr = Expression.Call(Expression.Constant(convert), methods, method);
-            //    var binding = Expression.Bind(pp.x, convertbackexpr);
-            //    bindings.Add(binding);
-
-            //}
             var ccs = dst.GetConstructors();
             List<MemberAssignment> bindings = new List<MemberAssignment>();
             foreach (var pp in pps)
@@ -594,7 +584,7 @@ namespace QSoft.Registry.Linq
                             bindings.Add(binding);
                         }
                     }
-                    else if (typecode == TypeCode.Object && property != typeof(Version))
+                    else if (typecode == TypeCode.Object)
                     {
                         
                         var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
@@ -1189,6 +1179,12 @@ namespace QSoft.Registry.Linq
             return members1;
         }
 
+        public static Expression ToListExpr(this Type src, string name, Expression param, IEnumerable<RegQueryConvert> converts)
+        {
+            
+            return null;
+        }
+
         public static Expression ToBinary(this DictionaryList<Expression, Ex> exprs, BinaryExpression node, IEnumerable<RegQueryConvert> converts)
         {
             Expression binary = null;
@@ -1206,21 +1202,49 @@ namespace QSoft.Registry.Linq
                 }
                 else if (regss.Item1 == regss.Item2)
                 {
+                    if (regss.Item1.Type == typeof(List<RegistryKey>))
+                    {
+                        var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
+                        var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
 
-                    var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
-                    var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
-                    var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
 
-                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
-                        reg_p_assign,
-                        hr_p_assign,
-                        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        Expression.Block(
-                            Expression.Assign(hr_p, oo.Value.SourceExpr.Type.ToData(reg_p, converts)),
-                            reg_p.DisposeExpr())),
-                        hr_p
-                        );
-                    oo.Value.Expr = membgervalue;
+                        var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                        aaa = aaa.MakeGenericMethod(typeof(RegistryKey), oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
+
+                        var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                        var subobjexpr = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToData(subreg_p, converts);
+                        var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
+                        var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
+                        var tolist_expr = Expression.Call(tolist, selectexpr);
+                        var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
+                        Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
+                            Expression.Assign(opensubkeys_p, regss.Item1),
+                            Expression.Assign(return_expr, tolist_expr),
+                            disposesubeys_expr,
+                            return_expr
+                            );
+
+                        oo.Value.Expr = block_expr;
+                    }
+                    else
+                    {
+                        var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
+                        var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
+                        var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
+
+
+                        var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                            reg_p_assign,
+                            hr_p_assign,
+                            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                            Expression.Block(
+                                Expression.Assign(hr_p, oo.Value.SourceExpr.Type.ToData(reg_p, converts)),
+                                reg_p.DisposeExpr())),
+                            hr_p
+                            );
+                        oo.Value.Expr = membgervalue;
+                    }
+                    
                 }
                 else
                 {
@@ -1265,23 +1289,8 @@ namespace QSoft.Registry.Linq
                                     );
                                 oo.Value.Expr = membgervalue;
                             }
-
-
-                            //var convertbackexpr = Expression.Call(Expression.Constant(oo.Value.Convert), methods, regss.Item1);
                         }
-                        //    var reg_p_assign = Expression.Assign(reg_p, regss.Item1 ?? reg_p);
-                        //    var hr_p = Expression.Parameter(items.Key.Type, "hr");
-                        //    var hr_p_assign = Expression.Assign(hr_p, items.Key.Type.DefaultExpr());
-                        //    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
-                        //        reg_p_assign,
-                        //        hr_p_assign,
-                        //        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        //        Expression.Block(
-                        //            Expression.Assign(hr_p, regss.Item2),
-                        //            reg_p.DisposeExpr())),
-                        //        hr_p
-                        //        );
-                        //    oo.Value.Expr = membgervalue;
+
                     }
                     else
                     {
@@ -1316,6 +1325,10 @@ namespace QSoft.Registry.Linq
             if (src.First().Expr != null && src.First().Expr.Type == src.First().SourceExpr.Type)
             {
                 return null;
+            }
+            else if(src.First().SourceExpr.Type.GetInterfaces().Any(x=>x is IEnumerable))
+            {
+
             }
             else if (!(src.First().SourceExpr is MemberExpression))
             {
@@ -1538,49 +1551,6 @@ namespace QSoft.Registry.Linq
 
             return block;
         }
-
-
-        //public static Expression ToMethodCall(this List<Tuple<Expression, MemberExpression>> members, MethodInfo method, IEnumerable<Expression> args)
-        //{
-        //    var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-        //    var regss = members.BuildSubKey(reg_p);
-        //    if (regss.Item1 == null && regss.Item2 == null)
-        //    {
-        //        return null;
-        //    }
-        //    var method_return = Expression.Parameter(method.ReturnType, "method_return");
-        //    var reg_p_assign = Expression.Assign(reg_p, regss.Item1);
-        //    BlockExpression block = null;
-        //    if (method.IsStatic == true)
-        //    {
-        //        List<Expression> exprs = new List<Expression>();
-        //        exprs.Add(regss.Item2);
-        //        exprs.AddRange(args.Skip(1));
-        //        block = Expression.Block(new[] { reg_p, method_return },
-        //            Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
-        //            reg_p_assign,
-        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-        //                Expression.Assign(method_return, Expression.Call(method, exprs))),
-        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-        //                reg_p.DisposeExpr()),
-        //            method_return
-        //        );
-        //    }
-        //    else
-        //    {
-        //        block = Expression.Block(new[] { reg_p, method_return },
-        //            Expression.Assign(method_return, method.ReturnType.DefaultExpr()),
-        //            reg_p_assign,
-        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-        //                Expression.Assign(method_return, Expression.Call(regss.Item2, method, args))),
-        //            Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-        //                reg_p.DisposeExpr()),
-        //            method_return
-        //        );
-        //    }
-
-        //    return block;
-        //}
 
         public static Tuple<PropertyInfo, Dictionary<PropertyInfo, string>> PropertyName(this Type src)
         {

@@ -52,102 +52,13 @@ namespace ConsoleApp2
     }
 
 
-    public class SQLProvide<T> : IQueryProvider
-    {
-        static int ProvideCount = 0;
-        static SQLProvide()
-        {
-            ProvideCount++;
-        }
 
-        public IQueryable CreateQuery(Expression expression)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-        {
-            RegExpressionVisitor1<TElement> visitor = new RegExpressionVisitor1<TElement>();
-            var expr = visitor.Visit(expression);
-            return new SqlQuery<TElement>(this, expr);
-        }
-
-        public object Execute(Expression expression)
-        {
-            throw new NotImplementedException();
-        }
-
-        public TResult Execute<TResult>(Expression expression)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class SqlQuery<T> : IOrderedQueryable<T>
-    {
-        static int QueryCount = 0;
-        static SqlQuery()
-        {
-            QueryCount++;
-        }
-        public SqlQuery()
-        {
-            this.Provider = new SQLProvide<T>();
-            Expression = Expression.Constant(this);
-        }
-
-        SQLProvide<T> m_Provider;
-        public SqlQuery(IQueryProvider provider, Expression expression)
-        {
-            if (provider == null)
-            {
-                throw new ArgumentNullException("provider");
-            }
-
-            if (expression == null)
-            {
-                throw new ArgumentNullException("expression");
-            }
-
-            if (!typeof(IQueryable<T>).IsAssignableFrom(expression.Type))
-            {
-                throw new ArgumentOutOfRangeException("expression");
-            }
-
-            Provider = provider;
-            Expression = expression;
-        }
-        public Expression Expression { private set; get; }
-
-        public Type ElementType => typeof(T);
-
-        public IQueryProvider Provider { private set; get; }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            Provider.Execute<T>(this.Expression);
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-    }
 
     class Program
     {
         static void Main(string[] args)
         {
-            var aaaa = Enumerable.Range(1, 100).TakeWhile(x=>x<=10).ToList();
-            var sql = new SqlQuery<SQLData>();
-            var query = sql.Where(x => x.Name == "").Select(x=>x.Name);
-            var query2 = sql.OrderByDescending(x => x.Age).Select(x => x.Age);
-            var sqlds = Enumerable.Range(1, 10).Select(x => new SQLData() { Name = $"name{x}", Age = x + 10 });
-            foreach(var oo in query)
-            {
 
-            }
             //var li = Enumerable.Range(1, 9).ToList();
             //int agree = 3;
             //List<Leaf> leafs = new List<Leaf>();

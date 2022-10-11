@@ -501,8 +501,37 @@ namespace QSoft.Registry.Linq
             if (this.m_Lastnode != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
+               
+                if (lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
+                {
+                    var memberexpr = exprs.FirstOrDefault().Value.SourceExpr as MemberExpression;
+                    var subkeyname = memberexpr.Member.Name;
+                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
 
-                if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
+                    var getsubkeyexpr = Expression.Call(parameters[0], opensubkey, Expression.Constant(subkeyname));
+
+                    var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), getsubkeyexpr);
+                    var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
+                    var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
+
+                    var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                    aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.Type.GetGenericArguments()[0]);
+
+                    var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                    var subobjexpr = lambda.Type.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
+                    var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
+                    var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.Type.GetGenericArguments()[0]);
+                    var tolist_expr = Expression.Call(tolist, selectexpr);
+                    var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
+                    Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
+                        Expression.Assign(opensubkeys_p, opensubkeys_expr),
+                        Expression.Assign(return_expr, tolist_expr),
+                        disposesubeys_expr,
+                        return_expr
+                        );
+                    m_Lambda = Expression.Lambda(block_expr, parameters);
+                }
+                else if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
                     Dictionary<Type, Type> changes = new Dictionary<Type, Type>();
                     //changes[typeof(TData)] = typeof(RegistryKey);
@@ -519,7 +548,7 @@ namespace QSoft.Registry.Linq
                     ggs.AddRange(parameters.Select(x => x.Type));
                     ggs.Add(exprs.First().Value.Expr.Type);
                     var functype1 = lambda.Type.GetGenericTypeDefinition().MakeGenericType(ggs.ToArray());
-                    var zz = functype.GetGenericArguments().Zip(functype1.GetGenericArguments(), (x, y) => new { x, y });
+                    //var zz = functype.GetGenericArguments().Zip(functype1.GetGenericArguments(), (x, y) => new { x, y });
                     //foreach(var oo in zz)
                     //{
                     //    if(oo.x != oo.y)
@@ -654,7 +683,7 @@ namespace QSoft.Registry.Linq
         {
             if(this.m_ExpressionSaves.ContainsKey(node) == false)
             {
-                this.m_ExpressionSaves[node] = new Ex();
+                this.m_ExpressionSaves[node] = new Ex() { SourceExpr = node };
             }
             this.m_ExpressionSaves[node].Expr = node.Expression == null?node:null;
             var ttyp = node.Type;

@@ -502,7 +502,7 @@ namespace QSoft.Registry.Linq
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
                
-                if (lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
+                if (lambda.ReturnType!= typeof(string) && lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
                 {
                     var memberexpr = exprs.FirstOrDefault().Value.SourceExpr as MemberExpression;
                     var subkeyname = memberexpr.Member.Name;

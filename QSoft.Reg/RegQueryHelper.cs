@@ -428,6 +428,11 @@ namespace QSoft.Registry.Linq
             }
             else
             {
+                if(dst.GetInterfaces().Any(x=>x == typeof(IEnumerable)))
+                {
+                    return null;
+                }
+
                 var dst_pps = dst.GetProperties();
                 var dst_ccs = dst.GetConstructors();
 

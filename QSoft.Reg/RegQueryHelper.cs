@@ -831,6 +831,7 @@ namespace QSoft.Registry.Linq
             }
         }
 
+        //maybe this function
         public static Type[] GetTypes(this IEnumerable<Expression> src, MethodInfo method)
         {
             if (method.IsGenericMethod == true)
@@ -855,7 +856,7 @@ namespace QSoft.Registry.Linq
                         }
                         if (types1[i] != null)
                         {
-                            break;
+                            //break;
                         }
                     }
 

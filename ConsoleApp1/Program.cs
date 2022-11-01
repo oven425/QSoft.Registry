@@ -176,8 +176,11 @@ namespace ConsoleApp1
         //public NetworkCard NetworkCard { set; get; }
         //public Size Size { set; get; }
     }
+    
     class Program
     {
+
+
         static void Main(string[] args)
         {
             try

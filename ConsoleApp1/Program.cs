@@ -238,7 +238,7 @@ namespace ConsoleApp1
                 //var kk = regt_computer.Where(x => x.Rams != null);
                 //kk.ToList();
                 var kk = regt_computer.Select(x => x.Rams);
-                kk.ToList();
+                var tolist1 = kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)

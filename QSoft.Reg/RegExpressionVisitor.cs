@@ -504,32 +504,59 @@ namespace QSoft.Registry.Linq
                
                 if (lambda.ReturnType!= typeof(string) && lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
                 {
-                    var memberexpr = exprs.FirstOrDefault().Value.SourceExpr as MemberExpression;
-                    var subkeyname = memberexpr.Member.Name;
-                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                    foreach(var oo in exprs)
+                    {
+                        var liu = GetMembers(oo.Value.SourceExpr);
+                        var pps = liu.Select(x => x as PropertyInfo);
+                        var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                        var regss = pps.BuildSubKey(oo.Value, reg_p);
+                        if(regss.Item1 != null)
+                        {
+                            var subreg_p1 = Expression.Parameter(typeof(RegistryKey), "subreg");
+                            var subobjexpr1 = lambda.Type.GetGenericArguments()[0].ToData(parameters[0], this.Converts);
+                            var subobjexpr2 = subobjexpr1.PropertyExpr("Rams");
+                            oo.Value.Expr = subobjexpr2;
+                        }
+                    }
+                    m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
+                    //var memberexpr = exprs.FirstOrDefault().Value.SourceExpr as MemberExpression;
+                    //var subkeyname = memberexpr.Member.Name;
+                    //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
 
-                    var getsubkeyexpr = Expression.Call(parameters[0], opensubkey, Expression.Constant(subkeyname));
+                    //var getsubkeyexpr = Expression.Call(parameters[0], opensubkey, Expression.Constant(subkeyname));
 
-                    var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), getsubkeyexpr);
-                    var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
-                    var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
+                    //var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), getsubkeyexpr);
+                    //var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
+                    //var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
 
-                    var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
-                    aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.Type.GetGenericArguments()[0]);
-
-                    var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                    var subobjexpr = lambda.Type.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
-                    var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
-                    var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.Type.GetGenericArguments()[0]);
-                    var tolist_expr = Expression.Call(tolist, selectexpr);
-                    var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
-                    Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
-                        Expression.Assign(opensubkeys_p, opensubkeys_expr),
-                        Expression.Assign(return_expr, tolist_expr),
-                        disposesubeys_expr,
-                        return_expr
-                        );
-                    m_Lambda = Expression.Lambda(block_expr, parameters);
+                    //var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                    //aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.Type.GetGenericArguments()[0]);
+                    
+                    //var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                    //var subobjexpr = lambda.Type.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
+                    //var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
+                    //var bbb = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                    //bbb = bbb.MakeGenericMethod(lambda.Type.GetGenericArguments()[0], node.Type.GetGenericArguments()[1]);
+                    //var selectexpr1 = Expression.Call(bbb, subobjexpr, node);
+                    //var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(node.ReturnType);
+                    //var tolist_expr = Expression.Call(tolist, selectexpr1);
+                    //var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
+                    //Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
+                    //    Expression.Assign(opensubkeys_p, opensubkeys_expr),
+                    //    Expression.Assign(return_expr, tolist_expr),
+                    //    disposesubeys_expr,
+                    //    return_expr
+                    //    );
+                    //var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.Type.GetGenericArguments()[0]);
+                    //var tolist_expr = Expression.Call(tolist, selectexpr);
+                    //var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
+                    //Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
+                    //    Expression.Assign(opensubkeys_p, opensubkeys_expr),
+                    //    Expression.Assign(return_expr, tolist_expr),
+                    //    disposesubeys_expr,
+                    //    return_expr
+                    //    );
+                    //m_Lambda = Expression.Lambda(block_expr, parameters);
                 }
                 else if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {

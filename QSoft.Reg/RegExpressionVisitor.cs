@@ -109,7 +109,7 @@ namespace QSoft.Registry.Linq
                 var liu = GetMembers(oo.Value.SourceExpr);
                 var pps = liu.Select(x => x as PropertyInfo);
                 var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                var regss = pps.BuildSubKey(oo.Value, reg_p);
+                var regss = pps.BuildSubKey(oo.Value, reg_p, this.Converts);
 
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
@@ -509,7 +509,7 @@ namespace QSoft.Registry.Linq
                         var liu = GetMembers(oo.Value.SourceExpr);
                         var pps = liu.Select(x => x as PropertyInfo);
                         var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                        var regss = pps.BuildSubKey(oo.Value, reg_p);
+                        var regss = pps.BuildSubKey(oo.Value, reg_p, this.Converts);
                         if(regss.Item1 != null)
                         {
                             var subreg_p1 = Expression.Parameter(typeof(RegistryKey), "subreg");
@@ -1231,8 +1231,8 @@ namespace QSoft.Registry.Linq
                             {
                                 var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
                                 //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
-                                var bubkey1 = exprs1.Values.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
-                                var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                                var bubkey1 = exprs1.Values.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts);
+                                var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr), this.Converts);
                                 if (bubkey != null)
                                 {
                                     methodcall = bubkey;
@@ -1259,7 +1259,7 @@ namespace QSoft.Registry.Linq
                     var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
                     //var sssou = ((exprs1.FirstOrDefault().Value.SourceExpr as MemberExpression).Member as PropertyInfo);
                     //var aa = new List<PropertyInfo>() { sssou }.BuildSubKey(exprs1.FirstOrDefault().Value, reg_p);
-                    var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                    var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr), this.Converts);
                     //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
                     if (bubkey != null)
                     {

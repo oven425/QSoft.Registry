@@ -1384,7 +1384,7 @@ namespace QSoft.Registry.Linq
                         Expression.Assign(hr_p, regss.Item2),
                         hr_p
                         );
-                    oo.Expr = membgervalue;
+                    oo.Expr = reg_p_assign;
                 }
                 else
                 {

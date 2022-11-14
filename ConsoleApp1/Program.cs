@@ -237,7 +237,10 @@ namespace ConsoleApp1
                 //regt_computer.Insert(computers);
                 //var kk = regt_computer.Where(x => x.Rams != null);
                 //kk.ToList();
-                var kk = regt_computer.Select(x => x.Rams.Select(y=>y.Size));
+
+                IEnumerable<RegistryKey> rams;
+
+                var kk = regt_computer.Select(x => x.Rams.Select(y => y.Size));
                 var tolist1 = kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }

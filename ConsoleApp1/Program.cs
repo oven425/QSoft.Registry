@@ -147,11 +147,33 @@ namespace ConsoleApp1
         }
     }
 
+    public class MethodBoard
+    {
+        public NorthBridge North { set; get; }
+        public SouthBridge South { set; get; }
+    }
+
+    public class NorthBridge
+    {
+        public List<Ram> Rams { get; set; }
+    }
+
+    public class SouthBridge
+    {
+
+    }
+
 
     public class Ram
     {
         public int Size { set; get; }
-        public string Manufacturer { set; get; }
+        public Manufacturer Manufacturer { set; get; }
+    }
+
+    public class Manufacturer
+    {
+        public string Name { set; get; }
+        public string ID { set; get; }
     }
 
     public class NetworkCard
@@ -171,7 +193,8 @@ namespace ConsoleApp1
     {
         [RegSubKeyName]
         public string Name { set; get; }
-        public List<Ram> Rams { set; get; }
+        public MethodBoard MB { set; get; }
+        //public List<Ram> Rams { set; get; }
         //public Ram Ram { set; get; }
         //public NetworkCard NetworkCard { set; get; }
         //public Size Size { set; get; }
@@ -203,24 +226,51 @@ namespace ConsoleApp1
                 var computers = Enumerable.Range(1, 10).Select(x => new Computer()
                 {
                     Name = $"Computer_{x}",
+                    MB = new MethodBoard()
+                    {
+                        North = new NorthBridge()
+                        {
+                            Rams = new List<Ram>()
+                    {
+                        new Ram()
+                        {
+                            Manufacturer = new Manufacturer()
+                            {
+                                Name = $"Name_{x}_1",
+                                ID=$"ID_{x}_1"
+                            },
+                            Size = (int)Math.Pow(x,2)
+                        },
+                        new Ram()
+                        {
+                            Manufacturer = new Manufacturer()
+                            {
+                                Name = $"Name_{x}_2",
+                                ID=$"ID_{x}_2"
+                            },
+                            Size = (int)Math.Pow(x,2)
+                        }
+                    }
+                        }
+                    },
                     //Ram = new Ram()
                     //{
                     //    Manufacturer = $"Ram{x}",
                     //    Size = (int)Math.Pow(x,2)
                     //},
-                    Rams = new List<Ram>()
-                    {
-                        new Ram()
-                        {
-                            Manufacturer = $"Ram{x}_1",
-                            Size = (int)Math.Pow(x,2)
-                        },
-                        new Ram()
-                        {
-                            Manufacturer = $"Ram{x}_2",
-                            Size = (int)Math.Pow(x,2)
-                        }
-                    },
+                    //Rams = new List<Ram>()
+                    //{
+                    //    new Ram()
+                    //    {
+                    //        Manufacturer = $"Ram{x}_1",
+                    //        Size = (int)Math.Pow(x,2)
+                    //    },
+                    //    new Ram()
+                    //    {
+                    //        Manufacturer = $"Ram{x}_2",
+                    //        Size = (int)Math.Pow(x,2)
+                    //    }
+                    //},
                     //NetworkCard = new NetworkCard()
                     //{
                     //    Manufacturer = $"NetworkCard{x}",
@@ -240,7 +290,7 @@ namespace ConsoleApp1
 
                 IEnumerable<RegistryKey> rams;
 
-                var kk = regt_computer.Select(x => x.Rams.Select(y => y.Size));
+                var kk = regt_computer.Select(x=>x.MB.North.Rams.Select(y=>y.Manufacturer.Name));
                 var tolist1 = kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
@@ -525,33 +575,4 @@ namespace ConsoleApp1
         public string SystemSKU { set; get; }
         public string SystemVersion { set; get; }
     }
-
-    //public class Address
-    //{
-    //    public string IP { set; get; }
-    //    public int Port { set; get; }
-    //}
-
-    //public class NetworkCard
-    //{
-    //    [RegSubKeyName]
-    //    public string MAC { set; get; }
-    //    public Address Local { set; get; }
-    //    public Address Remote { set; get; }
-    //}
-
-    //public class Computer
-    //{
-    //    [RegSubKeyName]
-    //    public string Name { set; get; }
-    //    [RegIgnore]
-    //    public NetworkCard Network { set; get; }
-    //    public string Network_MAC { set; get; }
-    //}
-
-    //public class Mapping
-    //{
-    //    public string ComputerName { set; get; }
-    //    public string MAC { set; get; }
-    //}
 }

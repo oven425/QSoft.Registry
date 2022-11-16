@@ -1039,18 +1039,27 @@ namespace QSoft.Registry.Linq
                         //if (regss.Item1 != null)
                         //{
                         //    var subreg_p1 = Expression.Parameter(typeof(RegistryKey), "subreg");
-                            var subobjexpr1 = (ex_src.SourceExpr as MemberExpression).Expression.Type.ToData(reg_p, converts);
+                            //var subobjexpr1 = (ex_src.SourceExpr as MemberExpression).Expression.Type.ToData(reg_p, converts);
                         //    var subobjexpr2 = subobjexpr1.PropertyExpr("Rams");
                         //    oo.Value.Expr = subobjexpr2;
                         //}
 
-                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-                        getsubkeyexpr = subobjexpr1.PropertyExpr(subkeyname);
+                        //var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                        //getsubkeyexpr = subobjexpr1.PropertyExpr(subkeyname);
                         //    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
                         //    getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
                         //    var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
                         //    getsubkeyexpr = Expression.Call(vv, getsubkeyexpr);
                         //    needdispose = true;
+
+                        //Rams to registry list not complete
+                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                        getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
+                        var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
+                        getsubkeyexpr = Expression.Call(vv, getsubkeyexpr);
+
+                        
                     }
                     else
                     {

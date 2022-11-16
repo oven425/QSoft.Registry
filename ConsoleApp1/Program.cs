@@ -290,7 +290,7 @@ namespace ConsoleApp1
 
                 IEnumerable<RegistryKey> rams;
 
-                var kk = regt_computer.Select(x=>x.MB.North.Rams.Select(y=>y.Manufacturer.Name));
+                var kk = regt_computer.Select(x=>x.MB.North.Rams);
                 var tolist1 = kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }

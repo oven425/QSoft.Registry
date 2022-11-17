@@ -288,9 +288,9 @@ namespace ConsoleApp1
                 //var kk = regt_computer.Where(x => x.Rams != null);
                 //kk.ToList();
 
-                IEnumerable<RegistryKey> rams;
 
-                var kk = regt_computer.Select(x=>x.MB.North.Rams);
+                //var kk = regt_computer.Select(x=>x.MB.North.Rams);
+                var kk = regt_computer.Select(x=>x.MB.North.Rams.Select(y=>y.Manufacturer.ID));
                 var tolist1 = kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }

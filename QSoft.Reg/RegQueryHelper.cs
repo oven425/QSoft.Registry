@@ -1039,7 +1039,7 @@ namespace QSoft.Registry.Linq
                         //if (regss.Item1 != null)
                         //{
                         //    var subreg_p1 = Expression.Parameter(typeof(RegistryKey), "subreg");
-                            //var subobjexpr1 = (ex_src.SourceExpr as MemberExpression).Expression.Type.ToData(reg_p, converts);
+                        //var subobjexpr1 = (ex_src.SourceExpr as MemberExpression).Expression.Type.ToData(reg_p, converts);
                         //    var subobjexpr2 = subobjexpr1.PropertyExpr("Rams");
                         //    oo.Value.Expr = subobjexpr2;
                         //}
@@ -1053,13 +1053,25 @@ namespace QSoft.Registry.Linq
                         //    needdispose = true;
 
                         //Rams to registry list not complete
-                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                        getsubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
-                        var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
-                        getsubkeyexpr = Expression.Call(vv, getsubkeyexpr);
 
-                        
+                        var hr = Expression.Parameter(typeof(List<RegistryKey>), "hr");
+                        var opensubkey_p = Expression.Parameter(typeof(RegistryKey), "opensubkey_p");
+                        var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+
+                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+
+                        var opensubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
+                        var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
+                        getsubkeyexpr = Expression.Call(vv, opensubkey_p);
+                        getsubkeyexpr = Expression.Block(new ParameterExpression[] { opensubkey_p, hr },
+                            Expression.Assign(opensubkey_p, opensubkeyexpr),
+                            Expression.Assign(hr, getsubkeyexpr),
+                            opensubkey_p.DisposeExpr(),
+                            hr);
+
+                        needdispose = false;
+
+
                     }
                     else
                     {
@@ -1385,10 +1397,18 @@ namespace QSoft.Registry.Linq
                 }
                 if (oo.SourceExpr.Type.GetInterfaces().Any(x => x == typeof(IEnumerable)))
                 {
-                    var hr_p = Expression.Parameter(oo.SourceExpr.Type, "hr");
-                    var hr_p_assign = Expression.Assign(hr_p, oo.SourceExpr.Type.DefaultExpr());
-                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p, needdispose },
-                        Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
+                    //var hr_p = Expression.Parameter(oo.SourceExpr.Type, "hr");
+                    //var hr_p_assign = Expression.Assign(hr_p, oo.SourceExpr.Type.DefaultExpr());
+                    //var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p, needdispose },
+                    //    Expression.Assign(needdispose, Expression.Constant(regss.Item3)),
+                    //    reg_p_assign,
+                    //    Expression.Assign(hr_p, regss.Item2),
+                    //    hr_p
+                    //    );
+                    //oo.Expr = reg_p_assign;
+
+                    var hr_p = Expression.Parameter(typeof(List<RegistryKey>), "hr");
+                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
                         reg_p_assign,
                         Expression.Assign(hr_p, regss.Item2),
                         hr_p

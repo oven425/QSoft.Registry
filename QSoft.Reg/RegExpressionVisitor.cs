@@ -535,44 +535,7 @@ namespace QSoft.Registry.Linq
                         }
                     }
                     m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
-                    //var memberexpr = exprs.FirstOrDefault().Value.SourceExpr as MemberExpression;
-                    //var subkeyname = memberexpr.Member.Name;
-                    //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-
-                    //var getsubkeyexpr = Expression.Call(parameters[0], opensubkey, Expression.Constant(subkeyname));
-
-                    //var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), getsubkeyexpr);
-                    //var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
-                    //var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
-
-                    //var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
-                    //aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.Type.GetGenericArguments()[0]);
-                    
-                    //var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                    //var subobjexpr = lambda.Type.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
-                    //var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
-                    //var bbb = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
-                    //bbb = bbb.MakeGenericMethod(lambda.Type.GetGenericArguments()[0], node.Type.GetGenericArguments()[1]);
-                    //var selectexpr1 = Expression.Call(bbb, subobjexpr, node);
-                    //var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(node.ReturnType);
-                    //var tolist_expr = Expression.Call(tolist, selectexpr1);
-                    //var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
-                    //Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
-                    //    Expression.Assign(opensubkeys_p, opensubkeys_expr),
-                    //    Expression.Assign(return_expr, tolist_expr),
-                    //    disposesubeys_expr,
-                    //    return_expr
-                    //    );
-                    //var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.Type.GetGenericArguments()[0]);
-                    //var tolist_expr = Expression.Call(tolist, selectexpr);
-                    //var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
-                    //Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
-                    //    Expression.Assign(opensubkeys_p, opensubkeys_expr),
-                    //    Expression.Assign(return_expr, tolist_expr),
-                    //    disposesubeys_expr,
-                    //    return_expr
-                    //    );
-                    //m_Lambda = Expression.Lambda(block_expr, parameters);
+                    var cccc = m_Lambda.Compile();
                 }
                 else if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
@@ -601,27 +564,15 @@ namespace QSoft.Registry.Linq
                     //}
                     m_Lambda = Expression.Lambda(functype1, exprs.First().Value.Expr, parameters);
                 }
-                //else if(this.m_MembersExprs.Count > 0)
                 else
                 {
                     ToNew(exprs);
-                    //m_Lambda = Expression.Lambda(exprs1.First().Value, parameters);
-                    //this.m_MembersExprs.Clear();
                 }
                 if(m_Lambda == null)
                 {
                     m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
                 }
 
-                //if(m_Lambda.ReturnType == typeof(IEnumerable<RegistryKey>))
-                //{
-                //    var param = exprs.First().Value;
-                //    var select_method = typeof(TData).SelectMethod_Enumerable();
-                //    var uu = typeof(TData);
-                //    var sd = typeof(TData).ToLambdaData();
-                //    var select_expr = Expression.Call(select_method, param, sd);
-                //    m_Lambda = Expression.Lambda(select_expr, parameters);
-                //}
                 this.m_ExpressionSaves[expr].SourceExpr = expr;
                 this.m_ExpressionSaves[expr].Expr = this.m_Lambda;
             }
@@ -1233,7 +1184,7 @@ namespace QSoft.Registry.Linq
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
                                 }
-                                var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts);
+                                var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts, ttypes1);
                                 if(bubkey != null)
                                 {
                                     methodcall = bubkey;

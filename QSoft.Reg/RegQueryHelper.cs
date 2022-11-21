@@ -1391,7 +1391,8 @@ namespace QSoft.Registry.Linq
                         Expression.Assign(hr_p, regss.Item2)
                         //hr_p
                         );
-                    //oo.Expr = regss.Item2;
+                    oo.Expr1 = oo.Expr;
+                    oo.Expr = regss.Item2;
                 }
                 else
                 {
@@ -1427,10 +1428,9 @@ namespace QSoft.Registry.Linq
                 List<Expression> pps = src.Select(x => x.Expr).ToList();
                 pps[0] = subkeys_p;
                 block = Expression.Block(new ParameterExpression[] { subkeys_p, hr_p },
-                    src.ElementAt(0).Expr,
-                    //Expression.Assign(subkeys_p, src.ElementAt(0).Expr),
-                    //Expression.Assign(hr_p, Expression.Call(method, pps)),
-                    //disposesubeys_expr,
+                    Expression.Assign(subkeys_p, src.ElementAt(0).Expr),
+                    Expression.Assign(hr_p, Expression.Call(method, pps)),
+                    disposesubeys_expr,
                     hr_p
                     );
             }

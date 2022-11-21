@@ -120,10 +120,6 @@ namespace QSoft.Registry.Linq
                         var sd = temptype.ToLambdaData(this.Converts);
                         var aaaaa = Expression.Call(select_method, oo.Value.Expr, sd);
                         oo.Value.Expr = aaaaa;
-
-                        //var select_method = oo.Value.SourceExpr.Type.SelectMethod_Enumerable();
-                        //var sd = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToLambdaData(this.Converts);
-                        //var aaaaa = Expression.Call(select_method, oo.Value.Expr, sd);
                     }
                     else if (oo.Value.SourceExpr.Type.IsIGrouping() == true)
                     {
@@ -230,20 +226,8 @@ namespace QSoft.Registry.Linq
         {
             System.Diagnostics.Debug.WriteLine($"VisitNew");
             this.m_ExpressionSaves[node] = new Ex();
-            //if (this.m_MembersExprs.Count > 0)
-            //{
-            //    //this.m_MembersExprGroup.Push(this.m_MembersExprs);
-            //    this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
-            //}
             
             var expr = base.VisitNew(node) as NewExpression;
-            //if (this.m_MembersExprs.Count > 0)
-            //{
-            //    //this.m_MembersExprGroup.Push(this.m_MembersExprs);
-            //    this.m_MembersExprs = new List<Tuple<Expression, MemberExpression>>();
-            //}
-
-            //var exprs = this.m_ExpressionSaves.Clone(expr).ToDictionary(x => x.Key, x => x.Value.Expr);
             var exprs = this.m_ExpressionSaves.Clone(expr);
             //if (this.m_MembersExprGroup.Count > 0)
             {
@@ -498,9 +482,10 @@ namespace QSoft.Registry.Linq
             {
                 parameters[i] = this.m_Parameters[lambda.Parameters[i].Name];
             }
+            DictionaryList<Expression, Ex> exprs = null;
             if (this.m_Lastnode != null)
             {
-                var exprs = this.m_ExpressionSaves.Clone(expr);
+                exprs = this.m_ExpressionSaves.Clone(expr);
                
                 if (lambda.ReturnType!= typeof(string) && lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
                 {
@@ -535,7 +520,8 @@ namespace QSoft.Registry.Linq
                         }
                     }
                     m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
-                    var cccc = m_Lambda.Compile();
+                    var b1b = exprs.First().Value.Expr1 == parameters[0];
+                    m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters[0]);
                 }
                 else if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
@@ -580,7 +566,16 @@ namespace QSoft.Registry.Linq
             {
                 m_Lambda = lambda;
             }
-            this.m_Parameters.Clear();
+            var paraexprs = exprs.Keys.Where(x => x is ParameterExpression);
+            foreach(var oo in paraexprs)
+            {
+                var pp = oo as ParameterExpression;
+                if(this.m_Parameters.ContainsKey(pp.Name))
+                {
+                    this.m_Parameters.Remove(pp.Name);
+                }
+            }
+            //this.m_Parameters.Clear();
             this.m_DataTypeNames.Clear();
             this.ReturnType = this.m_Lambda.ReturnType;
             this.m_Lastnode = expr;
@@ -598,7 +593,7 @@ namespace QSoft.Registry.Linq
             }
             //m_ExpressionSaves[node].SourceExpr = node;
             //m_ExpressionSaves[node] = new Ex() { SourceExpr = node};
-            System.Diagnostics.Debug.WriteLine($"VisitParameter {node.Type.Name}");
+            System.Diagnostics.Debug.WriteLine($"VisitParameter {node.Type.Name} {node.Name}");
 
             var expr = base.VisitParameter(node) as ParameterExpression;
             var pp1 = this.m_ExpressionSaves1[expr];
@@ -1138,7 +1133,6 @@ namespace QSoft.Registry.Linq
             var expr = base.VisitMethodCall(node) as MethodCallExpression;
 
             var exprs1 = this.m_ExpressionSaves.Clone(expr);
-            
             var ttypes1 = exprs1.Select(x => x.Value.Expr).GetTypes(expr.Method);
             Expression methodcall = null;
             if (expr.Method.IsStatic == true)

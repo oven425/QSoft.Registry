@@ -208,6 +208,12 @@ namespace ConsoleApp1
         {
             try
             {
+                //var p1 = Expression.Parameter(typeof(string), "zz");
+                //var p2 = Expression.Parameter(typeof(string), "zz");
+                //var block1 = Expression.Block(
+                //    p1.WriteLineExpr()
+                //    );
+                //var lambda1 = Expression.Lambda(block1, p2).Compile();
                    //TestDB();
                    var tty = typeof(List<int>);
                 var ins = tty.GetInterfaces().Where(x=>x == typeof(IEnumerable));

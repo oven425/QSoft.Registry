@@ -202,20 +202,47 @@ namespace ConsoleApp1
     
     class Program
     {
-
+        static IEnumerable<RegistryKey> SubKeys(RegistryKey root)
+        {
+            var subnames = root.GetSubKeyNames();
+            foreach(var oo in subnames)
+            {
+                var subkey = root.OpenSubKey(oo);
+                yield return subkey;
+                subkey.Close();
+            }
+        }
 
         static void Main(string[] args)
         {
             try
             {
+                //x.Hive = RegistryHive.CurrentConfig;
+                //x.SubKey = @"LikeDB_SubKey\Computers";
+                //x.View = RegistryView.Registry64;
+                //RegistryKey reg_root = Registry.CurrentConfig.OpenSubKey(@"LikeDB_SubKey\Computers");
+                //var sizes = SubKeys(reg_root).Select(x => x).ToList();
+
+                var lls = Enumerable.Range(1, 10).Where(x =>
+                {
+                    System.Diagnostics.Trace.WriteLine($"where1 {x}");
+                    return true;
+                })
+                    .Where(x =>
+                    {
+                        System.Diagnostics.Trace.WriteLine($"where2 {x}");
+                        return true;
+                    });
+                var llls = lls.ToList();
+                llls.Clear();
                 //var p1 = Expression.Parameter(typeof(string), "zz");
                 //var p2 = Expression.Parameter(typeof(string), "zz");
                 //var block1 = Expression.Block(
                 //    p1.WriteLineExpr()
                 //    );
                 //var lambda1 = Expression.Lambda(block1, p2).Compile();
-                   //TestDB();
-                   var tty = typeof(List<int>);
+                //TestDB();
+                var tty = typeof(List<int>);
                 var ins = tty.GetInterfaces().Where(x=>x == typeof(IEnumerable));
                 var bbb = typeof(IEnumerable).IsAssignableFrom(tty);
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()

@@ -10,15 +10,6 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryEx
     {
-        //public static IEnumerable<RegistryKey> Create(this RegistryKey src)
-        //{
-        //    var syb = src.GetSubKeyNames();
-        //    foreach(var oo in syb)
-        //    {
-        //        yield return src.OpenSubKey(oo);
-        //    }
-        //}
-
         public static List<RegistryKey> OpenSubKeys(this RegistryKey src)
         {
             List<RegistryKey> ll = new List<RegistryKey>();
@@ -29,6 +20,18 @@ namespace QSoft.Registry.Linq
             }
             return ll;
         }
+
+        //public static IEnumerable<RegistryKey> OpenSubKeys(this RegistryKey src)
+        //{
+        //    var syb = src.GetSubKeyNames();
+        //    foreach (var oo in syb)
+        //    {
+        //        var subkey = src.OpenSubKey(oo);
+        //        yield return subkey;
+        //        subkey.Close();
+        //        subkey.Dispose();
+        //    }
+        //}
 
         public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)
         {

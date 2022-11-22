@@ -1033,7 +1033,7 @@ namespace QSoft.Registry.Linq
                     if(isenumable == true)
                     {
                         var rootkey = Expression.Parameter(typeof(RegistryKey), "rootkey");
-                        var hr = Expression.Parameter(typeof(List<RegistryKey>), "hr");
+                        var hr = Expression.Parameter(typeof(IEnumerable<RegistryKey>), "hr");
                         var opensubkey_p = Expression.Parameter(typeof(RegistryKey), "opensubkey_p");
                         var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
 
@@ -1385,7 +1385,7 @@ namespace QSoft.Registry.Linq
                     //    );
                     //oo.Expr = reg_p_assign;
 
-                    var hr_p = Expression.Parameter(typeof(List<RegistryKey>), "hr");
+                    var hr_p = Expression.Parameter(typeof(IEnumerable<RegistryKey>), "hr");
                     var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
                         //reg_p_assign,
                         Expression.Assign(hr_p, regss.Item2)

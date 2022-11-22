@@ -323,7 +323,9 @@ namespace ConsoleApp1
 
 
                 //var kk = regt_computer.Select(z=>z.MB.North.Rams);
-                var kk = regt_computer.Select(z=>z.MB.North.Rams.Select(y=>y.Manufacturer.ID));
+                //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID));
+                var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y));
+                //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
                 var tolist1 = kk.ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }

@@ -1032,22 +1032,24 @@ namespace QSoft.Registry.Linq
                     var isenumable = item.Last().type.GetInterfaces().Any(x => x == typeof(IEnumerable));
                     if(isenumable == true)
                     {
-                        var rootkey = Expression.Parameter(typeof(RegistryKey), "rootkey");
-                        var hr = Expression.Parameter(typeof(IEnumerable<RegistryKey>), "hr");
-                        var opensubkey_p = Expression.Parameter(typeof(RegistryKey), "opensubkey_p");
+                        //var rootkey = Expression.Parameter(typeof(RegistryKey), "rootkey");
+                        //var hr = Expression.Parameter(typeof(IEnumerable<RegistryKey>), "hr");
+                        //var opensubkey_p = Expression.Parameter(typeof(RegistryKey), "opensubkey_p");
+                        //var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+
+                        //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+
+                        //var opensubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
+                        //var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
+                        //getsubkeyexpr = Expression.Call(vv, ex_src.Expr, Expression.Constant(subkeyname));
+                        //getsubkeyexpr = Expression.Block(new ParameterExpression[] { opensubkey_p, hr,rootkey },
+                        //    //Expression.Assign(opensubkey_p, opensubkeyexpr),
+                        //    Expression.Assign(hr, getsubkeyexpr),
+                        //    //opensubkey_p.DisposeExpr(),
+                        //    hr);
                         var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-
-                        var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-
-                        var opensubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
                         var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
-                        getsubkeyexpr = Expression.Call(vv, opensubkey_p);
-                        getsubkeyexpr = Expression.Block(new ParameterExpression[] { opensubkey_p, hr,rootkey },
-                            Expression.Assign(opensubkey_p, opensubkeyexpr),
-                            Expression.Assign(hr, getsubkeyexpr),
-                            opensubkey_p.DisposeExpr(),
-                            hr);
-
+                        getsubkeyexpr = Expression.Call(vv, ex_src.Expr, Expression.Constant(subkeyname));
                         needdispose = false;
 
                     }
@@ -1431,6 +1433,20 @@ namespace QSoft.Registry.Linq
                     Expression.Assign(subkeys_p, src.ElementAt(0).Expr),
                     Expression.Assign(hr_p, Expression.Call(method, pps)),
                     disposesubeys_expr,
+                    hr_p
+                    );
+            }
+            else if (src.ElementAt(0).Expr.Type == typeof(IEnumerable<RegistryKey>))
+            {
+                var hr_p = Expression.Parameter(method.ReturnType, "hr_p");
+                var subkeys_p = Expression.Parameter(typeof(IEnumerable<RegistryKey>), "subkeys");
+                var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), subkeys_p);
+                method = method.GetGenericMethodDefinition().MakeGenericMethod(methodtypes);
+                List<Expression> pps = src.Select(x => x.Expr).ToList();
+                pps[0] = subkeys_p;
+                block = Expression.Block(new ParameterExpression[] { subkeys_p, hr_p },
+                    Expression.Assign(subkeys_p, src.ElementAt(0).Expr),
+                    Expression.Assign(hr_p, Expression.Call(method, pps)),
                     hr_p
                     );
             }

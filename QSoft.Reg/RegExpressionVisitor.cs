@@ -520,8 +520,8 @@ namespace QSoft.Registry.Linq
                         }
                     }
                     m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
-                    var b1b = exprs.First().Value.Expr1 == parameters[0];
-                    m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters[0]);
+                    //var b1b = exprs.First().Value.Expr1 == parameters[0];
+                    //m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters[0]);
                 }
                 else if(lambda.ReturnType.IsNullable()==false && lambda.ReturnType.IsGenericType == true&& (lambda.Type.GetGenericTypeDefinition()==typeof(Func<,>)||lambda.Type.GetGenericTypeDefinition() == typeof(Func<,,>)))
                 {
@@ -552,6 +552,7 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
+                    m_Lambda = null;
                     ToNew(exprs);
                 }
                 if(m_Lambda == null)

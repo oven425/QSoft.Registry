@@ -193,6 +193,8 @@ namespace ConsoleApp1
     {
         [RegSubKeyName]
         public string Name { set; get; }
+        [RegPropertyName("DisplayName")]
+        public string DisplayName { set; get; }
         public MethodBoard MB { set; get; }
         //public List<Ram> Rams { set; get; }
         //public Ram Ram { set; get; }
@@ -202,17 +204,6 @@ namespace ConsoleApp1
     
     class Program
     {
-        static IEnumerable<RegistryKey> SubKeys(RegistryKey root)
-        {
-            var subnames = root.GetSubKeyNames();
-            foreach(var oo in subnames)
-            {
-                var subkey = root.OpenSubKey(oo);
-                yield return subkey;
-                subkey.Close();
-            }
-        }
-
         static void Main(string[] args)
         {
             try
@@ -223,18 +214,7 @@ namespace ConsoleApp1
                 //RegistryKey reg_root = Registry.CurrentConfig.OpenSubKey(@"LikeDB_SubKey\Computers");
                 //var sizes = SubKeys(reg_root).Select(x => x).ToList();
 
-                var lls = Enumerable.Range(1, 10).Where(x =>
-                {
-                    System.Diagnostics.Trace.WriteLine($"where1 {x}");
-                    return true;
-                })
-                    .Where(x =>
-                    {
-                        System.Diagnostics.Trace.WriteLine($"where2 {x}");
-                        return true;
-                    });
-                var llls = lls.ToList();
-                llls.Clear();
+
                 //var p1 = Expression.Parameter(typeof(string), "zz");
                 //var p2 = Expression.Parameter(typeof(string), "zz");
                 //var block1 = Expression.Block(
@@ -242,9 +222,7 @@ namespace ConsoleApp1
                 //    );
                 //var lambda1 = Expression.Lambda(block1, p2).Compile();
                 //TestDB();
-                var tty = typeof(List<int>);
-                var ins = tty.GetInterfaces().Where(x=>x == typeof(IEnumerable));
-                var bbb = typeof(IEnumerable).IsAssignableFrom(tty);
+
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()
                     .useSetting(x =>
                     {
@@ -259,6 +237,7 @@ namespace ConsoleApp1
                 var computers = Enumerable.Range(1, 10).Select(x => new Computer()
                 {
                     Name = $"Computer_{x}",
+                    DisplayName = $"Computer_{x}",
                     MB = new MethodBoard()
                     {
                         North = new NorthBridge()
@@ -326,7 +305,7 @@ namespace ConsoleApp1
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID));
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y));
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
-                var tolist1 = regt_computer.ElementAt(0);
+                var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)
@@ -335,12 +314,7 @@ namespace ConsoleApp1
             }
 
 
-            InstalledApp installedapp = new InstalledApp();
-            var pps = typeof(InstalledApp).GetProperties().Where(x => x.CanRead == true && x.CanWrite == true);
-            foreach (var pp in pps)
-            {
-                var pv = pp.GetValue(installedapp, null);
-            }
+
 
 
             var regt = new RegQuery<InstalledApp>()
@@ -366,6 +340,7 @@ namespace ConsoleApp1
                 {
                     x.Add(new Version2String());
                 });
+            var tuple1 = regt.Select(x => Tuple.Create(x.DisplayName));
             //var aa = regt.Select((x, index) => new { index = index+1, x });
             //foreach (var oo in aa)
             //{

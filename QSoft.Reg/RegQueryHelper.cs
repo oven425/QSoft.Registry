@@ -1037,21 +1037,6 @@ namespace QSoft.Registry.Linq
                     var isenumable = item.Last().type.GetInterfaces().Any(x => x == typeof(IEnumerable));
                     if(isenumable == true)
                     {
-                        //var rootkey = Expression.Parameter(typeof(RegistryKey), "rootkey");
-                        //var hr = Expression.Parameter(typeof(IEnumerable<RegistryKey>), "hr");
-                        //var opensubkey_p = Expression.Parameter(typeof(RegistryKey), "opensubkey_p");
-                        //var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-
-                        //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-
-                        //var opensubkeyexpr = Expression.Call(ex_src.Expr, opensubkey, Expression.Constant(subkeyname));
-                        //var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
-                        //getsubkeyexpr = Expression.Call(vv, ex_src.Expr, Expression.Constant(subkeyname));
-                        //getsubkeyexpr = Expression.Block(new ParameterExpression[] { opensubkey_p, hr,rootkey },
-                        //    //Expression.Assign(opensubkey_p, opensubkeyexpr),
-                        //    Expression.Assign(hr, getsubkeyexpr),
-                        //    //opensubkey_p.DisposeExpr(),
-                        //    hr);
                         var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
                         var vv = typeof(RegQueryEx).GetMethod("OpenSubKeys");
                         getsubkeyexpr = Expression.Call(vv, ex_src.Expr, Expression.Constant(subkeyname));
@@ -1088,7 +1073,7 @@ namespace QSoft.Registry.Linq
                                 }
                                 else
                                 {
-                                    getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), reg_p, Expression.Constant(item.ElementAt(0).name));
+                                    getvalue = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(item.ElementAt(0).type_src), ex_src.Expr, Expression.Constant(item.ElementAt(0).name));
                                 }
                             }
                         }

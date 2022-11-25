@@ -295,17 +295,17 @@ namespace ConsoleApp1
                     //Size = new Size() {Width=x+1, Height=x+2 }
                 });
                 //var kkj = computers.AsQueryable().Where(x => x.Rams.FirstOrDefault() != null);
-                //regt_computer.RemoveAll();
-                //regt_computer.Insert(computers);
+                regt_computer.RemoveAll();
+                regt_computer.Insert(computers);
                 //var kk = regt_computer.Where(x => x.Rams != null);
                 //kk.ToList();
 
 
-                //var kk = regt_computer.Select(z=>z.MB.North.Rams);
+                var kk = regt_computer.Select(z => z.MB.North.Rams).ToList();
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID));
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y));
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
-                var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
+                //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
             }
             catch (Exception ee)

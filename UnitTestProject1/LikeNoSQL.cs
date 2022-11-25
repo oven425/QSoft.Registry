@@ -15,14 +15,6 @@ namespace General
     [TestClass]
     public class LinqToRegistry_SubKey
     {
-        //RegQuery<Company> regt_company = new RegQuery<Company>()
-        //    .useSetting(x =>
-        //    {
-        //        x.Hive = RegistryHive.CurrentConfig;
-        //        x.SubKey = @"UnitTest\Company";
-        //        x.View = RegistryView.Registry64;
-        //    });
-
         RegQuery<Device> regt_devices = new RegQuery<Device>()
             .useSetting(x =>
             {

@@ -44,5 +44,11 @@
     <Compile Include="Device.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QSoft.Reg\QSoft.Registry.csproj">
+      <Project>{AE9B7457-FD1E-4EA5-9B96-C6F74607E477}</Project>
+      <Name>QSoft.Registry</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

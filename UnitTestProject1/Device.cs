@@ -31,7 +31,6 @@ namespace LikeNoSQL
         public string Name { set; get; }
         public int Floor { set; get; }
         public AreaData Area { set; get; }
-        public List<AreaData> Areas { set; get; }
     }
 
     public class AreaData

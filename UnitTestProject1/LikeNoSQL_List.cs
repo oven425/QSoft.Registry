@@ -13,11 +13,11 @@ namespace General
     [TestClass]
     public class LikeNoSQL_List
     {
-        RegQuery<Device> regt_devices = new RegQuery<Device>()
+        RegQuery<Building> regt_building = new RegQuery<Building>()
             .useSetting(x =>
             {
                 x.Hive = RegistryHive.CurrentConfig;
-                x.SubKey = @"devices";
+                x.SubKey = @"UnitTest\devices";
                 x.View = RegistryView.Registry64;
             });
             //.useConverts(x =>
@@ -25,22 +25,53 @@ namespace General
             //    x.Add(new Version2String());
             //});
 
-        List<Device> m_Devices;
+        List<Building> m_Buildings;
         public LikeNoSQL_List()
         {
-            this.m_Devices = regt_devices.ToList();
+            this.m_Buildings = regt_building.ToList();
         }
 
         [TestMethod]
         public void BuildMockup()
         {
-
+            var buildings = Enumerable.Range(1, 10).Select(building => new Building()
+            {
+                Name = $"Building_{building}",
+                Floors = Enumerable.Range(1, building).Select(floor => new FloorData()
+                {
+                    Level = floor,
+                    Name = $"Floor_{building}_{floor}",
+                    Areas = Enumerable.Range(1, floor).Select(area => new AreaData()
+                    {
+                        Name = $"Area_{building}_{floor}_{area}",
+                        Data = new Rect() 
+                        {
+                            Point = new Point() 
+                            {
+                                X=area, 
+                                Y=area 
+                            },
+                            Size = new Size()
+                            {
+                                Width = area, 
+                                Height = area
+                            }
+                        },
+                        Devices = Enumerable.Range(1, area).Select(device=>new Device()
+                        {
+                            Name = $"Device_{building}_{floor}_{area}_{device}"
+                        }).ToList()
+                    }).ToList()
+                }).ToList()
+            });
+            regt_building.RemoveAll();
+            regt_building.Insert(buildings);
         }
 
         [TestMethod]
         public void Any()
         {
-            Assert.IsTrue(this.m_Devices.Any(x => x.Local.Root.Account == "") == regt_devices.Any(x => x.Local.Root.Account == ""), ".Any(x => x.Local.Root.Account == \"\") fail");
+            var devices = regt_building.Select(x => x.Floors.Select(y => y.Areas.Select(z => z.Devices)));
         }
     }
 }

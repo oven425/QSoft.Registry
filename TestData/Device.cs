@@ -9,6 +9,7 @@ namespace TestData
 {
     public class Building
     {
+        [RegSubKeyName]
         public string Name { set; get; }
         public List<FloorData> Floors { set; get; }
     }
@@ -27,6 +28,7 @@ namespace TestData
 
     public class FloorData
     {
+        [RegSubKeyName]
         public string Name { set; get; }
         public int Level { set; get; }
         public List<AreaData> Areas { set; get; }
@@ -34,6 +36,7 @@ namespace TestData
 
     public class AreaData
     {
+        [RegSubKeyName]
         public string Name { set; get; }
         public Rect Data { set; get; }
         public List<Device> Devices { set; get; }

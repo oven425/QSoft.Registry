@@ -11,7 +11,7 @@ using TestData;
 namespace General
 {
     [TestClass]
-    public class LikeNoSQL_List
+    public class LinqToRegistry_SubKey_List
     {
         RegQuery<Building> regt_building = new RegQuery<Building>()
             .useSetting(x =>
@@ -26,7 +26,7 @@ namespace General
             //});
 
         List<Building> m_Buildings;
-        public LikeNoSQL_List()
+        public LinqToRegistry_SubKey_List()
         {
             this.m_Buildings = regt_building.ToList();
         }

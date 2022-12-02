@@ -301,9 +301,9 @@ namespace ConsoleApp1
                 //kk.ToList();
 
 
-                var kk = regt_computer.SelectMany(z => z.MB.North.Rams).ToList();
+                //var kk = regt_computer.SelectMany(z => z.MB.North.Rams).ToList();
                 //var kk = regt_computer.Select(z => z.MB.North.Rams).ToList();
-                //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID));
+                var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID)).ToList();
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y));
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
                 //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();

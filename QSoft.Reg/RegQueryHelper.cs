@@ -1404,21 +1404,21 @@ namespace QSoft.Registry.Linq
             
 
             Expression block = null;
-            
-            if(src.ElementAt(0).Expr.Type == typeof(List<RegistryKey>))
+
+            if (src.ElementAt(0).Expr.Type == typeof(IEnumerable<RegistryKey>))
             {
-                var hr_p = Expression.Parameter(method.ReturnType, "hr_p");
-                var subkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
-                var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), subkeys_p);
+                //var hr_p = Expression.Parameter(method.ReturnType, "hr_p");
+                //var subkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
+                //var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), subkeys_p);
                 method = method.GetGenericMethodDefinition().MakeGenericMethod(methodtypes);
-                List<Expression> pps = src.Select(x => x.Expr).ToList();
-                pps[0] = subkeys_p;
-                block = Expression.Block(new ParameterExpression[] { subkeys_p, hr_p },
-                    Expression.Assign(subkeys_p, src.ElementAt(0).Expr),
-                    Expression.Assign(hr_p, Expression.Call(method, pps)),
-                    disposesubeys_expr,
-                    hr_p
-                    );
+                //List<Expression> pps = src.Select(x => x.Expr).ToList();
+                //pps[0] = subkeys_p;
+                //block = Expression.Block(new ParameterExpression[] { subkeys_p, hr_p },
+                //    Expression.Assign(subkeys_p, src.ElementAt(0).Expr),
+                //    Expression.Assign(hr_p, Expression.Call(method, pps)),
+                //    disposesubeys_expr,
+                //    hr_p
+                //    );
             }
             //else if (src.ElementAt(0).Expr.Type == typeof(IEnumerable<RegistryKey>))
             //{

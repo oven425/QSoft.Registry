@@ -10,29 +10,6 @@ namespace QSoft.Registry.Linq
 {
     public static class RegQueryEx
     {
-        //public static List<RegistryKey> OpenSubKeys(this RegistryKey src)
-        //{
-        //    List<RegistryKey> ll = new List<RegistryKey>();
-        //    var syb = src.GetSubKeyNames();
-        //    foreach (var oo in syb)
-        //    {
-        //        ll.Add(src.OpenSubKey(oo));
-        //    }
-        //    return ll;
-        //}
-
-        //public static IEnumerable<RegistryKey> OpenSubKeys(this RegistryKey src)
-        //{
-        //    var syb = src.GetSubKeyNames();
-        //    foreach (var oo in syb)
-        //    {
-        //        var subkey = src.OpenSubKey(oo);
-        //        yield return subkey;
-        //        subkey.Close();
-        //        subkey.Dispose();
-        //    }
-        //}
-
         public static IEnumerable<RegistryKey> OpenSubKeys(this RegistryKey src, string path)
         {
             var subkey = src.OpenSubKey(path);
@@ -119,12 +96,16 @@ namespace QSoft.Registry.Linq
                     if(isloop == true)
                     {
                         var obj = pp.Key.GetValue(data, null) as System.Collections.IEnumerable;
-                        var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
-                        foreach (var oo in obj)
+                        if(obj != null)
                         {
-                            isinsert = true;
-                            cc.Insert(oo, null, isinsert, converts);
+                            var cc = child.CreateSubKey(pp.Value, RegistryKeyPermissionCheck.ReadWriteSubTree);
+                            foreach (var oo in obj)
+                            {
+                                isinsert = true;
+                                cc.Insert(oo, null, isinsert, converts);
+                            }
                         }
+                        
                     }
                     else
                     {

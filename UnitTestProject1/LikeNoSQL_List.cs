@@ -28,7 +28,7 @@ namespace General
         List<Building> m_Buildings;
         public LinqToRegistry_SubKey_List()
         {
-            this.m_Buildings = regt_building.ToList();
+           // this.m_Buildings = regt_building.ToList();
         }
 
         [TestMethod]
@@ -59,7 +59,13 @@ namespace General
                         },
                         Devices = Enumerable.Range(1, area).Select(device=>new Device()
                         {
-                            Name = $"Device_{building}_{floor}_{area}_{device}"
+                            Name = $"Device_{building}_{floor}_{area}_{device}",
+                            Size = new Size()
+                            {
+                                Width = area,
+                                Height = area
+                            }
+
                         }).ToList()
                     }).ToList()
                 }).ToList()

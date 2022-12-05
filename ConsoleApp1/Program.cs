@@ -14,6 +14,7 @@ using System.Threading;
 using Microsoft.Win32;
 using QSoft.Registry;
 using QSoft.Registry.Linq;
+using TestData;
 
 namespace ConsoleApp1
 {
@@ -303,11 +304,24 @@ namespace ConsoleApp1
 
                 //var kk = regt_computer.SelectMany(z => z.MB.North.Rams).ToList();
                 //var kk = regt_computer.Select(z => z.MB.North.Rams).ToList();
-                var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID)).ToList();
+                //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y.Manufacturer.ID)).ToList();
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Select(y => y));
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
                 //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
+
+
+                RegQuery<Building> regt_building = new RegQuery<Building>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.SubKey = @"UnitTest\devices";
+                        x.View = RegistryView.Registry64;
+                    });
+                //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
+                //var builds = regt_building.ToList();
+                //var devices = builds.SelectMany(build => build.Floors.SelectMany(floor => floor.Areas.SelectMany(area => area.Devices)));
+                
             }
             catch (Exception ee)
             {

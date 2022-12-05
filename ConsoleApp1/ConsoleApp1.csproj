@@ -61,6 +61,10 @@
       <Project>{ae9b7457-fd1e-4ea5-9b96-c6f74607e477}</Project>
       <Name>QSoft.Registry</Name>
     </ProjectReference>
+    <ProjectReference Include="..\TestData\TestData.csproj">
+      <Project>{193F7B1F-9A78-4154-9F82-0C0E656D22ED}</Project>
+      <Name>TestData</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

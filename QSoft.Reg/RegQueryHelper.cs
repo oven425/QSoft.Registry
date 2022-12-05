@@ -654,7 +654,6 @@ namespace QSoft.Registry.Linq
 
                                 var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), param, Expression.Constant(subkeyname));
                                 //var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
-                                //var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
 
 
                                 var aaa = typeof(Enumerable).GetMethods().Where(x=>x.Name == "Select").ElementAt(0);

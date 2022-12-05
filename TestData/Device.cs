@@ -16,10 +16,10 @@ namespace TestData
 
     public class Device
     {
-        [RegPropertyName("LocalIP")]
-        public Address Local { set; get; }
-        [RegPropertyName("RemoteIP")]
-        public Address Remote { set; get; }
+        [RegPropertyName("LocalIPs")]
+        public List<Address> Local { set; get; }
+        [RegPropertyName("RemoteIPs")]
+        public List<Address> Remote { set; get; }
         [RegSubKeyName]
         public string Name { set; get; }
         public Size Size { set; get; }

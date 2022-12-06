@@ -13,10 +13,4 @@ namespace QSoft.Registry.Linq
         public Expression Expr { set; get; }
         public RegQueryConvert Convert { set; get; }
     }
-
-    internal class EnumableExWrapper<T>
-    {
-        public string SubKey { set; get; }
-        public T Obj { set; get; }
-    }
 }

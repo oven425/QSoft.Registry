@@ -422,7 +422,10 @@ namespace QSoft.Registry.Linq
 
             if (this.m_ProcessExprs.ContainsKey(expression) == false)
             {
+                System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
                 var updatemethod1 = ProcessExpr(expression) as MethodCallExpression;
+                sw.Stop();
+                System.Diagnostics.Trace.WriteLine($"ProcessExpr: {sw.ElapsedMilliseconds}");
                 if (type.IsIEnumerable())
                 {
                     if (updatemethod1.Type == typeof(IQueryable<RegistryKey>) || updatemethod1.Type == typeof(IOrderedQueryable<RegistryKey>))

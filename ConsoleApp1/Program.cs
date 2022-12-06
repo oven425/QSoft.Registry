@@ -319,9 +319,23 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
-                //var builds = regt_building.ToList();
-                //var devices = builds.SelectMany(build => build.Floors.SelectMany(floor => floor.Areas.SelectMany(area => area.Devices)));
                 
+                var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build, floor })
+                .SelectMany(x => x.floor.Areas, (floor, area) => new { floor, area })
+                .SelectMany(x => x.area.Devices, (area, device) => new { area, device })
+                .GroupBy(x => x.device, y => new { y.area.area, y.area.floor.floor, y.area.floor.build });
+                foreach(var oo in devices_reg)
+                {
+                    Console.WriteLine(oo);
+                }
+                var builds = regt_building.ToList();
+                var devices = builds.SelectMany(x => x.Floors, (build, floor) => new { build, floor })
+                .SelectMany(x => x.floor.Areas, (floor, area) => new { floor, area })
+                .SelectMany(x => x.area.Devices, (area, device) => new { area, device })
+                .GroupBy(x=> x.device,y=>new { y.area.area, y.area.floor, y.area.floor.build });
+
+
+                //var join = devices.Join(builds, x => x, y => y.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)).,(x,y)=>x);
             }
             catch (Exception ee)
             {

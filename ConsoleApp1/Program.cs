@@ -319,15 +319,27 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
-                
-                var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build, floor })
-                .SelectMany(x => x.floor.Areas, (floor, area) => new { floor, area })
-                .SelectMany(x => x.area.Devices, (area, device) => new { area, device })
-                .GroupBy(x => x.device, y => new { y.area.area, y.area.floor.floor, y.area.floor.build });
-                foreach(var oo in devices_reg)
+                var fir = regt_building.FirstOrDefault(a=>a.Floors.FirstOrDefault()!=null);
+                //var fir = regt_building.FirstOrDefault(x => x.Floors.FirstOrDefault(y => y.Areas.FirstOrDefault(z => z.Devices.FirstOrDefault(a=>a.Name!="") != null) !=null)!=null);
+                var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build_name = build.Name, floor })
+                .SelectMany(x => x.floor.Areas, (floor, area) => new { build_name =floor.build_name, floor_name = floor.floor.Name, area })
+                .SelectMany(x => x.area.Devices, (area, device) => new { build_name=area.build_name, floor_name = area.floor_name, area_name = area.area.Name, device })
+                .GroupBy(x => x.device, y => new { y.area_name, y.build_name, y.floor_name });
+                foreach (var group in devices_reg)
                 {
-                    Console.WriteLine(oo);
+                    //Console.WriteLine($"{group.Key.Name}");
+                    //foreach(var ooo in group)
+                    //{
+                    //    Console.WriteLine($"{ooo.build_name} {ooo.floor_name} {ooo.area_name}");
+                    //}
                 }
+
+                //var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build, floor });
+                //foreach (var oo in devices_reg)
+                //{
+                //    Console.WriteLine($"{oo.build.Name} {oo.floor}");
+                //}
+
                 var builds = regt_building.ToList();
                 var devices = builds.SelectMany(x => x.Floors, (build, floor) => new { build, floor })
                 .SelectMany(x => x.floor.Areas, (floor, area) => new { floor, area })

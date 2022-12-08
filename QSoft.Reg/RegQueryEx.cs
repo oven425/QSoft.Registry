@@ -12,17 +12,21 @@ namespace QSoft.Registry.Linq
     {
         public static IEnumerable<RegistryKey> OpenSubKeys(this RegistryKey src, string path)
         {
-            var subkey = src.OpenSubKey(path);
-            var subkeynames = subkey.GetSubKeyNames();
-            foreach (var oo in subkeynames)
+            var roots = src.GetSubKeyNames();
+            if(roots.Any(x=>x==path))
             {
-                var child = subkey.OpenSubKey(oo);
-                yield return child;
-                child.Close();
-                child.Dispose();
+                var subkey = src.OpenSubKey(path);
+                var subkeynames = subkey.GetSubKeyNames();
+                foreach (var oo in subkeynames)
+                {
+                    var child = subkey.OpenSubKey(oo);
+                    yield return child;
+                    child.Close();
+                    child.Dispose();
+                }
+                subkey.Close();
+                subkey.Dispose();
             }
-            subkey.Close();
-            subkey.Dispose();
         }
 
         public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)

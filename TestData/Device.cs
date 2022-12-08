@@ -7,11 +7,19 @@ using System.Threading.Tasks;
 
 namespace TestData
 {
+    public class People
+    {
+        public string Account { set; get; }
+        public string Name { set; get; }
+        public string Password { set; get; }
+    }
+
     public class Building
     {
         [RegSubKeyName]
         public string Name { set; get; }
         public List<FloorData> Floors { set; get; }
+        public List<People> People { set; get; }
     }
 
     public class Device

@@ -1211,29 +1211,30 @@ namespace QSoft.Registry.Linq
                 }
                 else if (regss.Item1 == regss.Item2)
                 {
-                    if (regss.Item1.Type == typeof(List<RegistryKey>))
+                    if (regss.Item1.Type == typeof(IEnumerable<RegistryKey>))
                     {
-                        var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
-                        var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
+                        //var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
+                        ////var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
 
 
-                        var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
-                        aaa = aaa.MakeGenericMethod(typeof(RegistryKey), oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
+                        //var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                        //aaa = aaa.MakeGenericMethod(typeof(RegistryKey), oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
 
-                        var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                        var subobjexpr = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToData(subreg_p, converts);
-                        var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
-                        var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
-                        var tolist_expr = Expression.Call(tolist, selectexpr);
-                        var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
-                        Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
-                            Expression.Assign(opensubkeys_p, regss.Item1),
-                            Expression.Assign(return_expr, tolist_expr),
-                            disposesubeys_expr,
-                            return_expr
-                            );
+                        //var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                        //var subobjexpr = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToData(subreg_p, converts);
+                        //var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
+                        //var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
+                        //var tolist_expr = Expression.Call(tolist, selectexpr);
+                        //var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
+                        //Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
+                        //    Expression.Assign(opensubkeys_p, regss.Item1),
+                        //    Expression.Assign(return_expr, tolist_expr),
+                        //    //disposesubeys_expr,
+                        //    return_expr
+                        //    );
 
-                        oo.Value.Expr = block_expr;
+                        //oo.Value.Expr = block_expr;
+                        oo.Value.Expr = regss.Item1;
                     }
                     else
                     {

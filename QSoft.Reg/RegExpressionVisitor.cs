@@ -1,11 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
@@ -747,7 +749,14 @@ namespace QSoft.Registry.Linq
                             }
                             if(member ==null&&left_args_1 == null)
                             {
-                                if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
+                                if(expr.Type.GetInterfaces().Any(x => x == typeof(IEnumerable)))
+                                {
+                                    var liu = expr.GetMembers();
+                                    var pps = liu.Select(x => x as PropertyInfo);
+                                    var regss = pps.BuildSubKey(exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Expr as ParameterExpression, this.Converts);
+                                    member = regss.Item1;
+                                }
+                                else if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {
                                     //add = true;
                                     member = exprs.ElementAt(0).Value.Expr;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -1333,6 +1334,10 @@ namespace QSoft.Registry.Linq
         {
 
             if (src.First().Expr != null && src.First().Expr.Type == src.First().SourceExpr.Type)
+            {
+                return null;
+            }
+            else if(src.First().Expr.Type == typeof(IEnumerable<RegistryKey>))
             {
                 return null;
             }

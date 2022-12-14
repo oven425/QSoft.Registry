@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TestData;
+using UnitTest;
 
 namespace General
 {
@@ -28,7 +29,7 @@ namespace General
         List<Building> m_Buildings;
         public LinqToRegistry_SubKey_List()
         {
-           // this.m_Buildings = regt_building.ToList();
+            this.m_Buildings = regt_building.ToList();
         }
 
         [TestMethod]
@@ -75,9 +76,21 @@ namespace General
         }
 
         [TestMethod]
+        public void Count()
+        {
+            Assert.IsTrue(this.m_Buildings.Count()== regt_building.Count());
+        }
+
+        [TestMethod]
+        public void Sum()
+        {
+            Assert.IsTrue(this.m_Buildings.Sum(a=>a.Floors.Count)== regt_building.Sum(a => a.Floors.Count));
+        }
+
+        [TestMethod]
         public void Any()
         {
-            var devices = regt_building.Select(x => x.Floors.Select(y => y.Areas.Select(z => z.Devices)));
+            CheckEx.Check(m_Buildings.Any(x=>x.Name.Length<2), regt_building.Any(x => x.Name.Length < 2));
         }
     }
 }

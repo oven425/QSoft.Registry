@@ -319,7 +319,7 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
-                var ss = regt_building.Sum(a => a.Floors.Count());
+                var ss = regt_building.Sum(a => a.Floors.Count);
                 //var fir = regt_building.FirstOrDefault(a=>a.Floors.FirstOrDefault(b=>b.Areas.Count()>3)!=null);
                 //var fir = regt_building.FirstOrDefault(x => x.Floors.FirstOrDefault(y => y.Areas.FirstOrDefault(z => z.Devices.FirstOrDefault(a=>a.Name!="") != null) !=null)!=null);
                 var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build_name = build.Name, floor })

@@ -788,7 +788,18 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        var expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, expr.Member);
+                        Expression expr_member = null;
+                        if (exprs.First().Value.Expr.Type == typeof(IEnumerable<RegistryKey>))
+                        {
+                            if(expr.Member.Name == "Count")
+                            {
+                                expr_member  = Expression.Call(typeof(Enumerable).GetMethods().FirstOrDefault(x =>x.Name=="Count"&& x.GetParameters().Length == 0), exprs.First().Value.Expr);
+                            }
+                        }
+                        if(expr_member == null)
+                        {
+                            expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, expr.Member);
+                        }
                         this.m_ExpressionSaves[expr].Expr = expr_member;
                     }
                 }

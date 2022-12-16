@@ -793,7 +793,9 @@ namespace QSoft.Registry.Linq
                         {
                             if(expr.Member.Name == "Count")
                             {
-                                expr_member  = Expression.Call(typeof(Enumerable).GetMethods().FirstOrDefault(x =>x.Name=="Count"&& x.GetParameters().Length == 0), exprs.First().Value.Expr);
+                                var methods = typeof(Enumerable).GetMethods().Where(x=>x.Name == "Count"&&x.GetParameters().Length==1);
+                                var method = methods.FirstOrDefault().MakeGenericMethod(typeof(RegistryKey));
+                                expr_member  = Expression.Call(method, exprs.First().Value.Expr);
                             }
                         }
                         if(expr_member == null)

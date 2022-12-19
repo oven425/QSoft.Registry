@@ -1198,7 +1198,7 @@ namespace QSoft.Registry.Linq
         public static Expression ToBinary(this DictionaryList<Expression, Ex> exprs, BinaryExpression node, IEnumerable<RegQueryConvert> converts)
         {
             Expression binary = null;
-            var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type).Where(x => x.Value.SourceExpr is MemberExpression);
+            var eex = exprs.Where(x => x.Key.Type != x.Value.Expr?.Type).Where(x => x.Value.SourceExpr is MemberExpression);
             foreach (var oo in eex)
             {
                 var tt = oo.Value.SourceExpr.GetType();
@@ -1214,27 +1214,6 @@ namespace QSoft.Registry.Linq
                 {
                     if (regss.Item1.Type == typeof(IEnumerable<RegistryKey>))
                     {
-                        //var opensubkeys_p = Expression.Parameter(typeof(List<RegistryKey>), "subkeys");
-                        ////var disposesubeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("DisposeSubkeys"), opensubkeys_p);
-
-
-                        //var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
-                        //aaa = aaa.MakeGenericMethod(typeof(RegistryKey), oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
-
-                        //var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                        //var subobjexpr = oo.Value.SourceExpr.Type.GetGenericArguments()[0].ToData(subreg_p, converts);
-                        //var selectexpr = Expression.Call(aaa, opensubkeys_p, Expression.Lambda(subobjexpr, subreg_p));
-                        //var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(oo.Value.SourceExpr.Type.GetGenericArguments()[0]);
-                        //var tolist_expr = Expression.Call(tolist, selectexpr);
-                        //var return_expr = Expression.Parameter(tolist_expr.Type, "hr");
-                        //Expression block_expr = Expression.Block(new[] { return_expr, opensubkeys_p },
-                        //    Expression.Assign(opensubkeys_p, regss.Item1),
-                        //    Expression.Assign(return_expr, tolist_expr),
-                        //    //disposesubeys_expr,
-                        //    return_expr
-                        //    );
-
-                        //oo.Value.Expr = block_expr;
                         oo.Value.Expr = regss.Item1;
                     }
                     else
@@ -1498,6 +1477,10 @@ namespace QSoft.Registry.Linq
         public static Expression ToMethodCall(this Ex src, MethodInfo method, IEnumerable<Expression> args, IEnumerable<RegQueryConvert> converts)
         {
             if(src.Expr != null && src.Expr.Type == src.SourceExpr.Type)
+            {
+                return null;
+            }
+            else if (src.Expr.Type == typeof(IEnumerable<RegistryKey>))
             {
                 return null;
             }

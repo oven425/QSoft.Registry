@@ -223,7 +223,8 @@ namespace ConsoleApp1
                 //    );
                 //var lambda1 = Expression.Lambda(block1, p2).Compile();
                 //TestDB();
-
+                var nns = Enumerable.Range(1, 5);
+                
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()
                     .useSetting(x =>
                     {
@@ -309,7 +310,19 @@ namespace ConsoleApp1
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
                 //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
-                
+
+
+                RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.SubKey = @"UnitTest\Apps";
+                    })
+                    .useConverts(x =>
+                    {
+                        x.Add(new Version2String());
+                    });
+                var ffoi = regt_installedapps.First(x => x.DisplayName != "AA");
 
                 RegQuery<Building> regt_building = new RegQuery<Building>()
                     .useSetting(x =>
@@ -320,7 +333,7 @@ namespace ConsoleApp1
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
                 var sw1 = Stopwatch.StartNew();
-                var ss = regt_building.Sum(a => a.Floors.Count);
+                var ss = regt_building.Sum(a => a.Floors[0].Areas.Count);
                 sw1.Stop();
                 var sw2 = Stopwatch.StartNew();
                 var ss1 = regt_building.ToList().Sum(a => a.Floors.Count);

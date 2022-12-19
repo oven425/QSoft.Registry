@@ -85,6 +85,9 @@ namespace General
         public void Sum()
         {
             Assert.IsTrue(this.m_Buildings.Sum(a=>a.Floors.Count)== regt_building.Sum(a => a.Floors.Count));
+            Assert.IsTrue(this.m_Buildings.Sum(a => a.Floors.Count+1) == regt_building.Sum(a => a.Floors.Count+1));
+            Assert.IsTrue(this.m_Buildings.Sum(a => a.Floors[0].Areas.Count) == regt_building.Sum(a => a.Floors[0].Areas.Count));
+
         }
 
         [TestMethod]

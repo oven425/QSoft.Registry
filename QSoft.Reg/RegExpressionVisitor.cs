@@ -798,6 +798,18 @@ namespace QSoft.Registry.Linq
                                 expr_member  = Expression.Call(method, exprs.First().Value.Expr);
                             }
                         }
+                        else if(exprs.First().Value.Expr.Type == typeof(RegistryKey))
+                        {
+                            if (expr.Member.MemberType == MemberTypes.Property)
+                            {
+                                var pp = expr.Member as PropertyInfo;
+                                if (pp.PropertyType.GetInterfaces().Any(x => x == typeof(IEnumerable)))
+                                {
+                                    var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), exprs.First().Value.Expr, Expression.Constant(expr.Member.Name));
+                                    expr_member = opensubkeys_expr;
+                                }
+                            }
+                        }
                         if(expr_member == null)
                         {
                             expr_member = Expression.MakeMemberAccess(exprs.First().Value.Expr, expr.Member);
@@ -1250,7 +1262,17 @@ namespace QSoft.Registry.Linq
                     }
                     else
                     {
-                        methodcall = Expression.Call(exprs1.First().Value.Expr, expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                        if(expr.Method.Name == "get_Item")
+                        {
+                            var methods = typeof(Enumerable).GetMethods().Where(x => x.Name == "ElementAt" && x.GetParameters().Length==2);
+                            var method = methods.FirstOrDefault().MakeGenericMethod(typeof(RegistryKey));
+                            methodcall = Expression.Call(method, exprs1.Select(x => x.Value.Expr));
+
+                        }
+                        else
+                        {
+                            methodcall = Expression.Call(exprs1.First().Value.Expr, expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                        }
                     }
                     
                 }

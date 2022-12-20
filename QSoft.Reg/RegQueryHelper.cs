@@ -1204,7 +1204,9 @@ namespace QSoft.Registry.Linq
                 var tt = oo.Value.SourceExpr.GetType();
                 var liu = oo.Value.SourceExpr.GetMembers();
                 var pps = liu.Select(x => x as PropertyInfo);
+                var bb = oo.Value.SourceExpr.Type.IsIEnumerable();
                 var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                reg_p = oo.Value.SourceExpr.Type.ParameterExpr("subreg");
                 var regss = pps.BuildSubKey(oo.Value, reg_p, converts);
                 if (regss.Item1 == null && regss.Item2 == null)
                 {

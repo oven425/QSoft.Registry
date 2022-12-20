@@ -322,7 +322,7 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                var ffoi = regt_installedapps.First(x => x.DisplayName != "AA");
+                //var ffoi = regt_installedapps.First(x => x.DisplayName != "AA");
 
                 RegQuery<Building> regt_building = new RegQuery<Building>()
                     .useSetting(x =>
@@ -333,7 +333,7 @@ namespace ConsoleApp1
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
                 var sw1 = Stopwatch.StartNew();
-                var ss = regt_building.Sum(a => a.Floors[0].Areas.Count);
+                var ss = regt_building.Where(a => a.Floors!=null).ToList();
                 sw1.Stop();
                 var sw2 = Stopwatch.StartNew();
                 var ss1 = regt_building.ToList().Sum(a => a.Floors.Count);

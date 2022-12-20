@@ -29,14 +29,14 @@ namespace QSoft.Registry.Linq
             }
         }
 
-        public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)
-        {
-            foreach(var oo in src)
-            {
-                oo.Close();
-                oo.Dispose();
-            }
-        }
+        //public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)
+        //{
+        //    foreach(var oo in src)
+        //    {
+        //        oo.Close();
+        //        oo.Dispose();
+        //    }
+        //}
         public static int Insert<TSource>(this RegQuery<TSource> source, IEnumerable<TSource> datas) where TSource : class
         {
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");

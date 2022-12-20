@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -51,6 +53,23 @@ namespace QSoft.Registry
         public static MemberExpression PropertyExpr(this Expression src, string name)
         {
             return Expression.Property(src, name);
+        }
+
+        public static ParameterExpression ParameterExpr(this Type src, string name)
+        {
+            if(src.GetInterfaces().Any(x => x == typeof(IEnumerable)))
+            {
+                var pp = Expression.Parameter(typeof(IEnumerable<RegistryKey>), name);
+
+                return pp;
+            }
+            else
+            {
+                var pp = Expression.Parameter(typeof(RegistryKey), name);
+
+                return pp;
+            }
+            
         }
 
         public static Expression DefaultExpr(this Type src)

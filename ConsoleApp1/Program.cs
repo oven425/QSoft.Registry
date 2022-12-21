@@ -310,8 +310,18 @@ namespace ConsoleApp1
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
                 //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
-
-
+                RegQuery<Device> regt_devices = new RegQuery<Device>()
+                    .useSetting(x =>
+                    {
+                        x.Hive = RegistryHive.CurrentConfig;
+                        x.SubKey = @"devices";
+                        x.View = RegistryView.Registry64;
+                    })
+                    .useConverts(x =>
+                    {
+                        x.Add(new Version2String());
+                    });
+                regt_devices.Any(x => x.Local.Root.Account == "");
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>
                     {
@@ -332,13 +342,10 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
-                var sw1 = Stopwatch.StartNew();
-                var ss = regt_building.Where(a => a.Floors!=null).ToList();
-                sw1.Stop();
-                var sw2 = Stopwatch.StartNew();
-                var ss1 = regt_building.ToList().Sum(a => a.Floors.Count);
-                sw2.Stop();
-                System.Diagnostics.Trace.WriteLine($"sw1:{sw1.ElapsedMilliseconds} sw2:{sw2.ElapsedMilliseconds}");
+                //var ss = regt_building.Where(a => a.Floors!=null).ToList();
+                var sum1 = regt_building.Where(x => x.Floors != null).ToList();
+                var sum2 = regt_building.ToList().Sum(a => a.Floors.Count);
+
                 //var fir = regt_building.FirstOrDefault(a=>a.Floors.FirstOrDefault(b=>b.Areas.Count()>3)!=null);
                 //var fir = regt_building.FirstOrDefault(x => x.Floors.FirstOrDefault(y => y.Areas.FirstOrDefault(z => z.Devices.FirstOrDefault(a=>a.Name!="") != null) !=null)!=null);
                 var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build_name = build.Name, floor })

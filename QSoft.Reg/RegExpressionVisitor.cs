@@ -681,6 +681,7 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Debug.WriteLine($"VisitMember {node.Member.Name}");
 
             var expr = base.VisitMember(node) as MemberExpression;
+            List<MemberInfo> members = new List<MemberInfo>();
             if (this.LastMethodName == "DefaultIfEmpty")
             {
 
@@ -688,6 +689,7 @@ namespace QSoft.Registry.Linq
             if (this.m_Lastnode != null && expr.Expression != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
+                members.AddRange(exprs.FirstOrDefault().Value.Members);
                 if (this.m_DataTypeNames.Any(x => x == (expr.Expression as ParameterExpression)?.Name)  || this.m_DataTypeNames.Count == 0)
                 {
                     if (exprs.Last().Value.Expr is ParameterExpression)
@@ -731,7 +733,7 @@ namespace QSoft.Registry.Linq
                                 {
                                     member = exprs.ElementAt(0).Value.Expr;
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                                    
+                                    members.Add(expr.Member);
                                     //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                                     //add = true;
                                 }
@@ -749,7 +751,7 @@ namespace QSoft.Registry.Linq
                             }
                             if(member ==null&&left_args_1 == null)
                             {
-                                if(expr.Type.GetInterfaces().Any(x => x == typeof(IEnumerable)))
+                                if(expr.Type != typeof(string) && expr.Type.GetInterfaces().Any(x => x == typeof(IEnumerable)))
                                 {
                                     var liu = expr.GetMembers();
                                     var pps = liu.Select(x => x as PropertyInfo);
@@ -764,11 +766,11 @@ namespace QSoft.Registry.Linq
                                 else
                                 {
                                     left_args_1 = Expression.Constant(expr.Member.Name);
-                                    member = exprs.ElementAt(0).Value.Expr;
-                                    //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+                                    //member = exprs.ElementAt(0).Value.Expr;
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
-                            
+                            this.m_ExpressionSaves[expr].Members.AddRange(members);
                             this.m_ExpressionSaves[expr].Convert = this.Converts?.FirstOrDefault(x => x.CanConvert(node.Type));
                             this.m_ExpressionSaves[expr].Expr = member;
                             this.m_ExpressionSaves[expr].SourceExpr = expr;

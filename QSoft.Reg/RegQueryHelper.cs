@@ -1001,8 +1001,16 @@ namespace QSoft.Registry.Linq
 
         public static Tuple<Expression, Expression, bool> BuildSubKey(this IEnumerable<PropertyInfo> members, Ex ex_src, ParameterExpression reg_p, IEnumerable<RegQueryConvert> converts)
         {
-            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+            Expression expr = null;
+            Expression getsubkeyexpr = null;
+            Expression getvalue = null;
             bool needdispose = false;
+            if (!(ex_src.Expr is ParameterExpression))
+            {
+                return Tuple.Create(getsubkeyexpr, expr, needdispose);
+            }
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+            
 
             Func<MemberInfo, string> funcValue = delegate (MemberInfo member_expr)
             {
@@ -1027,8 +1035,7 @@ namespace QSoft.Registry.Linq
                 }
                 return hr;
             });
-            Expression getsubkeyexpr = null;
-            Expression getvalue = null;
+            
 
             foreach (var item in group)
             {
@@ -1084,7 +1091,7 @@ namespace QSoft.Registry.Linq
                     }
                 }
             }
-            Expression expr = getsubkeyexpr;
+            expr = getsubkeyexpr;
             if (getvalue != null)
             {
                 expr = getvalue;
@@ -1201,16 +1208,14 @@ namespace QSoft.Registry.Linq
             var eex = exprs.Where(x => x.Key.Type != x.Value.Expr?.Type).Where(x => x.Value.SourceExpr is MemberExpression);
             foreach (var oo in eex)
             {
-                var tt = oo.Value.SourceExpr.GetType();
                 var liu = oo.Value.SourceExpr.GetMembers();
                 var pps = liu.Select(x => x as PropertyInfo);
                 var bb = oo.Value.SourceExpr.Type.IsIEnumerable();
-                var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                reg_p = oo.Value.SourceExpr.Type.ParameterExpr("subreg");
+                var reg_p = oo.Value.SourceExpr.Type.ParameterExpr("subreg");
                 var regss = pps.BuildSubKey(oo.Value, reg_p, converts);
                 if (regss.Item1 == null && regss.Item2 == null)
                 {
-                    return null;
+                    break;
                 }
                 else if (regss.Item1 == regss.Item2)
                 {

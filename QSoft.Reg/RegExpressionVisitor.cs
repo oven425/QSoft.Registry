@@ -761,6 +761,7 @@ namespace QSoft.Registry.Linq
                                 else if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {
                                     //add = true;
+                                    members.Add(expr.Member);
                                     member = exprs.ElementAt(0).Value.Expr;
                                 }
                                 else

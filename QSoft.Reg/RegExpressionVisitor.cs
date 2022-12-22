@@ -716,8 +716,6 @@ namespace QSoft.Registry.Linq
                         
                         else if(exprs.ElementAt(0).Value.Expr.Type == typeof(RegistryKey))
                         {
-                            //this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value, expr));
-                            //bool add = false;
                             var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
                             var typecode = Type.GetTypeCode(expr.Type);
                             var attr = expr.Member.GetCustomAttributes(true).FirstOrDefault();

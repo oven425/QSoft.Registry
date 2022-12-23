@@ -689,6 +689,8 @@ namespace QSoft.Registry.Linq
             if (this.m_Lastnode != null && expr.Expression != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
+                var typecode1 = Type.GetTypeCode(this.m_ExpressionSaves.Last().Key.Type);
+                
                 members.AddRange(exprs.FirstOrDefault().Value.Members);
                 if (this.m_DataTypeNames.Any(x => x == (expr.Expression as ParameterExpression)?.Name)  || this.m_DataTypeNames.Count == 0)
                 {
@@ -846,6 +848,7 @@ namespace QSoft.Registry.Linq
                             left_args_1 = Expression.Constant(expr.Member.Name);
                             if(typecode == TypeCode.Object)
                             {
+                                members.Add(expr.Member);
                                 member = exprs.ElementAt(0).Value.Expr;
                             }
                             else
@@ -861,6 +864,7 @@ namespace QSoft.Registry.Linq
                         //}
                         this.m_ExpressionSaves[expr].Convert = this.Converts.FirstOrDefault(x => x.CanConvert(node.Type));
                         this.m_ExpressionSaves[expr].Expr = member;
+                        this.m_ExpressionSaves[expr].Members.AddRange(members);
                         this.m_ExpressionSaves[expr].SourceExpr = expr;
                     }
                     else if(exprs.First().Value.Expr.Type.HaseRegistryKey() == true)

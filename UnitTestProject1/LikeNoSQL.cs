@@ -293,6 +293,8 @@ namespace General
         [TestMethod]
         public void Any()
         {
+            var b1 = this.m_Devices.Any(x => x.Local.Root.Account == "");
+            var b2 = regt_devices.Any(x => x.Local.Root.Account == "");
             Assert.IsTrue(this.m_Devices.Any(x => x.Local.Root.Account == "") == regt_devices.Any(x => x.Local.Root.Account == ""), ".Any(x => x.Local.Root.Account == \"\") fail");
         }
 

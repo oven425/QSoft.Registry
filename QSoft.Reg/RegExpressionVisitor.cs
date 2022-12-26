@@ -681,15 +681,16 @@ namespace QSoft.Registry.Linq
             System.Diagnostics.Debug.WriteLine($"VisitMember {node.Member.Name}");
 
             var expr = base.VisitMember(node) as MemberExpression;
+            System.Diagnostics.Debug.WriteLine($"VisitMember-- {node.Member.Name}");
             List<MemberInfo> members = new List<MemberInfo>();
             if (this.LastMethodName == "DefaultIfEmpty")
             {
 
             }
+
             if (this.m_Lastnode != null && expr.Expression != null)
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
-                var typecode1 = Type.GetTypeCode(this.m_ExpressionSaves.Last().Key.Type);
                 
                 members.AddRange(exprs.FirstOrDefault().Value.Members);
                 if (this.m_DataTypeNames.Any(x => x == (expr.Expression as ParameterExpression)?.Name)  || this.m_DataTypeNames.Count == 0)
@@ -849,6 +850,7 @@ namespace QSoft.Registry.Linq
                             if(typecode == TypeCode.Object)
                             {
                                 members.Add(expr.Member);
+
                                 member = exprs.ElementAt(0).Value.Expr;
                             }
                             else

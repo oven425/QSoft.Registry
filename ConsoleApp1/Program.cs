@@ -321,7 +321,7 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                var accounts = regt_devices.Any(x => x.Local.Root.Account == "");
+                var accounts = regt_devices.Select(x => x.Local.Root).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>
                     {

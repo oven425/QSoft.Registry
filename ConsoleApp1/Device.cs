@@ -107,6 +107,7 @@ namespace ConsoleApp1
     {
         public string IP { set; get; }
         public int? Port { set; get; }
+        [RegPropertyName("Root")]
         public Auth Root { set; get; }
         public Auth Guest { set; get; }
         public class Auth

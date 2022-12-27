@@ -110,5 +110,13 @@ namespace QSoft.Registry
 
             return default_value;
         }
+
+        public static Expression OpenSubKeyExr(this List<string> src, Expression param)
+        {
+            var subkeyname = src.Aggregate((x, y) => $"{x}\\{y}");
+            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+            var member = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
+            return member;
+        }
     }
 }

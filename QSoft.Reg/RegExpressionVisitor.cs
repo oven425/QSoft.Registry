@@ -670,9 +670,11 @@ namespace QSoft.Registry.Linq
             return expr;
         }
 
+        List<string> m_SubkeyNames = new List<string>();
         protected override Expression VisitMember(MemberExpression node)
         {
-            if(this.m_ExpressionSaves.ContainsKey(node) == false)
+            m_SubkeyNames.Clear();
+            if (this.m_ExpressionSaves.ContainsKey(node) == false)
             {
                 this.m_ExpressionSaves[node] = new Ex() { SourceExpr = node };
             }
@@ -682,6 +684,7 @@ namespace QSoft.Registry.Linq
 
             var expr = base.VisitMember(node) as MemberExpression;
             System.Diagnostics.Debug.WriteLine($"VisitMember-- {node.Member.Name}");
+            
             List<MemberInfo> members = new List<MemberInfo>();
             if (this.LastMethodName == "DefaultIfEmpty")
             {
@@ -734,7 +737,12 @@ namespace QSoft.Registry.Linq
                                 {
                                     member = exprs.ElementAt(0).Value.Expr;
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                                    m_SubkeyNames.Add((attr as RegPropertyName).Name);
                                     members.Add(expr.Member);
+                                    //var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
+                                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                                    member = Expression.Call(exprs.ElementAt(0).Value.Expr, opensubkey, left_args_1);
+                                    
                                     //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
                                     //add = true;
                                 }
@@ -836,8 +844,20 @@ namespace QSoft.Registry.Linq
                         }
                         else if (attr is RegPropertyName)
                         {
-                            left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
-                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+                            left_args_1 = Expression.Constant(expr.Member.Name);
+                            if (typecode == TypeCode.Object)
+                            {
+                                m_SubkeyNames.Add((attr as RegPropertyName).Name);
+                                members.Add(expr.Member);
+
+                                member = exprs.ElementAt(0).Value.Expr;
+                            }
+                            else
+                            {
+                                member = exprs.ElementAt(0).Value.Expr;
+                            }
+                            //left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                            //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                         }
                         else if (attr is RegSubKeyName)
                         {

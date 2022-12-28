@@ -693,8 +693,13 @@ namespace QSoft.Registry.Linq
 
             if (this.m_Lastnode != null && expr.Expression != null)
             {
-                var exprs = this.m_ExpressionSaves.Clone(expr);
                 
+                
+                var exprs = this.m_ExpressionSaves.Clone(expr);
+                var indx = this.m_ExpressionSaves.IndexOf(this.m_ExpressionSaves.Last());
+                indx = indx - 1;
+                var expr_next = this.m_ExpressionSaves[indx];
+                var bbb = expr_next.Key is MemberExpression;
                 members.AddRange(exprs.FirstOrDefault().Value.Members);
                 if (this.m_DataTypeNames.Any(x => x == (expr.Expression as ParameterExpression)?.Name)  || this.m_DataTypeNames.Count == 0)
                 {

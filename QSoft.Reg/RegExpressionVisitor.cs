@@ -693,8 +693,6 @@ namespace QSoft.Registry.Linq
 
             if (this.m_Lastnode != null && expr.Expression != null)
             {
-                
-                
                 var exprs = this.m_ExpressionSaves.Clone(expr);
                 var indx = this.m_ExpressionSaves.IndexOf(this.m_ExpressionSaves.Last());
                 indx = indx - 1;
@@ -740,16 +738,20 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object)
                                 {
-                                    member = exprs.ElementAt(0).Value.Expr;
-                                    left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                                    //member = exprs.ElementAt(0).Value.Expr;
                                     m_SubkeyNames.Add((attr as RegPropertyName).Name);
                                     members.Add(expr.Member);
-                                    //var subkeyname = item.Select(x => x.name).Aggregate((x, y) => $"{x}\\{y}");
-                                    var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                                    member = Expression.Call(exprs.ElementAt(0).Value.Expr, opensubkey, left_args_1);
-                                    
+                                    var methodexpr = exprs.ElementAt(0).Value.Expr as MethodCallExpression;
+                                    if (methodexpr == null)
+                                    {
+                                        member = m_SubkeyNames.OpenSubKeyExr(exprs.ElementAt(0).Value.Expr);
+                                    }
+                                    else
+                                    {
+                                        member = m_SubkeyNames.OpenSubKeyExr(methodexpr.Object);
+                                    }
+
                                     //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(node.Type), exprs.ElementAt(0).Value, left_args_1);
-                                    //add = true;
                                 }
                                 else
                                 {
@@ -782,7 +784,10 @@ namespace QSoft.Registry.Linq
                                 {
                                     left_args_1 = Expression.Constant(expr.Member.Name);
                                     //member = exprs.ElementAt(0).Value.Expr;
+                                    var b1 = Expression.MakeBinary(ExpressionType.NotEqual, exprs.ElementAt(0).Value.Expr, Expression.Constant(typeof(RegistryKey)));
                                     member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+
+                                    var get = Expression.Condition(b1, member, expr.Type.DefaultExpr());
                                 }
                             }
                             this.m_ExpressionSaves[expr].Members.AddRange(members);
@@ -854,8 +859,17 @@ namespace QSoft.Registry.Linq
                             {
                                 m_SubkeyNames.Add((attr as RegPropertyName).Name);
                                 members.Add(expr.Member);
-
-                                member = exprs.ElementAt(0).Value.Expr;
+                                var methodexpr = exprs.ElementAt(0).Value.Expr as MethodCallExpression;
+                                if(methodexpr == null)
+                                {
+                                    member = m_SubkeyNames.OpenSubKeyExr(exprs.ElementAt(0).Value.Expr);
+                                }
+                                else
+                                {
+                                    member = m_SubkeyNames.OpenSubKeyExr(methodexpr.Object);
+                                }
+                                
+                                //member = exprs.ElementAt(0).Value.Expr;
                             }
                             else
                             {
@@ -874,13 +888,36 @@ namespace QSoft.Registry.Linq
                             left_args_1 = Expression.Constant(expr.Member.Name);
                             if(typecode == TypeCode.Object)
                             {
-                                members.Add(expr.Member);
+                                if(expr.Type.IsNullable() == true)
+                                {
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+                                }
+                                else
+                                {
+                                    members.Add(expr.Member);
 
-                                member = exprs.ElementAt(0).Value.Expr;
+                                    member = exprs.ElementAt(0).Value.Expr;
+                                }
+                                
                             }
                             else
                             {
-                                member = exprs.ElementAt(0).Value.Expr;
+                                var p1 = Expression.Parameter(typeof(RegistryKey), "p1");
+                                var getvalueexpr = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), p1, left_args_1);
+                                var b1 = Expression.MakeBinary(ExpressionType.NotEqual, p1, Expression.Constant(null, typeof(RegistryKey)));
+                                var getvalue_resultexpr = Expression.Parameter(expr.Type, "getvalue_result");
+
+                                var get = Expression.Condition(b1, Expression.Block(Expression.Assign(getvalue_resultexpr, getvalueexpr), p1.DisposeExpr(), getvalue_resultexpr), expr.Type.DefaultExpr());
+                                member = Expression.Block(new ParameterExpression[] { p1, getvalue_resultexpr } , 
+                                    Expression.Assign(getvalue_resultexpr, expr.Type.DefaultExpr()),
+                                    Expression.Assign(p1, exprs.ElementAt(0).Value.Expr),
+                                    get                                   
+                                    );
+                                //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+
+                                
+
+                                //member = exprs.ElementAt(0).Value.Expr;
                             }
                         }
 

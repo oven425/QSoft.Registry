@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace QSoft.Registry
 {
@@ -69,8 +70,24 @@ namespace QSoft.Registry
 
                 return pp;
             }
-            
         }
+
+        //public static Expression GetValueExpr(this List<string> subkeys, Expression expr, Type src)
+        //{
+        //    var p1 = Expression.Parameter(typeof(RegistryKey), "p1");
+        //    var getvalueexpr = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(src), p1, left_args_1);
+        //    var b1 = Expression.MakeBinary(ExpressionType.NotEqual, p1, Expression.Constant(null, typeof(RegistryKey)));
+        //    var getvalue_resultexpr = Expression.Parameter(src, "getvalue_result");
+
+        //    var get = Expression.Condition(b1, Expression.Block(Expression.Assign(getvalue_resultexpr, getvalueexpr), p1.DisposeExpr(), getvalue_resultexpr), expr.Type.DefaultExpr());
+        //    var member = Expression.Block(new ParameterExpression[] { p1, getvalue_resultexpr },
+        //        Expression.Assign(getvalue_resultexpr, src.DefaultExpr()),
+        //        Expression.Assign(p1, expr),
+        //        get
+        //        );
+        //    return member;
+        //}
+
 
         public static Expression DefaultExpr(this Type src)
         {

@@ -223,7 +223,6 @@ namespace ConsoleApp1
                 //    );
                 //var lambda1 = Expression.Lambda(block1, p2).Compile();
                 //TestDB();
-                var nns = Enumerable.Range(1, 5);
                 
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()
                     .useSetting(x =>
@@ -321,7 +320,7 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                var accounts = regt_devices.Select(x => x.Local.IP);
+                //var accounts = regt_devices.Select(x => x.Remote.Root.Account).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>
                     {
@@ -332,7 +331,7 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                //var ffoi = regt_installedapps.First(x => x.DisplayName != "AA");
+                var ffoi = regt_installedapps.Average(x => x.Version.ToString().Length);
 
                 RegQuery<Building> regt_building = new RegQuery<Building>()
                     .useSetting(x =>

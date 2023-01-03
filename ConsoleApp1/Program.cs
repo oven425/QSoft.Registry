@@ -295,6 +295,7 @@ namespace ConsoleApp1
                     //},
                     //Size = new Size() {Width=x+1, Height=x+2 }
                 });
+
                 //var kkj = computers.AsQueryable().Where(x => x.Rams.FirstOrDefault() != null);
                 //regt_computer.RemoveAll();
                 //regt_computer.Insert(computers);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using QSoft.Registry.Linq.Convert;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,34 +13,6 @@ using System.Text.RegularExpressions;
 
 namespace QSoft.Registry.Linq
 {
-    public abstract class RegQueryConvert
-    {
-        internal RegQueryConvert() { }
-        abstract public bool CanConvert(Type src);
-    }
-
-    public abstract class RegQueryConvert<TSrc,TDst> : RegQueryConvert where TDst:struct
-    {
-        public override bool CanConvert(Type src)
-        {
-            return src == typeof(TSrc);
-        }
-        protected Type Src { get; } = typeof(TSrc);
-        abstract public TDst ConvertTo(TSrc src);
-        abstract public TSrc ConvertBack(TDst dst);
-    }
-
-    public abstract class RegQueryConvert<TSrc> : RegQueryConvert
-    {
-        public override bool CanConvert(Type src)
-        {
-            return src == typeof(TSrc);
-        }
-        protected Type Src { get; } = typeof(TSrc);
-        abstract public string ConvertTo(TSrc src);
-        abstract public TSrc ConvertBack(string dst);
-    }
-
     public class RegQuery<T> : IOrderedQueryable<T>
     {
         public RegQuery()
@@ -59,22 +32,25 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-        List<RegQueryConvert> m_Converts = new List<RegQueryConvert>();
+        Dictionary<Type, RegQueryConvert> m_Converts = new Dictionary<Type, RegQueryConvert>()
+        {
+            {typeof(Version), new Version2String() }
+        };
 
-        
-        //public RegQuery<T> useConverts(List<RegQueryConvert> converts)
+        //List<RegQueryConvert> m_Converts = new List<RegQueryConvert>()
         //{
-        //    if(converts!=null)
-        //    {
-        //        this.m_Converts.AddRange(converts);
-        //    }
-        //    this.m_Provider.Converts = this.m_Converts;
-        //    return this;
-        //}
+        //    new Version2String()
+        //};
 
         public RegQuery<T> useConverts(Action<List<RegQueryConvert>> converts)
         {
-            converts(this.m_Converts);
+            List<RegQueryConvert> convert = new List<RegQueryConvert>();
+            converts(convert);
+            foreach(var oo in convert)
+            {
+                this.m_Converts[oo.GetSourceType()] = oo;
+            }
+
             this.m_Provider.Converts = this.m_Converts;
             return this;
         }

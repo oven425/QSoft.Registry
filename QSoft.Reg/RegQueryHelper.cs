@@ -357,7 +357,7 @@ namespace QSoft.Registry.Linq
             return select_method?.MakeGenericMethod(typeof(RegistryKey), datatype);
         }
 
-        static public Expression ToSelectData(this Type dst, IEnumerable<RegQueryConvert> converts, ParameterExpression pp = null, Type src=null)
+        static public Expression ToSelectData(this Type dst, Dictionary<Type, RegQueryConvert> converts, ParameterExpression pp = null, Type src=null)
         {
             System.Diagnostics.Debug.WriteLine($"ToSelectData");
             if (pp == null)
@@ -397,7 +397,7 @@ namespace QSoft.Registry.Linq
             return unary;
         }
 
-        public static Func<RegistryKey, TData> ToDataFunc<TData>(this RegistryKey reg, IEnumerable<RegQueryConvert> converts)
+        public static Func<RegistryKey, TData> ToDataFunc<TData>(this RegistryKey reg, Dictionary<Type, RegQueryConvert> converts)
         {
             System.Diagnostics.Debug.WriteLine($"ToDataFunc");
             var o_pp = Expression.Parameter(typeof(RegistryKey), "x");
@@ -406,7 +406,7 @@ namespace QSoft.Registry.Linq
             return o_func;
         }
 
-        public static LambdaExpression ToLambdaData(this Type datatype, IEnumerable<RegQueryConvert> converts, ParameterExpression pp = null)
+        public static LambdaExpression ToLambdaData(this Type datatype, Dictionary<Type, RegQueryConvert> converts, ParameterExpression pp = null)
         {
             System.Diagnostics.Debug.WriteLine($"ToLambdaData");
             if (pp == null)
@@ -418,7 +418,7 @@ namespace QSoft.Registry.Linq
             return lambda;
         }
 
-        static public Expression CopyData(this Type dst, Type src, Expression param, IEnumerable<RegQueryConvert> converts)
+        static public Expression CopyData(this Type dst, Type src, Expression param, Dictionary<Type, RegQueryConvert> converts)
         {
             System.Diagnostics.Debug.WriteLine($"CopyData");
             if(dst.IsGenericType==true&& src == typeof(IEnumerable<RegistryKey>))
@@ -532,7 +532,7 @@ namespace QSoft.Registry.Linq
 
 
 
-        static public Expression ToData(this Type dst, Expression param, IEnumerable<RegQueryConvert> converts)
+        static public Expression ToData(this Type dst, Expression param, Dictionary<Type, RegQueryConvert> converts)
         {
             System.Diagnostics.Debug.WriteLine($"ToData");
             //var convert = converts.FirstOrDefault(x => x.CanConvert(dst));
@@ -571,7 +571,12 @@ namespace QSoft.Registry.Linq
                 else if (pp.attr != null && pp.attr is RegPropertyName)
                 {
                     var subkeyname = (pp.attr as RegPropertyName)?.Name;
-                    var convert = converts.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
+                    //var convert = converts.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
+                    RegQueryConvert convert = null;
+                    if (converts.ContainsKey(pp.x.PropertyType) == true)
+                    {
+                        convert = converts[pp.x.PropertyType];
+                    }
                     if (convert != null)
                     {
                         if (pp.x.PropertyType.IsGenericTypeDefinition == true && pp.x.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -623,7 +628,12 @@ namespace QSoft.Registry.Linq
                 {
                     if (typecode == TypeCode.Object)
                     {
-                        var convert = converts.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
+                        RegQueryConvert convert = null;
+                        if(converts.ContainsKey(pp.x.PropertyType) == true)
+                        {
+                            convert = converts[pp.x.PropertyType];
+                        }
+                        //var convert = converts.FirstOrDefault(x => x.CanConvert(pp.x.PropertyType) == true);
                         if (convert != null)
                         {
                             name = Expression.Constant(pp.x.Name, typeof(string));
@@ -999,7 +1009,7 @@ namespace QSoft.Registry.Linq
             return reg;
         }
 
-        public static Tuple<Expression, Expression, bool> BuildSubKey(this IEnumerable<PropertyInfo> members, Ex ex_src, ParameterExpression reg_p, IEnumerable<RegQueryConvert> converts)
+        public static Tuple<Expression, Expression, bool> BuildSubKey(this IEnumerable<PropertyInfo> members, Ex ex_src, ParameterExpression reg_p, Dictionary<Type, RegQueryConvert> converts)
         {
             Expression expr = null;
             Expression getsubkeyexpr = null;
@@ -1202,7 +1212,7 @@ namespace QSoft.Registry.Linq
             return null;
         }
 
-        public static Expression ToBinary(this DictionaryList<Expression, Ex> exprs, BinaryExpression node, IEnumerable<RegQueryConvert> converts)
+        public static Expression ToBinary(this DictionaryList<Expression, Ex> exprs, BinaryExpression node, Dictionary<Type, RegQueryConvert> converts)
         {
             Expression binary = null;
             var eex = exprs.Where(x => x.Key.Type != x.Value.Expr?.Type).Where(x => x.Value.SourceExpr is MemberExpression);
@@ -1316,7 +1326,7 @@ namespace QSoft.Registry.Linq
         }
 
 
-        public static Expression ToStaticMethodCall(this IEnumerable<Ex> src, MethodInfo method, IEnumerable<Expression> args, IEnumerable<RegQueryConvert> converts, Type[] methodtypes)
+        public static Expression ToStaticMethodCall(this IEnumerable<Ex> src, MethodInfo method, IEnumerable<Expression> args, Dictionary<Type, RegQueryConvert> converts, Type[] methodtypes)
         {
 
             if (src.First().Expr != null && src.First().Expr.Type == src.First().SourceExpr.Type)
@@ -1411,7 +1421,7 @@ namespace QSoft.Registry.Linq
         }
 
 
-        public static Expression ToMethodCall(this IEnumerable<Ex> src, MethodInfo method, IEnumerable<Expression> args,IEnumerable<RegQueryConvert> converts)
+        public static Expression ToMethodCall(this IEnumerable<Ex> src, MethodInfo method, IEnumerable<Expression> args,Dictionary<Type, RegQueryConvert> converts)
         {
 
             //if (src.First().Expr != null && src.First().Expr.Type == src.First().SourceExpr.Type)
@@ -1481,7 +1491,7 @@ namespace QSoft.Registry.Linq
             return block;
         }
 
-        public static Expression ToMethodCall(this Ex src, MethodInfo method, IEnumerable<Expression> args, IEnumerable<RegQueryConvert> converts)
+        public static Expression ToMethodCall(this Ex src, MethodInfo method, IEnumerable<Expression> args, Dictionary<Type, RegQueryConvert> converts)
         {
             if(src.Expr != null && src.Expr.Type == src.SourceExpr.Type)
             {

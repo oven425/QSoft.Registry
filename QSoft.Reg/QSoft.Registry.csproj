@@ -47,6 +47,7 @@
     <Compile Include="RegistryKeyEx.cs" />
     <Compile Include="RegProvider.cs" />
     <Compile Include="RegQuery.cs" />
+    <Compile Include="RegQueryConvert.cs" />
     <Compile Include="RegQueryEx.cs" />
     <Compile Include="RegQueryHelper.cs" />
     <Compile Include="RegSetting.cs" />

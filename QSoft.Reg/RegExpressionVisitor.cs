@@ -14,7 +14,7 @@ namespace QSoft.Registry.Linq
     class RegExpressionVisitor<TData>: ExpressionVisitor
     {
         Expression m_RegSource;
-        public IEnumerable<RegQueryConvert> Converts { set; get; }
+        public Dictionary<Type, RegQueryConvert> Converts { set; get; }
         public string Fail { private set; get; }
         public Expression Visit(Expression node, Expression regfunc)
         {
@@ -758,13 +758,31 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object)
                                 {
-                                    //member = exprs.ElementAt(0).Value.Expr;
+                                    RegQueryConvert convert = null;
+                                    if(this.Converts.ContainsKey(expr.Type) == true)
+                                    {
+                                        convert = this.Converts[expr.Type];
+                                        
+                                    }
+
                                     m_SubkeyNames.Add((attr as RegPropertyName).Name);
                                     members.Add(expr.Member);
                                     var methodexpr = exprs.ElementAt(0).Value.Expr as MethodCallExpression;
                                     if (methodexpr == null)
                                     {
-                                        member = m_SubkeyNames.OpenSubKeyExr(exprs.ElementAt(0).Value.Expr);
+                                        if(convert == null)
+                                        {
+                                            member = m_SubkeyNames.OpenSubKeyExr(exprs.ElementAt(0).Value.Expr);
+                                        }
+                                        else
+                                        {
+                                            left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                                            var ms = convert.GetType().GetMethod("ConvertBack");
+                                            var pps = ms.GetParameters();
+                                            member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pps.First().ParameterType), exprs.ElementAt(0).Value.Expr, left_args_1);
+                                            
+                                            member = Expression.Call(Expression.Constant(convert), ms, member);
+                                        }
                                     }
                                     else
                                     {
@@ -816,7 +834,7 @@ namespace QSoft.Registry.Linq
                                 }
                             }
                             this.m_ExpressionSaves[expr].Members.AddRange(members);
-                            this.m_ExpressionSaves[expr].Convert = this.Converts?.FirstOrDefault(x => x.CanConvert(node.Type));
+                            this.m_ExpressionSaves[expr].Convert = this.Converts.ContainsKey(node.Type) == true ? this.Converts[node.Type] : null;
                             this.m_ExpressionSaves[expr].Expr = member;
                             this.m_ExpressionSaves[expr].SourceExpr = expr;
                         }
@@ -948,7 +966,7 @@ namespace QSoft.Registry.Linq
                         //{
                         //    this.m_MembersExprs.Add(Tuple.Create(exprs.ElementAt(0).Value.Expr, expr));
                         //}
-                        this.m_ExpressionSaves[expr].Convert = this.Converts.FirstOrDefault(x => x.CanConvert(node.Type));
+                        this.m_ExpressionSaves[expr].Convert = this.Converts.ContainsKey(node.Type) == true ? this.Converts[node.Type] : null;
                         this.m_ExpressionSaves[expr].Expr = member;
                         this.m_ExpressionSaves[expr].Members.AddRange(members);
                         this.m_ExpressionSaves[expr].SourceExpr = expr;

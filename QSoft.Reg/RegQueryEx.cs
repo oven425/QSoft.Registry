@@ -42,14 +42,14 @@ namespace QSoft.Registry.Linq
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");
             var reg = source.ToRegistryKey();
             var provide = source.Provider as RegProvider<TSource>;
-            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)), Expression.Constant(provide.Converts, typeof(IEnumerable<RegQueryConvert>)));
+            var methdodcall = Expression.Call(updates.Last().MakeGenericMethod(typeof(TSource)), Expression.Constant(reg, typeof(RegistryKey)), Expression.Constant(datas, typeof(IEnumerable<TSource>)), Expression.Constant(provide.DefaultValue, typeof(Action<TSource>)), Expression.Constant(provide.Converts, typeof(Dictionary<Type, RegQueryConvert>)));
             
             int hr = source.Provider.Execute<int>(methdodcall);
             reg.Close();
             return hr;
         }
 
-        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert, IEnumerable<RegQueryConvert> converts)
+        static void Insert(this RegistryKey source, object data, object defaulvalue, bool isinsert, Dictionary<Type, RegQueryConvert> converts)
         {
             if (data == null) { return; }
 
@@ -83,7 +83,12 @@ namespace QSoft.Registry.Linq
                 {
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
-                var convert = converts?.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
+                RegQueryConvert convert = null;
+                if(converts.ContainsKey(pp.Key.PropertyType) == true)
+                {
+                    convert = converts[pp.Key.PropertyType];
+                }
+                //var convert = converts?.FirstOrDefault(x => x.CanConvert(pp.Key.PropertyType));
                 if(convert != null)
                 {
                     var methods = convert.GetType().GetMethod("ConvertTo");
@@ -138,7 +143,7 @@ namespace QSoft.Registry.Linq
             
         }
 
-        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction, IEnumerable<RegQueryConvert> converts)
+        static int Insert<TData>(this RegistryKey source, IEnumerable<TData> datas, Action<TData> defaultaction, Dictionary<Type, RegQueryConvert> converts)
         {
             TData hasdefault = default(TData);
             if(defaultaction != null)

@@ -455,22 +455,24 @@ namespace QSoft.Registry.Linq
                             //var expr = pp.dst.PropertyType.ToData(param1);
                             //var test = Expression.Equal(param1, Expression.Constant(null));
                             //var ifelse = Expression.Condition(test, pp.dst.PropertyType.DefaultExpr(), expr);
-                            
-                            var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
-                            var getsubkeyexpr = Expression.Call(param1, opensubkey, Expression.Constant(pp.dst.PropertyType.Name));
-                            var objepxr = pp.dst.PropertyType.ToData(param1, converts);
-                            var obj_p = Expression.Parameter(pp.dst.PropertyType, "obj");
-                            var aa = Expression.Block(new[] { obj_p },
-                                Expression.Assign(param1, getsubkeyexpr),
-                                Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, param1, Expression.Constant(null, typeof(RegistryKey))),
-                                Expression.Block(
-                                    Expression.Assign(obj_p, objepxr),
-                                    param1.DisposeExpr(),
-                                    obj_p),
-                                    pp.dst.PropertyType.DefaultExpr())
-                                );
-                            exprs.Add(aa);
 
+                            //var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
+                            //var getsubkeyexpr = Expression.Call(param1, opensubkey, Expression.Constant(pp.dst.PropertyType.Name));
+                            //var objepxr = pp.dst.PropertyType.ToData(param1, converts);
+                            //var obj_p = Expression.Parameter(pp.dst.PropertyType, "obj");
+                            //var aa = Expression.Block(new[] { obj_p },
+                            //    Expression.Assign(param1, getsubkeyexpr),
+                            //    Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, param1, Expression.Constant(null, typeof(RegistryKey))),
+                            //    Expression.Block(
+                            //        Expression.Assign(obj_p, objepxr),
+                            //        param1.DisposeExpr(),
+                            //        obj_p),
+                            //        pp.dst.PropertyType.DefaultExpr())
+                            //    );
+                            //exprs.Add(aa);
+
+                            var objepxr = pp.dst.PropertyType.ToData(param1, converts);
+                            exprs.Add(objepxr);
                         }
                         else
                         {

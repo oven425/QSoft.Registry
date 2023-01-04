@@ -41,8 +41,6 @@ namespace QSoft.Registry.Linq
             return typeof(TSrc);
         }
     }
-
-    
 }
 
 namespace QSoft.Registry.Linq.Convert

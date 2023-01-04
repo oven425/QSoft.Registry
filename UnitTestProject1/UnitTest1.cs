@@ -178,7 +178,7 @@ namespace General
         [TestMethod]
         public void GroupBy1_Select()
         {
-            CheckEx.Check(this.m_Tests.GroupBy(x => x).Select(x=>x.Key), regt.GroupBy(x => x).Select(x => x.Key));
+            CheckEx.Check(this.m_Tests.GroupBy(x => x).Select(x => x.Key), regt.GroupBy(x => x).Select(x => x.Key));
             CheckEx.Check(this.m_Tests.GroupBy(x => x.DisplayName).Select(x => x.Key), regt.GroupBy(x => x.DisplayName).Select(x => x.Key));
         }
 
@@ -355,7 +355,6 @@ namespace General
         public void Select_Index()
         {
             CheckEx.Check(this.m_Tests.Select((x, index) => x), regt.Select((x, index) => x));
-            //var aa = regt.Select((x, index) => new { x, index });
             CheckEx.Check(this.m_Tests.Select((x, index) => new { x, index }), regt.Select((x, index) => new { x, index }));
         }
 

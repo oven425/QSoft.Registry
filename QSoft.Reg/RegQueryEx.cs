@@ -84,7 +84,7 @@ namespace QSoft.Registry.Linq
                     typecode = Type.GetTypeCode(pp.Key.PropertyType.GetGenericArguments()[0]);
                 }
                 RegQueryConvert convert = null;
-                if(converts.ContainsKey(pp.Key.PropertyType) == true)
+                if(converts?.ContainsKey(pp.Key.PropertyType) == true)
                 {
                     convert = converts[pp.Key.PropertyType];
                 }

@@ -332,8 +332,12 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                var ffoi = regt_installedapps.Average(x => x.Version.ToString().Length);
-
+                //var ffoi = regt_installedapps.Average(x => x.Version.ToString().Length);
+                var select_1 = regt_installedapps.GroupBy(x => x).Select(x => x.Key);
+                for(int i=0; i<3; i++)
+                {
+                    select_1.ElementAt(i);
+                }
                 RegQuery<Building> regt_building = new RegQuery<Building>()
                     .useSetting(x =>
                     {

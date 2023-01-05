@@ -101,7 +101,21 @@ namespace QSoft.Registry.Linq
                 }
             }
             this.m_Exprs.Clear();
-
+            if(exprs.Count == 0)
+            {
+                if(excuteexpr is MethodCallExpression)
+                {
+                    var call = excuteexpr as MethodCallExpression;
+                    if(call.Arguments.Count >0)
+                    {
+                        if(this.m_ProcessExprs.ContainsKey(call.Arguments[0]) == true)
+                        {
+                            this.m_RegMethod = this.m_ProcessExprs[call.Arguments[0]];
+                        }
+                    }
+                    
+                }
+            }
             foreach (var expression in exprs)
             {
                 RegExpressionVisitor<TData> reg = new RegExpressionVisitor<TData>();
@@ -553,10 +567,16 @@ namespace QSoft.Registry.Linq
                             Dictionary<Expression, Expression> saves = new Dictionary<Expression, Expression>();
                             saves[updatemethod2.Arguments[0]] = updatemethod1;
                             expr = regvisitor.VisitA(updatemethod2, this.m_RegSource, saves);
+                            if(expr.Type.IsGenericType==true&&expr.Type.GetGenericTypeDefinition() == typeof(IQueryable<>)) 
+                            {
+                                
+                            }
+                            else
+                            {
+                                this.m_ProcessExprs[updatemethod2.Arguments[0]] = updatemethod1;
+                            }
                             this.m_ProcessExprs[expression] = expr;
                         }
-
-
                     }
                 }
             }

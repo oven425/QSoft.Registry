@@ -116,13 +116,15 @@ namespace QSoft.Registry.Linq
                     var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
                     var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
                     var todataexpr = oo.Value.SourceExpr.Type.ToData(reg_p, this.Converts);
+                    
                     var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
                         reg_p_assign,
                         hr_p_assign,
                         Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
                         Expression.Block(
                             Expression.Assign(hr_p, todataexpr),
-                            reg_p.DisposeExpr())),
+                            Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(oo.Value.ExprNeedDispose), Expression.Constant(true)),
+                            reg_p.DisposeExpr()))),
                         hr_p
                         );
                     oo.Value.Expr = membgervalue;
@@ -1089,6 +1091,9 @@ namespace QSoft.Registry.Linq
                     {
                         if (i == 0)
                         {
+                            var a1 = this.m_Saves[args[0]];
+                            var a2 = a1.Type;
+                            var a3 = a2.GetGenericArguments();
                             this.m_GenericTypes.First()[dicc[i].Name] = this.m_Saves[args[0]].Type.GetGenericArguments()[0];
                         }
                         else

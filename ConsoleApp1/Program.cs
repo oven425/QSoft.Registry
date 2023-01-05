@@ -336,7 +336,8 @@ namespace ConsoleApp1
                 var select_1 = regt_installedapps.GroupBy(x => x).Select(x => x.Key);
                 for(int i=0; i<3; i++)
                 {
-                    select_1.ElementAt(i);
+                    var ssl = select_1.ElementAt(i);
+                    ssl = null;
                 }
                 RegQuery<Building> regt_building = new RegQuery<Building>()
                     .useSetting(x =>

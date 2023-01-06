@@ -205,23 +205,20 @@ namespace ConsoleApp1
     
     class Program
     {
+        static IEnumerable<int> IA(bool nn)
+        {
+            if(nn == true)
+            {
+                yield return 1;
+            }
+            
+        }
         static void Main(string[] args)
         {
             try
             {
-                //x.Hive = RegistryHive.CurrentConfig;
-                //x.SubKey = @"LikeDB_SubKey\Computers";
-                //x.View = RegistryView.Registry64;
-                //RegistryKey reg_root = Registry.CurrentConfig.OpenSubKey(@"LikeDB_SubKey\Computers");
-                //var sizes = SubKeys(reg_root).Select(x => x).ToList();
-
-
-                //var p1 = Expression.Parameter(typeof(string), "zz");
-                //var p2 = Expression.Parameter(typeof(string), "zz");
-                //var block1 = Expression.Block(
-                //    p1.WriteLineExpr()
-                //    );
-                //var lambda1 = Expression.Lambda(block1, p2).Compile();
+                var oo = IA(false);
+                
                 //TestDB();
                 
                 RegQuery<Computer> regt_computer = new RegQuery<Computer>()
@@ -321,6 +318,7 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
+                var acc = regt_devices.Where(x => x.Location != null).ToList();
                 //var accounts = regt_devices.Select(x => x.Remote.Root.Account).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>
@@ -333,12 +331,12 @@ namespace ConsoleApp1
                         x.Add(new Version2String());
                     });
                 //var ffoi = regt_installedapps.Average(x => x.Version.ToString().Length);
-                var select_1 = regt_installedapps.GroupBy(x => x).Select(x => x.Key);
-                for(int i=0; i<3; i++)
-                {
-                    var ssl = select_1.ElementAt(i);
-                    ssl = null;
-                }
+                //var select_1 = regt_installedapps.GroupBy(x => x).Select(x => x.Key);
+                //for(int i=0; i<3; i++)
+                //{
+                //    var ssl = select_1.ElementAt(i);
+                //    ssl = null;
+                //}
                 RegQuery<Building> regt_building = new RegQuery<Building>()
                     .useSetting(x =>
                     {
@@ -348,8 +346,8 @@ namespace ConsoleApp1
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
                 //var ss = regt_building.Where(a => a.Floors!=null).ToList();
-                var sum1 = regt_building.Where(x => x.Floors != null).ToList();
-                var sum2 = regt_building.ToList().Sum(a => a.Floors.Count);
+                //var sum1 = regt_building.Where(x => x.Floors != null).ToList();
+                //var sum2 = regt_building.ToList().Sum(a => a.Floors.Count);
 
                 //var fir = regt_building.FirstOrDefault(a=>a.Floors.FirstOrDefault(b=>b.Areas.Count()>3)!=null);
                 //var fir = regt_building.FirstOrDefault(x => x.Floors.FirstOrDefault(y => y.Areas.FirstOrDefault(z => z.Devices.FirstOrDefault(a=>a.Name!="") != null) !=null)!=null);

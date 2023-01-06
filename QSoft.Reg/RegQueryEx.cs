@@ -27,6 +27,10 @@ namespace QSoft.Registry.Linq
                 subkey.Close();
                 subkey.Dispose();
             }
+            else
+            {
+                yield return null;
+            }
         }
 
         //public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)

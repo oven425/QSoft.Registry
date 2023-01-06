@@ -65,8 +65,19 @@ namespace QSoft.Registry.Linq
             {
                 var exprs = this.m_ExpressionSaves.Clone(expr);
                 //var binary = this.m_MembersExprs.ToBinary(node, exprs);
-                var binary = exprs.ToBinary(node, this.Converts);
-
+                //var binary = exprs.ToBinary(node, this.Converts);
+                Expression binary = null;
+                if (exprs.Any(x => x.Value.ExprNeedDispose == true))
+                {
+                    var hr = Expression.Parameter(typeof(bool), "hr");
+                    var reg = Expression.Parameter(exprs.ElementAt(0).Value.Expr.Type, "reg");
+                    binary = Expression.Block(new ParameterExpression[] { hr, reg },
+                        Expression.Assign(reg, exprs.ElementAt(0).Value.Expr),
+                        Expression.Assign(hr, Expression.MakeBinary(node.NodeType, reg, exprs.ElementAt(1).Value.Expr)),
+                        reg.DisposeExpr(),
+                        hr
+                        );
+                }
                 if (binary == null)
                 {
                     binary = Expression.MakeBinary(node.NodeType, exprs.ElementAt(0).Value.Expr, exprs.ElementAt(1).Value.Expr);
@@ -812,6 +823,7 @@ namespace QSoft.Registry.Linq
                                     var liu = expr.GetMembers();
                                     var pps = liu.Select(x => x as PropertyInfo);
                                     var regss = pps.BuildSubKey(exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Expr as ParameterExpression, this.Converts);
+                                    this.m_ExpressionSaves[expr].ExprNeedDispose = true;
                                     member = regss.Item1;
                                 }
                                 else if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)

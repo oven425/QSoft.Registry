@@ -72,6 +72,14 @@ namespace QSoft.Registry
             }
         }
 
+        public static MethodCallExpression GetValueExpr(this Expression src, string name, Type type)
+        {
+            var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
+            var hr = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(type), src, Expression.Constant(name));
+
+            return hr;
+        }
+
         //public static Expression GetValueExpr(this List<string> subkeys, Expression expr, Type src)
         //{
         //    var p1 = Expression.Parameter(typeof(RegistryKey), "p1");
@@ -128,7 +136,7 @@ namespace QSoft.Registry
             return default_value;
         }
 
-        public static Expression OpenSubKeyExr(this List<string> src, Expression param)
+        public static MethodCallExpression OpenSubKeyExr(this IEnumerable<string> src, Expression param)
         {
             var subkeyname = src.Aggregate((x, y) => $"{x}\\{y}");
             var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });

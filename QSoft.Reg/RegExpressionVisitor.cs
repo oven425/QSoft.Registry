@@ -771,14 +771,16 @@ namespace QSoft.Registry.Linq
                             {
                                 if(typecode == TypeCode.Object)
                                 {
+                                    m_SubkeyNames.Add((attr as RegPropertyName).Name);
+                                    exprs.BuildMemberObject(expr, m_SubkeyNames, this.Converts);
                                     RegQueryConvert convert = null;
                                     if(this.Converts.ContainsKey(expr.Type) == true)
                                     {
                                         convert = this.Converts[expr.Type];
                                         
                                     }
-
-                                    m_SubkeyNames.Add((attr as RegPropertyName).Name);
+                                    
+                                    
                                     members.Add(expr.Member);
                                     var methodexpr = exprs.ElementAt(0).Value.Expr as MethodCallExpression;
                                     if (methodexpr == null)
@@ -828,9 +830,11 @@ namespace QSoft.Registry.Linq
                                 }
                                 else if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {
-                                    //add = true;
+                                    m_SubkeyNames.Add(expr.Member.Name);
+                                    member = exprs.BuildMemberObject(expr, m_SubkeyNames, Converts);
+                                    this.m_ExpressionSaves[expr].ExprNeedDispose = true;
                                     members.Add(expr.Member);
-                                    member = exprs.ElementAt(0).Value.Expr;
+                                    //member = exprs.ElementAt(0).Value.Expr;
                                 }
                                 else
                                 {

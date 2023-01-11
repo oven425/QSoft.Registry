@@ -1645,5 +1645,40 @@ namespace QSoft.Registry.Linq
             return attr?.Name ?? src.Member.Name;
         }
 
+
+        public static Expression BuildMemberObject(this DictionaryList<Expression, Ex> exprs, Expression expr, IEnumerable<string> subkeynames, Dictionary<Type, RegQueryConvert> converts)
+        {
+            RegQueryConvert convert = null;
+            if (converts.ContainsKey(expr.Type) == true)
+            {
+                convert = converts[expr.Type];
+
+            }
+
+            Expression hr = null;
+            var methodexpr = exprs.ElementAt(0).Value.Expr as MethodCallExpression;
+            if (methodexpr == null)
+            {
+                if (convert == null)
+                {
+                    hr = subkeynames.OpenSubKeyExr(exprs.ElementAt(0).Value.Expr);
+                }
+                else
+                {
+                    //var left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
+                    var ms = convert.GetType().GetMethod("ConvertBack");
+                    var pps = ms.GetParameters();
+                    //hr = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(pps.First().ParameterType), exprs.ElementAt(0).Value.Expr, left_args_1);
+                    hr = exprs.ElementAt(0).Value.Expr.GetValueExpr("", pps.First().ParameterType);
+                    hr = Expression.Call(Expression.Constant(convert), ms, hr);
+                }
+            }
+            else
+            {
+                hr = subkeynames.OpenSubKeyExr(methodexpr.Object);
+            }
+
+            return hr;
+        }
     }
 }

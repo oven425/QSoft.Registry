@@ -822,11 +822,16 @@ namespace QSoft.Registry.Linq
                             {
                                 if(expr.Type != typeof(string) && expr.Type.GetInterfaces().Any(x => x == typeof(IEnumerable)))
                                 {
-                                    var liu = expr.GetMembers();
-                                    var pps = liu.Select(x => x as PropertyInfo);
-                                    var regss = pps.BuildSubKey(exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Expr as ParameterExpression, this.Converts);
+                                    //var liu = expr.GetMembers();
+                                    //var pps = liu.Select(x => x as PropertyInfo);
+                                    //var regss = pps.BuildSubKey(exprs.ElementAt(0).Value, exprs.ElementAt(0).Value.Expr as ParameterExpression, this.Converts);
+                                    //this.m_ExpressionSaves[expr].ExprNeedDispose = true;
+                                    //member = regss.Item1;
+
+                                    m_SubkeyNames.Add(expr.Member.Name);
+                                    member = exprs.BuildMemberObject(expr, m_SubkeyNames, Converts);
                                     this.m_ExpressionSaves[expr].ExprNeedDispose = true;
-                                    member = regss.Item1;
+                                    members.Add(expr.Member);
                                 }
                                 else if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)
                                 {

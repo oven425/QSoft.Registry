@@ -19,7 +19,7 @@ namespace TestData
         [RegSubKeyName]
         public string Name { set; get; }
         public List<FloorData> Floors { set; get; }
-        public List<People> People { set; get; }
+        public List<People> Peoples { set; get; }
     }
 
     public class Device

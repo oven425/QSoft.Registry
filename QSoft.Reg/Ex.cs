@@ -13,7 +13,7 @@ namespace QSoft.Registry.Linq
         public Expression SourceExpr { set; get; }
         public Expression Expr { set; get; }
         public bool ExprNeedDispose { set; get; }
-        public bool IsList { set; get; }
+        public bool IsEnumable { set; get; }
         public RegQueryConvert Convert { set; get; }
         public List<MemberInfo> Members { set; get; } = new List<MemberInfo>();
     }

@@ -831,6 +831,7 @@ namespace QSoft.Registry.Linq
                                     m_SubkeyNames.Add(expr.Member.Name);
                                     member = exprs.BuildMemberObject(expr, m_SubkeyNames, Converts);
                                     this.m_ExpressionSaves[expr].ExprNeedDispose = true;
+                                    this.m_ExpressionSaves[expr].IsEnumable = true;
                                     members.Add(expr.Member);
                                 }
                                 else if(typecode == TypeCode.Object && expr.Type.IsNullable()==false)

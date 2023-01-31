@@ -524,34 +524,50 @@ namespace QSoft.Registry.Linq
                
                 if (lambda.ReturnType!= typeof(string) && lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
                 {
-                    foreach(var oo in exprs)
+                    var ttiu = exprs.Where(x => !(x.Value.Expr is ParameterExpression));
+                    foreach (var oo in exprs.Where(x => !(x.Value.Expr is ParameterExpression)))
                     {
-                        var liu = GetMembers(oo.Value.SourceExpr);
-                        var pps = liu.Select(x => x as PropertyInfo);
-                        var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                        var getallsubkeysexpr = Expression.Call(typeof(RegQueryEx).GetMethod("GetAllSubKeys"), oo.Value.Expr);
+                        var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                        aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.ReturnType.GetGenericArguments()[0]);
 
-                        var regss = pps.BuildSubKey(oo.Value, reg_p, this.Converts);
-                        if(regss.Item1 != null)
+                        var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                        var subobjexpr = lambda.ReturnType.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
+                        var selectexpr = Expression.Call(aaa, getallsubkeysexpr, Expression.Lambda(subobjexpr, subreg_p));
+                        oo.Value.Expr = selectexpr;
+                        if (node.ReturnType.GetGenericTypeDefinition() != typeof(IEnumerable<>))
                         {
-
-
-                            var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
-                            aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.ReturnType.GetGenericArguments()[0]);
-
-                            var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
-                            var subobjexpr = lambda.ReturnType.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
-                            var selectexpr = Expression.Call(aaa, regss.Item1, Expression.Lambda(subobjexpr, subreg_p));
-                            oo.Value.Expr = selectexpr;
-                            if (node.ReturnType.GetGenericTypeDefinition()!= typeof(IEnumerable<>))
-                            {
-                                var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.ReturnType.GetGenericArguments()[0]);
-                                var tolist_expr = Expression.Call(tolist, selectexpr);
-                                oo.Value.Expr = tolist_expr;
-                            }
-
-
-                            
+                            var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.ReturnType.GetGenericArguments()[0]);
+                            var tolist_expr = Expression.Call(tolist, selectexpr);
+                            oo.Value.Expr = tolist_expr;
                         }
+
+                        //var liu = GetMembers(oo.Value.SourceExpr);
+                        //var pps = liu.Select(x => x as PropertyInfo);
+                        //var reg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+
+                        //var regss = pps.BuildSubKey(oo.Value, reg_p, this.Converts);
+                        //if(regss.Item1 != null)
+                        //{
+
+
+                        //    var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
+                        //    aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.ReturnType.GetGenericArguments()[0]);
+
+                        //    var subreg_p = Expression.Parameter(typeof(RegistryKey), "subreg");
+                        //    var subobjexpr = lambda.ReturnType.GetGenericArguments()[0].ToData(subreg_p, this.Converts);
+                        //    var selectexpr = Expression.Call(aaa, regss.Item1, Expression.Lambda(subobjexpr, subreg_p));
+                        //    oo.Value.Expr = selectexpr;
+                        //    if (node.ReturnType.GetGenericTypeDefinition()!= typeof(IEnumerable<>))
+                        //    {
+                        //        var tolist = typeof(Enumerable).GetMethod("ToList").MakeGenericMethod(lambda.ReturnType.GetGenericArguments()[0]);
+                        //        var tolist_expr = Expression.Call(tolist, selectexpr);
+                        //        oo.Value.Expr = tolist_expr;
+                        //    }
+
+
+
+                        //}
                     }
                     m_Lambda = Expression.Lambda(exprs.First().Value.Expr, parameters);
                     //var b1b = exprs.First().Value.Expr1 == parameters[0];

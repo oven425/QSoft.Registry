@@ -27,20 +27,20 @@ namespace QSoft.Registry.Linq
                 subkey.Close();
                 subkey.Dispose();
             }
-            //else
-            //{
-            //    yield return null;
-            //}
         }
 
-        //public static void DisposeSubkeys(this IEnumerable<RegistryKey> src)
-        //{
-        //    foreach(var oo in src)
-        //    {
-        //        oo.Close();
-        //        oo.Dispose();
-        //    }
-        //}
+        public static IEnumerable<RegistryKey> GetAllSubKeys(this RegistryKey src)
+        {
+            var subkeynames = src.GetSubKeyNames();
+            foreach (var oo in subkeynames)
+            {
+                var child = src.OpenSubKey(oo);
+                yield return child;
+                child.Close();
+                child.Dispose();
+            }
+        }
+
         public static int Insert<TSource>(this RegQuery<TSource> source, IEnumerable<TSource> datas) where TSource : class
         {
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");

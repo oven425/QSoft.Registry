@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using QSoft.Registry.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -131,5 +132,13 @@ namespace QSoft.Registry
         {
             return null;
         }
+
+        public static MethodCallExpression GetAllSubKeysExprs(this Expression src) 
+        {
+            var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("GetAllSubKeys"), src);
+
+            var opensubkey = typeof(RegistryKey).GetMethod("GetAllSubKeys", new[] { typeof(string) });
+            return null; 
+        }    
     }
 }

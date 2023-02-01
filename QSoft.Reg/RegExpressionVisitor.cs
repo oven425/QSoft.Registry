@@ -908,10 +908,17 @@ namespace QSoft.Registry.Linq
                             if (expr.Member.MemberType == MemberTypes.Property)
                             {
                                 var pp = expr.Member as PropertyInfo;
-                                if (pp.PropertyType.GetInterfaces().Any(x => x == typeof(IEnumerable)))
+                                if (pp.PropertyType!= typeof(string) && pp.PropertyType.GetInterfaces().Any(x => x == typeof(IEnumerable)))
                                 {
                                     var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), exprs.First().Value.Expr, Expression.Constant(expr.Member.Name));
                                     expr_member = opensubkeys_expr;
+                                }
+                                else
+                                {
+                                    m_SubkeyNames.Add(expr.Member.Name);
+                                    expr_member = exprs.BuildMemberObject(expr, m_SubkeyNames, Converts);
+                                    this.m_ExpressionSaves[expr].ExprNeedDispose = true;
+                                    members.Add(expr.Member);
                                 }
                             }
                         }
@@ -1261,9 +1268,7 @@ namespace QSoft.Registry.Linq
                             }
                             var invokepps = invoke.GetParameters().Select(x => x.ParameterType.Name);
                             List<string> argsnames = new List<string>();
-#pragma warning disable CS0219 // 已指派變數 'pp'，但是從未使用過它的值。
-                            Tuple<ParameterInfo, MethodInfo, List<string>> pp = null;
-#pragma warning restore CS0219 // 已指派變數 'pp'，但是從未使用過它的值。
+                            //Tuple<ParameterInfo, MethodInfo, List<string>> pp = null;
                             foreach(var oo in lo1)
                             {
                                 if (this.m_GenericTypes.First().ContainsKey(oo) && this.m_GenericTypes.First()[oo] == typeof(RegistryKey))

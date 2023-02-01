@@ -318,6 +318,7 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
+                var b2 = regt_devices.Any(x => x.Local.Root.Account == "");
                 //var acc = regt_devices.Where(x => x.Location != null);
                 //var accounts = regt_devices.Select(x => x.Remote.Root.Account).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
@@ -345,7 +346,7 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
-                var ss = regt_building.Select(x => x.Floors).ToList();
+                var ss = regt_building.Where(x=>x.Floors!=null).Select(x => x.Floors).ToList();
                 //var sum1 = regt_building.Where(x => x.Floors != null).ToList();
                 //var sum2 = regt_building.ToList().Sum(a => a.Floors.Count);
 

@@ -913,12 +913,19 @@ namespace QSoft.Registry.Linq
                                     var opensubkeys_expr = Expression.Call(typeof(RegQueryEx).GetMethod("OpenSubKeys"), exprs.First().Value.Expr, Expression.Constant(expr.Member.Name));
                                     expr_member = opensubkeys_expr;
                                 }
-                                else
+                                else if(Type.GetTypeCode(pp.PropertyType) == TypeCode.Object)
                                 {
                                     m_SubkeyNames.Add(expr.Member.Name);
                                     expr_member = exprs.BuildMemberObject(expr, m_SubkeyNames, Converts);
                                     this.m_ExpressionSaves[expr].ExprNeedDispose = true;
                                     members.Add(expr.Member);
+                                }
+                                else
+                                {
+                                    expr_member = exprs.FirstOrDefault().Value.BuildDisposeExpr((reg) =>
+                                    {
+                                        return reg.GetValueExpr(pp.Name, pp.PropertyType);
+                                    });
                                 }
                             }
                         }

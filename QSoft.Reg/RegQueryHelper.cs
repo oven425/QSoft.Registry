@@ -1214,9 +1214,18 @@ namespace QSoft.Registry.Linq
             return null;
         }
 
-        public static Expression BuildDisposeExpr(this Ex src, Func<Expression, BinaryExpression> binary)
+        public static Expression BuildDisposeExpr(this Ex src, Func<ParameterExpression, Expression> func)
         {
-            return null;
+            var reg = Expression.Parameter(typeof(RegistryKey), "reg");
+            
+            var expr = func(reg);
+            var result = Expression.Parameter(expr.Type, "result");
+            var block = Expression.Block(new ParameterExpression[] { reg, result },
+                Expression.Assign(reg, src.Expr),
+                Expression.Assign(result, expr),
+                reg.DisposeExpr(),
+                result);
+            return block;
         }
 
         //public static Expression ToBinary(this DictionaryList<Expression, Ex> exprs, BinaryExpression node, Dictionary<Type, RegQueryConvert> converts)

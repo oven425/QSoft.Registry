@@ -318,8 +318,9 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                var b2 = regt_devices.Any(x => x.Local.Root.Account == "");
-                //var acc = regt_devices.Where(x => x.Location != null);
+                //regt_devices.OrderBy(x => x.Local.Port).ToList();
+                var acc = regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true).ToList();
+                
                 //var accounts = regt_devices.Select(x => x.Remote.Root.Account).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>

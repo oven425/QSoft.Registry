@@ -232,7 +232,7 @@ namespace General
         public void TakeWhile()
         {
             CheckEx.Check(this.m_Devices.TakeWhile(x=>x.Name !=null), regt_devices.TakeWhile(x => x.Name != null));
-            CheckEx.Check(this.m_Devices.TakeWhile(x => x.CameraSetting.Brightness != null), 
+            CheckEx.Check(this.m_Devices.TakeWhile(x => x.CameraSetting.Brightness != null),
                 regt_devices.TakeWhile(x => x.CameraSetting.Brightness != null));
             CheckEx.Check(this.m_Devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true),
                 regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable != true));

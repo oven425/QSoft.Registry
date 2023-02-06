@@ -1221,9 +1221,12 @@ namespace QSoft.Registry.Linq
             var expr = func(reg);
             var result = Expression.Parameter(expr.Type, "result");
             var block = Expression.Block(new ParameterExpression[] { reg, result },
+                Expression.Assign(result, expr.Type.DefaultExpr()),
                 Expression.Assign(reg, src.Expr),
-                Expression.Assign(result, expr),
-                reg.DisposeExpr(),
+                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual,reg, Expression.Constant(null, typeof(RegistryKey))),
+                    Expression.Block(
+                    Expression.Assign(result, expr),
+                    reg.DisposeExpr())),
                 result);
             return block;
         }

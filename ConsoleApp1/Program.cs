@@ -319,8 +319,17 @@ namespace ConsoleApp1
                         x.Add(new Version2String());
                     });
                 regt_devices.OrderBy(x => x.Local.Port).ToList();
-                var acc = regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable == true).ToList();
-                
+                //var acc = regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable == true).ToList();
+
+                //int cc = regt_devices.Where(x => x.Key == "1").Update(x => new
+                //{
+                //    Size = new
+                //    {
+                //        Width = 123,
+                //        Height = 456
+                //    }
+                //});
+
                 //var accounts = regt_devices.Select(x => x.Remote.Root.Account).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>
@@ -347,7 +356,7 @@ namespace ConsoleApp1
                         x.View = RegistryView.Registry64;
                     });
                 //var kk = regt_building.SelectMany(build => build.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)));
-                var ss = regt_building.Where(x=>x.Floors!=null).Select(x => x.Floors).ToList();
+                //var ss = regt_building.Where(x=>x.Floors!=null).Select(x => x.Floors).ToList();
                 //var sum1 = regt_building.Where(x => x.Floors != null).ToList();
                 //var sum2 = regt_building.ToList().Sum(a => a.Floors.Count);
 

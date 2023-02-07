@@ -73,14 +73,6 @@ namespace QSoft.Registry.Linq
                     {
                         return Expression.MakeBinary(node.NodeType, reg, exprs.ElementAt(1).Value.Expr);
                     });
-                    //var hr = Expression.Parameter(typeof(bool), "hr");
-                    //var reg = Expression.Parameter(exprs.ElementAt(0).Value.Expr.Type, "reg");
-                    //binary = Expression.Block(new ParameterExpression[] { hr, reg },
-                    //    Expression.Assign(reg, exprs.ElementAt(0).Value.Expr),
-                    //    Expression.Assign(hr, Expression.MakeBinary(node.NodeType, reg, exprs.ElementAt(1).Value.Expr)),
-                    //    reg.DisposeExpr(),
-                    //    hr
-                    //    );
                 }
                 if (binary == null)
                 {
@@ -126,6 +118,10 @@ namespace QSoft.Registry.Linq
             {
                 if(oo.Value.Expr.Type == typeof(RegistryKey))
                 {
+                    //oo.Value.BuildDisposeExpr((reg) =>
+                    //{
+
+                    //});
                     var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
                     var reg_p_assign = Expression.Assign(reg_p, oo.Value.Expr);
                     var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");

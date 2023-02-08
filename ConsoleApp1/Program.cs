@@ -318,9 +318,10 @@ namespace ConsoleApp1
                     {
                         x.Add(new Version2String());
                     });
-                regt_devices.OrderBy(x => x.Local.Port).ToList();
+                //regt_devices.Select(x => x.Remote.Guest.Account.Length).ToList();
+                //regt_devices.OrderBy(x => x.Local.Port).ToList();
                 //var acc = regt_devices.TakeWhile(x => x.CameraSetting.WDR.IsEnable == true).ToList();
-
+                //var before = regt_devices.GroupBy(x=>x.Key, x=>x.Size).ToList();
                 //int cc = regt_devices.Where(x => x.Key == "1").Update(x => new
                 //{
                 //    Size = new
@@ -329,7 +330,7 @@ namespace ConsoleApp1
                 //        Height = 456
                 //    }
                 //});
-
+                //var after = regt_devices.GroupBy(x => x.Key, x => x.Size).ToList();
                 //var accounts = regt_devices.Select(x => x.Remote.Root.Account).ToList();
                 RegQuery<InstalledApp> regt_installedapps = new RegQuery<InstalledApp>()
                     .useSetting(x =>
@@ -362,18 +363,18 @@ namespace ConsoleApp1
 
                 //var fir = regt_building.FirstOrDefault(a=>a.Floors.FirstOrDefault(b=>b.Areas.Count()>3)!=null);
                 //var fir = regt_building.FirstOrDefault(x => x.Floors.FirstOrDefault(y => y.Areas.FirstOrDefault(z => z.Devices.FirstOrDefault(a=>a.Name!="") != null) !=null)!=null);
-                var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build_name = build.Name, floor })
-                .SelectMany(x => x.floor.Areas, (floor, area) => new { build_name =floor.build_name, floor_name = floor.floor.Name, area })
-                .SelectMany(x => x.area.Devices, (area, device) => new { build_name=area.build_name, floor_name = area.floor_name, area_name = area.area.Name, device })
-                .GroupBy(x => x.device, y => new { y.area_name, y.build_name, y.floor_name });
-                foreach (var group in devices_reg)
-                {
-                    //Console.WriteLine($"{group.Key.Name}");
-                    //foreach(var ooo in group)
-                    //{
-                    //    Console.WriteLine($"{ooo.build_name} {ooo.floor_name} {ooo.area_name}");
-                    //}
-                }
+                //var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build_name = build.Name, floor })
+                //.SelectMany(x => x.floor.Areas, (floor, area) => new { build_name =floor.build_name, floor_name = floor.floor.Name, area })
+                //.SelectMany(x => x.area.Devices, (area, device) => new { build_name=area.build_name, floor_name = area.floor_name, area_name = area.area.Name, device })
+                //.GroupBy(x => x.device, y => new { y.area_name, y.build_name, y.floor_name });
+                //foreach (var group in devices_reg)
+                //{
+                //    //Console.WriteLine($"{group.Key.Name}");
+                //    //foreach(var ooo in group)
+                //    //{
+                //    //    Console.WriteLine($"{ooo.build_name} {ooo.floor_name} {ooo.area_name}");
+                //    //}
+                //}
 
                 //var devices_reg = regt_building.SelectMany(x => x.Floors, (build, floor) => new { build, floor });
                 //foreach (var oo in devices_reg)
@@ -381,11 +382,11 @@ namespace ConsoleApp1
                 //    Console.WriteLine($"{oo.build.Name} {oo.floor}");
                 //}
 
-                var builds = regt_building.ToList();
-                var devices = builds.SelectMany(x => x.Floors, (build, floor) => new { build, floor })
-                .SelectMany(x => x.floor.Areas, (floor, area) => new { floor, area })
-                .SelectMany(x => x.area.Devices, (area, device) => new { area, device })
-                .GroupBy(x=> x.device,y=>new { y.area.area, y.area.floor, y.area.floor.build });
+                //var builds = regt_building.ToList();
+                //var devices = builds.SelectMany(x => x.Floors, (build, floor) => new { build, floor })
+                //.SelectMany(x => x.floor.Areas, (floor, area) => new { floor, area })
+                //.SelectMany(x => x.area.Devices, (area, device) => new { area, device })
+                //.GroupBy(x=> x.device,y=>new { y.area.area, y.area.floor, y.area.floor.build });
 
 
                 //var join = devices.Join(builds, x => x, y => y.Floors.SelectMany(floor=>floor.Areas.SelectMany(area=>area.Devices)).,(x,y)=>x);

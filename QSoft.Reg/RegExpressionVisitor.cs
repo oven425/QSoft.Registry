@@ -113,7 +113,7 @@ namespace QSoft.Registry.Linq
         {
             //var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type).Where(x=>x.Value.SourceExpr is MemberExpression);
             //var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type);
-            var eex = exprs.Where(x=>x.Value.SourceExpr.NodeType != ExpressionType.Parameter);
+            var eex = exprs.Where(x=>x.Value.SourceExpr?.NodeType != ExpressionType.Parameter && x.Value.SourceExpr?.NodeType!= ExpressionType.Constant);
             foreach (var oo in eex)
             {
                 if(oo.Value.Expr.Type == typeof(RegistryKey))
@@ -866,18 +866,6 @@ namespace QSoft.Registry.Linq
                                 {
                                     return  Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), reg, left_args_1);
                                 });
-                                //var p1 = Expression.Parameter(typeof(RegistryKey), "p1");
-                                //var getvalueexpr = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), p1, left_args_1);
-                                //var b1 = Expression.MakeBinary(ExpressionType.NotEqual, p1, Expression.Constant(null, typeof(RegistryKey)));
-                                //var getvalue_resultexpr = Expression.Parameter(expr.Type, "getvalue_result");
-
-                                //var get = Expression.Condition(b1, Expression.Block(Expression.Assign(getvalue_resultexpr, getvalueexpr), p1.DisposeExpr(), getvalue_resultexpr), expr.Type.DefaultExpr());
-                                //member = Expression.Block(new ParameterExpression[] { p1, getvalue_resultexpr } , 
-                                //    Expression.Assign(getvalue_resultexpr, expr.Type.DefaultExpr()),
-                                //    Expression.Assign(p1, exprs.ElementAt(0).Value.Expr),
-                                //    get                                   
-                                //    );
-
                             }
                         }
 
@@ -1318,6 +1306,7 @@ namespace QSoft.Registry.Linq
         protected override Expression VisitConstant(ConstantExpression node)
         {
             this.m_ExpressionSaves[node] = new Ex();
+            this.m_ExpressionSaves[node].SourceExpr = node;
             System.Diagnostics.Debug.WriteLine($"VisitConstant {node.Type.Name}");
 
             var expr = base.VisitConstant(node) as ConstantExpression;

@@ -1225,27 +1225,27 @@ namespace QSoft.Registry.Linq
                                 {
                                     //ttypes1[1] = typeof(RegistryKey);
                                 }
-                                var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts, ttypes1);
-                                if(bubkey != null)
-                                {
-                                    methodcall = bubkey;
-                                }
-                                else
+                                //var bubkey = exprs1.Values.ToStaticMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts, ttypes1);
+                                //if(bubkey != null)
+                                //{
+                                //    methodcall = bubkey;
+                                //}
+                                //else
                                 {
                                     methodcall = Expression.Call(expr.Method.GetGenericMethodDefinition().MakeGenericMethod(ttypes1), exprs1.Select(x => x.Value.Expr));
                                 }
                             }
                             else
                             {
-                                var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
+                                //var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
                                 //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr));
-                                var bubkey1 = exprs1.Values.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts);
-                                var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr), this.Converts);
-                                if (bubkey != null)
-                                {
-                                    methodcall = bubkey;
-                                }
-                                else
+                                //var bubkey1 = exprs1.Values.ToMethodCall(expr.Method, exprs1.Select(x => x.Value.Expr), this.Converts);
+                                //var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr), this.Converts);
+                                //if (bubkey != null)
+                                //{
+                                //    methodcall = bubkey;
+                                //}
+                                //else
                                 {
                                     methodcall = Expression.Call(expr.Method, exprs1.Select(x => x.Value.Expr));
                                 }
@@ -1264,16 +1264,16 @@ namespace QSoft.Registry.Linq
                 }
                 else
                 {
-                    var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
-                    //var sssou = ((exprs1.FirstOrDefault().Value.SourceExpr as MemberExpression).Member as PropertyInfo);
-                    //var aa = new List<PropertyInfo>() { sssou }.BuildSubKey(exprs1.FirstOrDefault().Value, reg_p);
-                    var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr), this.Converts);
-                    //var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
-                    if (bubkey != null)
-                    {
-                        methodcall = bubkey;
-                    }
-                    else
+                    //var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
+                    ////var sssou = ((exprs1.FirstOrDefault().Value.SourceExpr as MemberExpression).Member as PropertyInfo);
+                    ////var aa = new List<PropertyInfo>() { sssou }.BuildSubKey(exprs1.FirstOrDefault().Value, reg_p);
+                    //var bubkey = exprs1.FirstOrDefault().Value.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr), this.Converts);
+                    ////var bubkey = this.m_MembersExprs.ToMethodCall(expr.Method, exprs1.Skip(1).Select(x => x.Value.Expr));
+                    //if (bubkey != null)
+                    //{
+                    //    methodcall = bubkey;
+                    //}
+                    //else
                     {
                         if(expr.Method.Name == "get_Item")
                         {

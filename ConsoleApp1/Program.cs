@@ -82,39 +82,6 @@ namespace ConsoleApp1
         }
     }
 
-    //public class AppMapping
-    //{
-    //    public int CompanyID { set; get; }
-    //    public int AppID { set; get; }
-    //}
-
-    //public class Phone
-    //{
-    //    public string company { set; get; }
-    //    public string number { set; get; }
-    //    public Record First { set; get; }
-    //    public Record Last { set; get; }
-    //}
-
-    //public class Record
-    //{
-    //    public DateTime Start { set; get; }
-    //    public DateTime Stop { set; get; }
-    //}
-
-    //public class People
-    //{
-    //    public string Name { set; get; }
-    //    [RegSubKeyName]
-    //    public string Key { set; get; }
-    //    public int? Weight { set; get; }
-    //    [RegPropertyName(Name = "height")]
-    //    public int Height { set; get; }
-
-    //    [RegPropertyName(Name = "Phone1")]
-    //    public Phone phone { set; get; }
-    //    //public List<Phone> phones { set; get; }
-    //}
 
     //https://github.com/dotnet/runtime/blob/main/src/libraries/System.Text.Json/src/System/Text/Json/Serialization/Converters/CastingConverter.cs
     public class Version2String : RegQueryConvert<Version>
@@ -464,6 +431,8 @@ namespace ConsoleApp1
                 {
                     x.Add(new Version2String());
                 });
+            var left1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping })
+                .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
             var tuple1 = regt.Select(x => Tuple.Create(x.DisplayName));
             //var aa = regt.Select((x, index) => new { index = index+1, x });
             //foreach (var oo in aa)

@@ -274,6 +274,9 @@ namespace ConsoleApp1
                 //var kk = regt_computer.Select(z => z.MB.North.Rams.Any(x=>x.Size>0));
                 //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
+
+                var test = new Test1.Test1();
+                test.Test();
                 RegQuery<Device> regt_devices = new RegQuery<Device>()
                     .useSetting(x =>
                     {
@@ -431,8 +434,6 @@ namespace ConsoleApp1
                 {
                     x.Add(new Version2String());
                 });
-            var left1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping })
-                .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
             var tuple1 = regt.Select(x => Tuple.Create(x.DisplayName));
             //var aa = regt.Select((x, index) => new { index = index+1, x });
             //foreach (var oo in aa)

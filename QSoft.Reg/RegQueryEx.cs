@@ -41,6 +41,8 @@ namespace QSoft.Registry.Linq
             }
         }
 
+
+
         public static int Insert<TSource>(this RegQuery<TSource> source, IEnumerable<TSource> datas) where TSource : class
         {
             var updates = typeof(RegQueryEx).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(x => x.Name == "Insert");

@@ -109,36 +109,42 @@ namespace QSoft.Registry.Linq
             return members1;
         }
 
-        void ToNew(DictionaryList<Expression, Ex> exprs)
+        void ToNew(DictionaryList<Expression, Ex> exprs, bool visitnew=false)
         {
             //var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type).Where(x=>x.Value.SourceExpr is MemberExpression);
             //var eex = exprs.Where(x => x.Key.Type != x.Value.Expr.Type);
             var eex = exprs.Where(x=>x.Value.SourceExpr?.NodeType != ExpressionType.Parameter && x.Value.SourceExpr?.NodeType!= ExpressionType.Constant);
+            if(visitnew == true)
+            {
+                eex = exprs;
+            }
             foreach (var oo in eex)
             {
                 if(oo.Value.Expr.Type == typeof(RegistryKey))
                 {
-                    //oo.Value.BuildDisposeExpr((reg) =>
-                    //{
 
-                    //});
-                    var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
-                    var reg_p_assign = Expression.Assign(reg_p, oo.Value.Expr);
-                    var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
-                    var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
-                    var todataexpr = oo.Value.SourceExpr.Type.ToData(reg_p, this.Converts);
-                    
-                    var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
-                        reg_p_assign,
-                        hr_p_assign,
-                        Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                        Expression.Block(
-                            Expression.Assign(hr_p, todataexpr),
-                            Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(oo.Value.ExprNeedDispose), Expression.Constant(true)),
-                            reg_p.DisposeExpr()))),
-                        hr_p
-                        );
-                    oo.Value.Expr = membgervalue;
+                    //var reg_p = Expression.Parameter(typeof(RegistryKey), "reg_p");
+                    //var reg_p_assign = Expression.Assign(reg_p, oo.Value.Expr);
+                    //var hr_p = Expression.Parameter(oo.Value.SourceExpr.Type, "hr");
+                    //var hr_p_assign = Expression.Assign(hr_p, oo.Value.SourceExpr.Type.DefaultExpr());
+                    //var todataexpr = oo.Value.SourceExpr.Type.ToData(reg_p, this.Converts);
+
+                    //var membgervalue = Expression.Block(new ParameterExpression[] { reg_p, hr_p },
+                    //    reg_p_assign,
+                    //    hr_p_assign,
+                    //    Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                    //    Expression.Block(
+                    //        Expression.Assign(hr_p, todataexpr),
+                    //        Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(oo.Value.ExprNeedDispose), Expression.Constant(true)),
+                    //        reg_p.DisposeExpr()))),
+                    //    hr_p
+                    //    );
+                    //oo.Value.Expr = membgervalue;
+
+                    oo.Value.Expr = oo.Value.BuildDisposeExpr((reg) =>
+                    {
+                        return oo.Value.SourceExpr.Type.ToData(reg, this.Converts);
+                    });
                 }
 
             }
@@ -154,7 +160,7 @@ namespace QSoft.Registry.Linq
             //if (this.m_MembersExprGroup.Count > 0)
             {
                 //this.ToNew(this.m_MembersExprGroup.Pop(), exprs);
-                this.ToNew(exprs);
+                this.ToNew(exprs, true);
             }
            
 
@@ -411,9 +417,10 @@ namespace QSoft.Registry.Linq
                
                 if (lambda.ReturnType!= typeof(string) && lambda.ReturnType.GetInterfaces().Any(x => x == typeof(System.Collections.IEnumerable)))
                 {
-                    var ttiu = exprs.Where(x => !(x.Value.Expr is ParameterExpression));
-                    foreach (var oo in exprs.Where(x => !(x.Value.Expr is ParameterExpression)))
+                    var ttiu = exprs.Where(x => x.Value.Expr.Type != typeof(IEnumerable<RegistryKey>)&& !(x.Value.Expr is ParameterExpression));
+                    foreach (var oo in ttiu)
                     {
+
                         var getallsubkeysexpr = Expression.Call(typeof(RegQueryEx).GetMethod("GetAllSubKeys"), oo.Value.Expr);
                         var aaa = typeof(Enumerable).GetMethods().Where(x => x.Name == "Select").ElementAt(0);
                         aaa = aaa.MakeGenericMethod(typeof(RegistryKey), lambda.ReturnType.GetGenericArguments()[0]);

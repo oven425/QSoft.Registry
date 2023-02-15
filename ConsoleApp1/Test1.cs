@@ -39,7 +39,7 @@ namespace ConsoleApp1.Test1
             try
             {
                 var left1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping })
-                    .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
+                    .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app,mapping });
                 var arrsy = left1.ToArray();
             }
             catch (Exception ex)

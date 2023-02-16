@@ -3,6 +3,7 @@ using QSoft.Registry.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -38,9 +39,22 @@ namespace ConsoleApp1.Test1
         {
             try
             {
+                //var left1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping })
+                //    .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app,mapping });
+                //var arrsy = left1.ToArray();
+
                 var left1 = regt_apps.GroupJoin(regt_appmapping, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping })
-                    .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app,mapping });
-                var arrsy = left1.ToArray();
+                .SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
+                //var nomapping = left1.Where(x => x.mapping == null).Select(x => x.app);
+                //var apps = regt_apps.ToList();
+                //var mappings = regt_appmapping.ToList();
+                //var gj2 = apps.GroupJoin(mappings, app => app.ID, mapping => mapping.AppID, (app, mapping) => new { app, mapping });
+                //var left2 = gj2.SelectMany(x => x.mapping.DefaultIfEmpty(), (app, mapping) => new { app.app, mapping });
+                for (int i = 0; i < left1.Count(); i++)
+                {
+                    System.Diagnostics.Trace.WriteLine($"{i}");
+                    left1.ElementAt(i);
+                }
             }
             catch (Exception ex)
             {

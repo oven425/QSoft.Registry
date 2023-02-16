@@ -693,20 +693,24 @@ namespace QSoft.Registry.Linq
                                 var subkeyname = pp.x.Name;
                                 var opensubkey = typeof(RegistryKey).GetMethod("OpenSubKey", new[] { typeof(string) });
                                 var getsubkeyexpr = Expression.Call(param, opensubkey, Expression.Constant(subkeyname));
-                                var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
-                                var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
-                                var objexpr = pp.x.PropertyType.ToData(reg_p, converts);
-                                var block = Expression.Block(new[] { reg_p, new_p },
-                                    Expression.Assign(reg_p, getsubkeyexpr),
-                                    Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
-                                        Expression.Block(
-                                            Expression.Assign(new_p, objexpr),
-                                            reg_p.DisposeExpr(),
-                                            new_p
-                                            ),
-                                        Expression.Constant(null, pp.x.PropertyType)
-                                        )
-                                    );
+                                //var reg_p = Expression.Parameter(typeof(RegistryKey), "reg");
+                                //var new_p = Expression.Parameter(pp.x.PropertyType, "dst");
+                                //var objexpr = pp.x.PropertyType.ToData(reg_p, converts);
+                                //var block = Expression.Block(new[] { reg_p, new_p },
+                                //    Expression.Assign(reg_p, getsubkeyexpr),
+                                //    Expression.Condition(Expression.MakeBinary(ExpressionType.NotEqual, reg_p, Expression.Constant(null, typeof(RegistryKey))),
+                                //        Expression.Block(
+                                //            Expression.Assign(new_p, objexpr),
+                                //            reg_p.DisposeExpr(),
+                                //            new_p
+                                //            ),
+                                //        Expression.Constant(null, pp.x.PropertyType)
+                                //        )
+                                //    );
+                                var block = getsubkeyexpr.BuildDisposeExpr((reg) =>
+                                {
+                                    return pp.x.PropertyType.ToData(reg, converts);
+                                });
                                 var binding = Expression.Bind(pp.x, block);
                                 bindings.Add(binding);
                             }
@@ -1022,7 +1026,7 @@ namespace QSoft.Registry.Linq
         //        return Tuple.Create(getsubkeyexpr, expr, needdispose);
         //    }
         //    var regexs = typeof(RegistryKeyEx).GetMethods().Where(x => "GetValue" == x.Name && x.IsGenericMethod == true);
-            
+
 
         //    Func<MemberInfo, string> funcValue = delegate (MemberInfo member_expr)
         //    {
@@ -1047,7 +1051,7 @@ namespace QSoft.Registry.Linq
         //        }
         //        return hr;
         //    });
-            
+
 
         //    foreach (var item in group)
         //    {
@@ -1108,7 +1112,7 @@ namespace QSoft.Registry.Linq
         //    {
         //        expr = getvalue;
         //    }
-            
+
         //    return Tuple.Create(getsubkeyexpr, expr, needdispose);
         //}
 
@@ -1209,6 +1213,23 @@ namespace QSoft.Registry.Linq
         //}
 
 
+        public static Expression BuildDisposeExpr(this Expression src, Func<ParameterExpression, Expression> func)
+        {
+            var reg = Expression.Parameter(typeof(RegistryKey), "reg");
+
+            var expr = func(reg);
+            var result = Expression.Parameter(expr.Type, "result");
+            var block = Expression.Block(new ParameterExpression[] { reg, result },
+                Expression.Assign(result, expr.Type.DefaultExpr()),
+                Expression.Assign(reg, src),
+                Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual, reg, Expression.Constant(null, typeof(RegistryKey))),
+                    Expression.Block(
+                    Expression.Assign(result, expr),
+                    reg.DisposeExpr())),
+                result);
+            return block;
+        }
+
         public static Expression BuildDisposeExpr(this Ex src, Func<ParameterExpression, Expression> func)
         {
             var reg = Expression.Parameter(typeof(RegistryKey), "reg");
@@ -1221,7 +1242,8 @@ namespace QSoft.Registry.Linq
                 Expression.IfThen(Expression.MakeBinary(ExpressionType.NotEqual,reg, Expression.Constant(null, typeof(RegistryKey))),
                     Expression.Block(
                     Expression.Assign(result, expr),
-                    reg.DisposeExpr())),
+                    Expression.IfThen(Expression.MakeBinary(ExpressionType.Equal, Expression.Constant(src.ExprNeedDispose), Expression.Constant(true)),
+                    reg.DisposeExpr()))),
                 result);
             return block;
         }

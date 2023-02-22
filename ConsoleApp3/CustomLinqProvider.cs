@@ -7,6 +7,80 @@ using System.Reflection;
 
 namespace Titan.ODataClient
 {
+    public class DbQuery<T> : IQueryable<T>, IDisposable
+    {
+        public DbQuery()
+        {
+            Provider = new DbQueryProvider();
+            Expression = Expression.Constant(this);//最后一个表达式将是第一IQueryable对象的引用。 
+        }
+        public DbQuery(Expression expression)
+        {
+            Provider = new DbQueryProvider();
+            Expression = expression;
+        }
+
+        public Type ElementType
+        {
+            get { return typeof(T); }
+            private set { ElementType = value; }
+        }
+
+        public System.Linq.Expressions.Expression Expression
+        {
+            get;
+            private set;
+        }
+
+        public IQueryProvider Provider
+        {
+            get;
+            private set;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return (Provider.Execute<T>(Expression) as IEnumerable<T>).GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return (Provider.Execute(Expression) as IEnumerable).GetEnumerator();
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
+
+    public class DbQueryProvider : IQueryProvider
+    {
+        public IQueryable<TElement> CreateQuery<TElement>(System.Linq.Expressions.Expression expression)
+        {
+            return new DbQuery<TElement>();
+        }
+
+        public IQueryable CreateQuery(System.Linq.Expressions.Expression expression)
+        {
+            //这里牵扯到对表达式树的分析，就不多说了。
+            throw new NotImplementedException();
+        }
+
+        public TResult Execute<TResult>(System.Linq.Expressions.Expression expression)
+        {
+            return default(TResult);//强类型数据集
+        }
+
+        public object Execute(System.Linq.Expressions.Expression expression)
+        {
+            return new List<object>();//弱类型数据集
+        }
+    }
+
+
+
+
     public class CustomLinqProvider<T> : IQueryable<T>, IQueryProvider
     {
 

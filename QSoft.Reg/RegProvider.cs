@@ -56,7 +56,7 @@ namespace QSoft.Registry.Linq
 #else
             
             this.m_CreateQuerys.Add(expression);
-            return (IQueryable<TElement>)this;
+
             return new RegQuery<TElement>(this, expression);
 
             

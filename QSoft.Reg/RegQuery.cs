@@ -37,11 +37,6 @@ namespace QSoft.Registry.Linq
             {typeof(Version), new Version2String() }
         };
 
-        //List<RegQueryConvert> m_Converts = new List<RegQueryConvert>()
-        //{
-        //    new Version2String()
-        //};
-
         public RegQuery<T> useConverts(Action<List<RegQueryConvert>> converts)
         {
             List<RegQueryConvert> convert = new List<RegQueryConvert>();
@@ -91,8 +86,15 @@ namespace QSoft.Registry.Linq
 #endif
 
         Type m_ElementType = typeof(RegistryKey);
-        
-        public Expression Expression { private set; get; }
+        Expression m_Expression;
+        public Expression Expression { private set
+            {
+                m_Expression = value;
+            }
+            get 
+            {
+                return m_Expression;
+            } }
         public Type ElementType => typeof(RegistryKey);
         public IQueryProvider Provider { private set; get; }
         public IEnumerator<T> GetEnumerator()

@@ -195,6 +195,7 @@ namespace ConsoleApp1
                         x.SubKey = @"LikeDB_SubKey\Computers";
                         x.View = RegistryView.Registry64;
                     });
+                var vv = regt_computer.Where(x => x.DisplayName == "").OrderBy(x => x.Name == "").Take(1);
                 //var regbase = RegistryKey.OpenBaseKey(RegistryHive.CurrentConfig, RegistryView.Registry64);
                 //RegistryKey reg = regbase.OpenSubKey("LikeDB_SubKey\\Computers");
                 //var regss = reg.OpenSubKeys().Any();
@@ -275,8 +276,8 @@ namespace ConsoleApp1
                 //var tolist1 = regt_computer.Select(x => Tuple.Create(x.DisplayName)).ToList();
                 //var sss = regt_computer.Where(x => x.Size.Width+x.Size.Height < 10);
 
-                var test = new Test1.Test1();
-                test.Test();
+                //var test = new Test1.Test1();
+                //test.Test();
                 RegQuery<Device> regt_devices = new RegQuery<Device>()
                     .useSetting(x =>
                     {

@@ -694,7 +694,7 @@ namespace QSoft.Registry.Linq
                                 {
                                     left_args_1 = Expression.Constant((attr as RegPropertyName).Name);
                                     member = exprs.ElementAt(0).Value.Expr;
-                                    //member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
+                                    member = Expression.Call(regexs.ElementAt(0).MakeGenericMethod(expr.Type), exprs.ElementAt(0).Value.Expr, left_args_1);
                                 }
                             }
                             else if (attr is RegSubKeyName)
@@ -1044,7 +1044,7 @@ namespace QSoft.Registry.Linq
                         }
                     }
                 }
-                else if (this.m_Saves.Count > 0)
+                else if (this.m_Saves?.Count > 0)
                 {
                     var types = args.GetTypes(method);
                     for (int i = 0; i < types.Length; i++)

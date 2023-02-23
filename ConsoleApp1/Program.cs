@@ -195,7 +195,7 @@ namespace ConsoleApp1
                         x.SubKey = @"LikeDB_SubKey\Computers";
                         x.View = RegistryView.Registry64;
                     });
-                var vv = regt_computer.Where(x => x.DisplayName == "").OrderBy(x => x.Name == "").Take(1);
+                var vv = regt_computer.Where(x => x.DisplayName == "").OrderBy(x=>x.Name.Length).Any();
                 //var regbase = RegistryKey.OpenBaseKey(RegistryHive.CurrentConfig, RegistryView.Registry64);
                 //RegistryKey reg = regbase.OpenSubKey("LikeDB_SubKey\\Computers");
                 //var regss = reg.OpenSubKeys().Any();

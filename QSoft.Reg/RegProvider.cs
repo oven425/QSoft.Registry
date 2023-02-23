@@ -54,12 +54,15 @@ namespace QSoft.Registry.Linq
             var aa = visitor.VisitAA(expression);
             return new RegQuery<TElement>(this, expression, aa);
 #else
-            
+            RegExpressionVisitor<TElement> visitor = new RegExpressionVisitor<TElement>();
+            visitor.Converts = this.Converts;
+            var eee = visitor.Visit(expression, this.m_RegSource);
             this.m_CreateQuerys.Add(expression);
+            return new RegQuery<TElement>(this, expression, eee);
 
-            return new RegQuery<TElement>(this, expression);
+            //return new RegQuery<TElement>(this, expression);
 
-            
+
 #endif
         }
 

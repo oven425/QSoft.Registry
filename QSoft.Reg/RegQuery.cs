@@ -61,20 +61,23 @@ namespace QSoft.Registry.Linq
             return this;
         }
 
-
-
         public RegQuery<T> HasDefault(Expression<Func<T>> data)
         {
-            //Expression.Lambda<T>()
-
             return this;
         }
-
-        public RegQuery(IQueryProvider provider, Expression expression)
+        public Expression Expression_Reg { private set; get; }
+        public RegQuery(IQueryProvider provider, Expression expression, Expression expressionreg)
         {
             this.Provider = provider;
             this.Expression = expression;
+            this.Expression_Reg = expressionreg;
         }
+
+        //public RegQuery(IQueryProvider provider, Expression expression)
+        //{
+        //    this.Provider = provider;
+        //    this.Expression = expression;
+        //}
 #if TestProvider
         public Expression Expression_Reg { private set; get; }
         public RegQuery(IQueryProvider provider, Expression src, Expression dst)
